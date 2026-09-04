@@ -30,11 +30,11 @@ for the shape and share actual values another way.
 
 | Date | What |
 |---|---|
-| **Mon 8 Sept** | Feature freeze — nothing new starts after this |
+| **Mon 8 Sept** | Feature freeze. Nothing new starts after this |
 | **Fri 11 Sept, 18:00** | **Code freeze.** Only demo-breaking bugs after this |
 | Sat 12 Sept | Rehearsal day. Fallback demo video recorded |
-| **Sun 13 Sept, 14:00** | **SUBMISSION.** Slides (Google Slides or PowerPoint — **not PDF**) + demo link to Emily@TechIreland.org |
-| Mon 14 Sept | Dogpatch Labs. Registration 10:00, pitch 14:00–15:00 |
+| **Sun 13 Sept, 14:00** | **SUBMISSION.** Slides (Google Slides or PowerPoint, **not PDF**) + demo link to Emily@TechIreland.org |
+| Mon 14 Sept | Dogpatch Labs. Registration 10:00, pitch 14:00-15:00 |
 
 **The real deadline is the 13th, not the 14th.** Teams that miss it are not permitted to pitch.
 
@@ -57,7 +57,7 @@ Riyaz (commercial) and Ievgeniia (product/BA) work in `docs/` rather than code.
 ## Layout
 
 ```
-contracts/      API contract. Frozen — see CONTRIBUTING before changing
+contracts/      API contract. Frozen: see CONTRIBUTING before changing
 db/             Schema and migrations
 services/
   api/          API gateway / BFF          (Ziyi)
@@ -81,7 +81,7 @@ git clone https://github.com/IronNathanAlvares/naic-2026-coaching-engine.git
 cd naic-2026-coaching-engine
 ```
 
-**Generate the test dataset** — deterministic, so everyone gets identical data:
+**Generate the test dataset.** It is deterministic, so everyone gets identical data:
 
 ```bash
 cd data-generation && python generate_corpus.py
@@ -91,7 +91,7 @@ Produces 62 SOP chunks, 65 shift debriefs, 53 practice attempts, 28 observations
 golden set, and `seed.sql`. Verified on generation: Diego lands in the BLOCKED quadrant at gap
 2.2; cohort of 9 on room-not-ready.
 
-**Read the docs** — start with `docs/pdf/00-Index.pdf`, which tells you what to read for your
+**Read the docs.** Start with `docs/pdf/00-Index.pdf`, which tells you what to read for your
 role. If you are not technical, read `06-Plain-English-Guide.pdf` and stop there.
 
 **Rebuild the docs** (needs a LaTeX distribution):
@@ -105,13 +105,13 @@ cd docs && pwsh ./build.ps1
 ## The three principles
 
 **1. Deterministic where it must be, LLM where it adds value.** Escalation thresholds, BARS
-anchors, routing rules and audit logging are code — same input, same output, explainable to a
+anchors, routing rules and audit logging are code: same input, same output, explainable to a
 works council. Synthesis, conversation and scenario generation are the model. Both sides share
-one 1–5 scale, so the rules engine and the model can never contradict each other in front of a
+one 1-5 scale, so the rules engine and the model can never contradict each other in front of a
 manager.
 
 **2. Cite or stay silent.** If the agent cannot cite the specific scenario turn, the specific
-observation and the specific SOP clause, it does not emit a recommendation — it abstains and
+observation and the specific SOP clause, it does not emit a recommendation. It abstains and
 says what evidence is missing. The gate is **code**, not a prompt asking the model to behave.
 
 **3. Reasoning in code, plumbing in n8n.** Anything a judge should be able to watch the system
@@ -125,8 +125,8 @@ n8n.
 Under time pressure we cut scope in the order set out in `docs/pdf/05-Sprint-Plan.pdf` §3.3.
 These three are not on that list:
 
-- **The cite gate** — including the abstain path
-- **The verify interrupt** — no coaching action on AI output alone, no timeout, no auto-approve
-- **The calibration number** — the system reports its own accuracy, including where it is weak
+- **The cite gate**, including its abstain path
+- **The verify interrupt**: no coaching action on AI output alone, no timeout, no auto-approve
+- **The calibration number**: the system reports its own accuracy, including where it is weak
 
 Those three are the product.
