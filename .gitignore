@@ -1,0 +1,74 @@
+# ============================================================
+#  NEVER COMMIT THESE
+# ============================================================
+# Real hotel SOPs. These are a real property's internal operations
+# manuals, shared with Mary-Susan for prototype use only. They are
+# somebody else's confidential material and they do not belong in a
+# git repository, private or otherwise.
+Docs/SOPs/
+**/SOPs/
+*SOP_Source*
+*sop_source*
+
+# Real staff data. Synthetic personas only, everywhere, always.
+**/real-staff*
+**/staff-export*
+**/*-pii*
+
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+service-account*.json
+gcp-key*.json
+secrets/
+
+# ============================================================
+#  Build output and noise
+# ============================================================
+# LaTeX
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.blog
+*.bbl
+*.blg
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+.next/
+dist/
+build/
+.turbo/
+*.tsbuildinfo
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Local
+*.local
+.cache/
+tmp/
