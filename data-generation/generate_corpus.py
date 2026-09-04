@@ -449,11 +449,53 @@ SCENARIOS = [
 DIMS = list(P.DIMENSIONS.keys())
 
 
-def _score_profile(name: str, dept: str, source: str, rng: random.Random) -> dict:
-    """Return per-dimension scores. Diego is engineered into the BLOCKED quadrant,
-    Aoife into COMPETENT; everyone else is drawn around a plausible middle."""
+# Which dimensions a situation can actually evidence. A room-not-ready
+# complaint gives you nothing to say about upselling; a local-area enquiry
+# gives you nothing to say about service recovery.
+#
+# This exists because of the null rule in 02D section 2.4: a dimension with no
+# evidence must score NULL, never the midpoint. Defaulting an unevidenced
+# dimension to 3 drags every mean toward the middle, compresses the transfer
+# gap toward zero, and makes the product look like it has nothing to say.
+SITUATION_DIMENSIONS = {
+    "room_not_ready":                 {"service_recovery", "empathy", "composure"},
+    "service_delay_and_order_error":  {"service_recovery", "empathy", "composure"},
+    "service_delay":                  {"service_recovery", "communication", "anticipation"},
+    "billing_dispute":                {"service_recovery", "communication", "composure"},
+    "noise_complaint":                {"service_recovery", "empathy"},
+    "booking_error":                  {"service_recovery", "communication"},
+    "special_request_failure":        {"empathy", "anticipation"},
+    "order_error":                    {"service_recovery", "empathy"},
+    "system_down":                    {"communication", "composure", "anticipation"},
+    "local_area_enquiry":             {"communication", "anticipation"},
+    "allergen_query":                 {"communication", "anticipation"},
+    "other":                          {"communication"},
+}
+
+# Non-complaint practice scenarios and observation contexts declare their own
+# evidenced set, so nothing is scored on a dimension the situation never tested.
+DEFAULT_EVIDENCED = {"communication", "composure"}
+
+
+def _score_profile(name: str, dept: str, source: str, rng: random.Random,
+                   evidenced: set[str] | None = None) -> dict:
+    """Per-dimension scores, with unevidenced dimensions returned as None.
+
+    Diego is engineered into the BLOCKED quadrant and Aoife into COMPETENT so
+    the demo narrative is reproducible; everyone else is drawn around a
+    plausible middle.
+
+    `evidenced` is the set of dimensions the situation actually tested. Anything
+    outside it scores None rather than a number, which is the documented rule
+    and the thing that keeps a mean honest.
+    """
+    evidenced = evidenced if evidenced is not None else set(DIMS)
     out = {}
     for d in DIMS:
+        if d not in evidenced:
+            out[d] = None                 # not evidenced by this situation
+            continue
+
         if name == DEMO["blocked_staff"]:
             base = 4.6 if source == "practice" else 2.0
             if d != "service_recovery":
@@ -462,15 +504,13 @@ def _score_profile(name: str, dept: str, source: str, rng: random.Random) -> dic
             base = 4.3 if source == "practice" else 4.1
         else:
             base = rng.uniform(2.4, 4.4)
+
         # F&B staff score better on service recovery: they have a documented
         # framework (A.L.O.U.D.) and front office does not. This is the point.
         if d == "service_recovery" and dept == "f_and_b" and source == "floor":
             base += 0.6
-        val = max(1, min(5, round(base + rng.uniform(-0.4, 0.4))))
-        # anticipation is thinly covered in every source -> often unevidenced
-        if d == "anticipation" and rng.random() < 0.35:
-            val = None
-        out[d] = val
+
+        out[d] = max(1, min(5, round(base + rng.uniform(-0.4, 0.4))))
     return out
 
 
@@ -481,31 +521,42 @@ def build_attempts(staff: list[Staff], rng: random.Random) -> list[Attempt]:
             continue
         for _ in range(rng.randint(3, 5)):
             n += 1
-            title, dept, _dims = rng.choice(
+            title, dept, dims = rng.choice(
                 [sc for sc in SCENARIOS if sc[1] == s.department] or SCENARIOS)
             attempts.append(Attempt(
                 id=f"att-{n:03d}", staff_id=s.id, staff_name=s.name,
                 scenario_title=title,
                 completed_at=(WINDOW_END - timedelta(days=rng.randint(1, WINDOW_DAYS))).isoformat(),
-                scores=_score_profile(s.name, s.department, "practice", rng),
+                # A scenario only tests what it was designed to test. Scoring
+                # outside target_dimensions would be inventing evidence.
+                scores=_score_profile(s.name, s.department, "practice", rng,
+                                      evidenced=set(dims)),
                 turns=rng.randint(6, 10)))
     return attempts
 
 
+# Each context carries the dimensions a manager could actually have observed
+# in it. A busy check-in queue says nothing about service recovery, because no
+# service failure occurred.
 OBS_CONTEXTS = {
     "front_office": [
         ("Guest complaint at front desk, room not ready at 3pm",
-         "Froze, then escalated to me without attempting recovery herself."),
+         "Froze, then escalated to me without attempting recovery herself.",
+         {"service_recovery", "empathy", "composure"}),
         ("Busy check-in queue, four deep",
-         "Kept the queue informed and stayed composed. Handled it well."),
+         "Kept the queue informed and stayed composed. Handled it well.",
+         {"communication", "composure", "anticipation"}),
         ("Checkout billing query",
-         "Explained clearly but did not offer any goodwill gesture, went straight to me."),
+         "Explained clearly but did not offer any goodwill gesture, went straight to me.",
+         {"service_recovery", "communication"}),
     ],
     "f_and_b": [
         ("Late mains on a table of six",
-         "Apologised, acknowledged the specific delay, comped coffees. Textbook A.L.O.U.D."),
+         "Apologised, acknowledged the specific delay, comped coffees. Textbook A.L.O.U.D.",
+         {"service_recovery", "empathy", "composure"}),
         ("Guest unhappy with wine recommendation",
-         "Listened without interrupting and offered an alternative. Good."),
+         "Listened without interrupting and offered an alternative. Good.",
+         {"empathy", "communication"}),
     ],
 }
 
@@ -517,15 +568,16 @@ def build_observations(staff: list[Staff], rng: random.Random) -> list[Observati
             continue
         for _ in range(rng.randint(1, 3)):
             n += 1
-            ctx, what = rng.choice(OBS_CONTEXTS[s.department])
+            ctx, what, dims = rng.choice(OBS_CONTEXTS[s.department])
             if s.name == DEMO["blocked_staff"]:
-                ctx, what = OBS_CONTEXTS["front_office"][0]
+                ctx, what, dims = OBS_CONTEXTS["front_office"][0]
             obs.append(Observation(
                 id=f"obs-{n:03d}", staff_id=s.id, staff_name=s.name,
                 manager_name=DEMO["manager"],
                 observed_at=(WINDOW_END - timedelta(days=rng.randint(1, 14))).isoformat(),
                 context=ctx, what_happened=what,
-                ratings=_score_profile(s.name, s.department, "floor", rng)))
+                ratings=_score_profile(s.name, s.department, "floor", rng,
+                                       evidenced=dims)))
     return obs
 
 
