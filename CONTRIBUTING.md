@@ -43,14 +43,14 @@ So:
 Small and frequent beats one enormous merge on the 10th.
 
 **Before you open one:**
-1. Pull `main` and merge it into your branch — you resolve the conflicts, not the reviewer
+1. Pull `main` and merge it into your branch, you resolve the conflicts, not the reviewer
 2. Run it. Actually run it, not "it compiled"
 3. If you touched the contract in `contracts/`, say so in the title
 
 **PR title:** what changed, in plain words. `Add cite gate with abstain path`, not `updates`.
 
 **Review:** one approval. Anyone can approve. If nobody has looked within four hours and it is
-blocking you, say so in the tech group and merge — a stalled build is worse than an unreviewed
+blocking you, say so in the tech group and merge, a stalled build is worse than an unreviewed
 merge on a twelve-day project.
 
 ---
@@ -58,7 +58,7 @@ merge on a twelve-day project.
 ## Contracts are frozen
 
 `contracts/` and `db/` define how our pieces fit together. Ziyi builds the API against them,
-Nathan builds the agent against them, Puneet tests against them — all in parallel, none of us
+Nathan builds the agent against them, Puneet tests against them, all in parallel, none of us
 waiting.
 
 **Changing a contract breaks somebody else's work in progress.** So:
@@ -73,7 +73,7 @@ Two weeks is not long enough to renegotiate interfaces mid-build.
 ## Never commit
 
 - **The hotel SOPs.** Real property, real internal manuals, shared for prototype use only. Not
-  ours to publish. `.gitignore` blocks them — do not work around it.
+  ours to publish. `.gitignore` blocks them, do not work around it.
 - **Real staff data.** Synthetic personas only, everywhere.
 - **Secrets.** No keys, no service-account JSON, no `.env`.
 
@@ -92,7 +92,7 @@ Fix null handling in transfer gap when no floor score exists
 Seed demo data for the room-readiness cohort
 ```
 
-Commit often on your own branch — it is yours, nobody else is reading it.
+Commit often on your own branch, it is yours, nobody else is reading it.
 
 ---
 
