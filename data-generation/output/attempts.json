@@ -1,0 +1,797 @@
+[
+  {
+    "id": "att-001",
+    "staff_id": "staff-001",
+    "staff_name": "Diego",
+    "scenario_title": "Noise complaint at 23:00",
+    "completed_at": "2026-09-07",
+    "scores": {
+      "empathy": 4,
+      "communication": 4,
+      "composure": 4,
+      "service_recovery": 4,
+      "anticipation": 4
+    },
+    "turns": 9
+  },
+  {
+    "id": "att-002",
+    "staff_id": "staff-001",
+    "staff_name": "Diego",
+    "scenario_title": "Room not ready at check-in",
+    "completed_at": "2026-08-14",
+    "scores": {
+      "empathy": 4,
+      "communication": 4,
+      "composure": 4,
+      "service_recovery": 4,
+      "anticipation": 4
+    },
+    "turns": 7
+  },
+  {
+    "id": "att-003",
+    "staff_id": "staff-001",
+    "staff_name": "Diego",
+    "scenario_title": "Room not ready at check-in",
+    "completed_at": "2026-08-23",
+    "scores": {
+      "empathy": 4,
+      "communication": 4,
+      "composure": 4,
+      "service_recovery": 4,
+      "anticipation": null
+    },
+    "turns": 6
+  },
+  {
+    "id": "att-004",
+    "staff_id": "staff-001",
+    "staff_name": "Diego",
+    "scenario_title": "Guest disputes a charge at checkout",
+    "completed_at": "2026-09-06",
+    "scores": {
+      "empathy": 4,
+      "communication": 4,
+      "composure": 4,
+      "service_recovery": 5,
+      "anticipation": 4
+    },
+    "turns": 7
+  },
+  {
+    "id": "att-005",
+    "staff_id": "staff-001",
+    "staff_name": "Diego",
+    "scenario_title": "Guest disputes a charge at checkout",
+    "completed_at": "2026-08-24",
+    "scores": {
+      "empathy": 4,
+      "communication": 4,
+      "composure": 4,
+      "service_recovery": 4,
+      "anticipation": 4
+    },
+    "turns": 7
+  },
+  {
+    "id": "att-006",
+    "staff_id": "staff-002",
+    "staff_name": "Niamh",
+    "scenario_title": "Noise complaint at 23:00",
+    "completed_at": "2026-08-27",
+    "scores": {
+      "empathy": 4,
+      "communication": 4,
+      "composure": 3,
+      "service_recovery": 4,
+      "anticipation": 4
+    },
+    "turns": 10
+  },
+  {
+    "id": "att-007",
+    "staff_id": "staff-002",
+    "staff_name": "Niamh",
+    "scenario_title": "Room not ready at check-in",
+    "completed_at": "2026-08-31",
+    "scores": {
+      "empathy": 5,
+      "communication": 4,
+      "composure": 3,
+      "service_recovery": 4,
+      "anticipation": 4
+    },
+    "turns": 6
+  },
+  {
+    "id": "att-008",
+    "staff_id": "staff-002",
+    "staff_name": "Niamh",
+    "scenario_title": "Room not ready at check-in",
+    "completed_at": "2026-09-02",
+    "scores": {
+      "empathy": 4,
+      "communication": 3,
+      "composure": 4,
+      "service_recovery": 3,
+      "anticipation": 4
+    },
+    "turns": 9
+  },
+  {
+    "id": "att-009",
+    "staff_id": "staff-003",
+    "staff_name": "Tomasz",
+    "scenario_title": "Room not ready at check-in",
+    "completed_at": "2026-08-19",
+    "scores": {
+      "empathy": 4,
+      "communication": 3,
+      "composure": 3,
+      "service_recovery": 3,
+      "anticipation": 4
+    },
+    "turns": 7
+  },
+  {
+    "id": "att-010",
+    "staff_id": "staff-003",
+    "staff_name": "Tomasz",
+    "scenario_title": "Noise complaint at 23:00",
+    "completed_at": "2026-09-03",
+    "scores": {
+      "empathy": 3,
+      "communication": 3,
+      "composure": 4,
+      "service_recovery": 4,
+      "anticipation": 2
+    },
+    "turns": 6
+  },
+  {
+    "id": "att-011",
+    "staff_id": "staff-003",
+    "staff_name": "Tomasz",
+    "scenario_title": "Room not ready at check-in",
+    "completed_at": "2026-09-08",
+    "scores": {
+      "empathy": 5,
+      "communication": 2,
+      "composure": 4,
+      "service_recovery": 3,
+      "anticipation": 4
+    },
+    "turns": 10
+  },
+  {
+    "id": "att-012",
+    "staff_id": "staff-003",
+    "staff_name": "Tomasz",
+    "scenario_title": "Noise complaint at 23:00",
+    "completed_at": "2026-08-29",
+    "scores": {
+      "empathy": 3,
+      "communication": 3,
+      "composure": 3,
+      "service_recovery": 3,
+      "anticipation": 2
+    },
+    "turns": 9
+  },
+  {
+    "id": "att-013",
+    "staff_id": "staff-003",
+    "staff_name": "Tomasz",
+    "scenario_title": "Guest disputes a charge at checkout",
+    "completed_at": "2026-08-15",
+    "scores": {
+      "empathy": 4,
+      "communication": 3,
+      "composure": 4,
+      "service_recovery": 3,
+      "anticipation": null
+    },
+    "turns": 10
+  },
+  {
+    "id": "att-014",
+    "staff_id": "staff-004",
+    "staff_name": "Rachel",
+    "scenario_title": "Guest disputes a charge at checkout",
+    "completed_at": "2026-08-30",
+    "scores": {
+      "empathy": 3,
+      "communication": 3,
+      "composure": 4,
+      "service_recovery": 2,
+      "anticipation": 3
+    },
+    "turns": 9
+  },
+  {
+    "id": "att-015",
+    "staff_id": "staff-004",
+    "staff_name": "Rachel",
+    "scenario_title": "Room not ready at check-in",
+    "completed_at": "2026-08-24",
+    "scores": {
+      "empathy": 3,
+      "communication": 4,
+      "composure": 4,
+      "service_recovery": 4,
+      "anticipation": 3
+    },
+    "turns": 9
+  },
+  {
+    "id": "att-016",
+    "staff_id": "staff-004",
+    "staff_name": "Rachel",
+    "scenario_title": "Room not ready at check-in",
+    "completed_at": "2026-08-28",
+    "scores": {
+      "empathy": 4,
+      "communication": 4,
+      "composure": 3,
+      "service_recovery": 3,
+      "anticipation": 3
+    },
+    "turns": 6
+  },
+  {
+    "id": "att-017",
+    "staff_id": "staff-005",
+    "staff_name": "Kwame",
+    "scenario_title": "Guest disputes a charge at checkout",
+    "completed_at": "2026-08-27",
+    "scores": {
+      "empathy": 3,
+      "communication": 4,
+      "composure": 4,
+      "service_recovery": 4,
+      "anticipation": 4
+    },
+    "turns": 6
+  },
+  {
+    "id": "att-018",
+    "staff_id": "staff-005",
+    "staff_name": "Kwame",
+    "scenario_title": "Noise complaint at 23:00",
+    "completed_at": "2026-08-18",
+    "scores": {
+      "empathy": 4,
+      "communication": 4,
+      "composure": 4,
+      "service_recovery": 3,
+      "anticipation": 3
+    },
+    "turns": 9
+  },
+  {
+    "id": "att-019",
+    "staff_id": "staff-005",
+    "staff_name": "Kwame",
+    "scenario_title": "Guest disputes a charge at checkout",
+    "completed_at": "2026-08-16",
+    "scores": {
+      "empathy": 4,
+      "communication": 5,
+      "composure": 4,
+      "service_recovery": 4,
+      "anticipation": 5
+    },
+    "turns": 10
+  },
+  {
+    "id": "att-020",
+    "staff_id": "staff-006",
+    "staff_name": "Lucia",
+    "scenario_title": "Room not ready at check-in",
+    "completed_at": "2026-08-15",
+    "scores": {
+      "empathy": 4,
+      "communication": 2,
+      "composure": 4,
+      "service_recovery": 4,
+      "anticipation": 2
+    },
+    "turns": 8
+  },
+  {
+    "id": "att-021",
+    "staff_id": "staff-006",
+    "staff_name": "Lucia",
+    "scenario_title": "Room not ready at check-in",
+    "completed_at": "2026-09-07",
+    "scores": {
+      "empathy": 3,
+      "communication": 3,
+      "composure": 3,
+      "service_recovery": 4,
+      "anticipation": null
+    },
+    "turns": 8
+  },
+  {
+    "id": "att-022",
+    "staff_id": "staff-006",
+    "staff_name": "Lucia",
+    "scenario_title": "Room not ready at check-in",
+    "completed_at": "2026-08-16",
+    "scores": {
+      "empathy": 2,
+      "communication": 4,
+      "composure": 3,
+      "service_recovery": 2,
+      "anticipation": 4
+    },
+    "turns": 9
+  },
+  {
+    "id": "att-023",
+    "staff_id": "staff-006",
+    "staff_name": "Lucia",
+    "scenario_title": "Noise complaint at 23:00",
+    "completed_at": "2026-09-10",
+    "scores": {
+      "empathy": 3,
+      "communication": 4,
+      "composure": 3,
+      "service_recovery": 3,
+      "anticipation": null
+    },
+    "turns": 9
+  },
+  {
+    "id": "att-024",
+    "staff_id": "staff-006",
+    "staff_name": "Lucia",
+    "scenario_title": "Noise complaint at 23:00",
+    "completed_at": "2026-08-25",
+    "scores": {
+      "empathy": 4,
+      "communication": 3,
+      "composure": 2,
+      "service_recovery": 3,
+      "anticipation": 3
+    },
+    "turns": 10
+  },
+  {
+    "id": "att-025",
+    "staff_id": "staff-007",
+    "staff_name": "Sean",
+    "scenario_title": "Noise complaint at 23:00",
+    "completed_at": "2026-09-05",
+    "scores": {
+      "empathy": 4,
+      "communication": 4,
+      "composure": 4,
+      "service_recovery": 4,
+      "anticipation": null
+    },
+    "turns": 9
+  },
+  {
+    "id": "att-026",
+    "staff_id": "staff-007",
+    "staff_name": "Sean",
+    "scenario_title": "Room not ready at check-in",
+    "completed_at": "2026-09-03",
+    "scores": {
+      "empathy": 5,
+      "communication": 4,
+      "composure": 4,
+      "service_recovery": 3,
+      "anticipation": 4
+    },
+    "turns": 10
+  },
+  {
+    "id": "att-027",
+    "staff_id": "staff-007",
+    "staff_name": "Sean",
+    "scenario_title": "Room not ready at check-in",
+    "completed_at": "2026-09-03",
+    "scores": {
+      "empathy": 3,
+      "communication": 4,
+      "composure": 2,
+      "service_recovery": 3,
+      "anticipation": 4
+    },
+    "turns": 9
+  },
+  {
+    "id": "att-028",
+    "staff_id": "staff-007",
+    "staff_name": "Sean",
+    "scenario_title": "Room not ready at check-in",
+    "completed_at": "2026-08-28",
+    "scores": {
+      "empathy": 3,
+      "communication": 2,
+      "composure": 4,
+      "service_recovery": 3,
+      "anticipation": null
+    },
+    "turns": 6
+  },
+  {
+    "id": "att-029",
+    "staff_id": "staff-008",
+    "staff_name": "Priya",
+    "scenario_title": "Room not ready at check-in",
+    "completed_at": "2026-09-10",
+    "scores": {
+      "empathy": 2,
+      "communication": 4,
+      "composure": 3,
+      "service_recovery": 4,
+      "anticipation": 3
+    },
+    "turns": 9
+  },
+  {
+    "id": "att-030",
+    "staff_id": "staff-008",
+    "staff_name": "Priya",
+    "scenario_title": "Noise complaint at 23:00",
+    "completed_at": "2026-08-16",
+    "scores": {
+      "empathy": 4,
+      "communication": 4,
+      "composure": 3,
+      "service_recovery": 3,
+      "anticipation": 3
+    },
+    "turns": 6
+  },
+  {
+    "id": "att-031",
+    "staff_id": "staff-008",
+    "staff_name": "Priya",
+    "scenario_title": "Room not ready at check-in",
+    "completed_at": "2026-09-04",
+    "scores": {
+      "empathy": 3,
+      "communication": 3,
+      "composure": 4,
+      "service_recovery": 4,
+      "anticipation": null
+    },
+    "turns": 6
+  },
+  {
+    "id": "att-032",
+    "staff_id": "staff-009",
+    "staff_name": "Andrei",
+    "scenario_title": "Guest disputes a charge at checkout",
+    "completed_at": "2026-08-14",
+    "scores": {
+      "empathy": 2,
+      "communication": 2,
+      "composure": 3,
+      "service_recovery": 3,
+      "anticipation": null
+    },
+    "turns": 8
+  },
+  {
+    "id": "att-033",
+    "staff_id": "staff-009",
+    "staff_name": "Andrei",
+    "scenario_title": "Noise complaint at 23:00",
+    "completed_at": "2026-09-09",
+    "scores": {
+      "empathy": 4,
+      "communication": 4,
+      "composure": 4,
+      "service_recovery": 3,
+      "anticipation": 3
+    },
+    "turns": 8
+  },
+  {
+    "id": "att-034",
+    "staff_id": "staff-009",
+    "staff_name": "Andrei",
+    "scenario_title": "Noise complaint at 23:00",
+    "completed_at": "2026-08-22",
+    "scores": {
+      "empathy": 4,
+      "communication": 4,
+      "composure": 3,
+      "service_recovery": 2,
+      "anticipation": null
+    },
+    "turns": 10
+  },
+  {
+    "id": "att-035",
+    "staff_id": "staff-009",
+    "staff_name": "Andrei",
+    "scenario_title": "Room not ready at check-in",
+    "completed_at": "2026-09-07",
+    "scores": {
+      "empathy": 2,
+      "communication": 4,
+      "composure": 3,
+      "service_recovery": 3,
+      "anticipation": 3
+    },
+    "turns": 6
+  },
+  {
+    "id": "att-036",
+    "staff_id": "staff-010",
+    "staff_name": "Aoife",
+    "scenario_title": "Guest asks about allergens",
+    "completed_at": "2026-09-02",
+    "scores": {
+      "empathy": 4,
+      "communication": 4,
+      "composure": 4,
+      "service_recovery": 4,
+      "anticipation": null
+    },
+    "turns": 7
+  },
+  {
+    "id": "att-037",
+    "staff_id": "staff-010",
+    "staff_name": "Aoife",
+    "scenario_title": "Guest asks about allergens",
+    "completed_at": "2026-08-21",
+    "scores": {
+      "empathy": 5,
+      "communication": 4,
+      "composure": 5,
+      "service_recovery": 5,
+      "anticipation": 4
+    },
+    "turns": 7
+  },
+  {
+    "id": "att-038",
+    "staff_id": "staff-010",
+    "staff_name": "Aoife",
+    "scenario_title": "Guest asks about allergens",
+    "completed_at": "2026-08-17",
+    "scores": {
+      "empathy": 4,
+      "communication": 4,
+      "composure": 4,
+      "service_recovery": 5,
+      "anticipation": 4
+    },
+    "turns": 10
+  },
+  {
+    "id": "att-039",
+    "staff_id": "staff-010",
+    "staff_name": "Aoife",
+    "scenario_title": "Guest asks about allergens",
+    "completed_at": "2026-09-03",
+    "scores": {
+      "empathy": 4,
+      "communication": 5,
+      "composure": 5,
+      "service_recovery": 4,
+      "anticipation": null
+    },
+    "turns": 10
+  },
+  {
+    "id": "att-040",
+    "staff_id": "staff-011",
+    "staff_name": "Marek",
+    "scenario_title": "Guest asks about allergens",
+    "completed_at": "2026-09-09",
+    "scores": {
+      "empathy": 3,
+      "communication": 4,
+      "composure": 3,
+      "service_recovery": 4,
+      "anticipation": 2
+    },
+    "turns": 8
+  },
+  {
+    "id": "att-041",
+    "staff_id": "staff-011",
+    "staff_name": "Marek",
+    "scenario_title": "Guest asks about allergens",
+    "completed_at": "2026-08-25",
+    "scores": {
+      "empathy": 3,
+      "communication": 4,
+      "composure": 3,
+      "service_recovery": 3,
+      "anticipation": 4
+    },
+    "turns": 9
+  },
+  {
+    "id": "att-042",
+    "staff_id": "staff-011",
+    "staff_name": "Marek",
+    "scenario_title": "Guest asks about allergens",
+    "completed_at": "2026-08-21",
+    "scores": {
+      "empathy": 3,
+      "communication": 3,
+      "composure": 3,
+      "service_recovery": 2,
+      "anticipation": null
+    },
+    "turns": 8
+  },
+  {
+    "id": "att-043",
+    "staff_id": "staff-011",
+    "staff_name": "Marek",
+    "scenario_title": "Guest asks about allergens",
+    "completed_at": "2026-08-24",
+    "scores": {
+      "empathy": 4,
+      "communication": 4,
+      "composure": 3,
+      "service_recovery": 4,
+      "anticipation": null
+    },
+    "turns": 6
+  },
+  {
+    "id": "att-044",
+    "staff_id": "staff-011",
+    "staff_name": "Marek",
+    "scenario_title": "Late main course, wrong order",
+    "completed_at": "2026-08-19",
+    "scores": {
+      "empathy": 3,
+      "communication": 4,
+      "composure": 3,
+      "service_recovery": 3,
+      "anticipation": 4
+    },
+    "turns": 9
+  },
+  {
+    "id": "att-045",
+    "staff_id": "staff-012",
+    "staff_name": "Chloe",
+    "scenario_title": "Late main course, wrong order",
+    "completed_at": "2026-09-07",
+    "scores": {
+      "empathy": 4,
+      "communication": 2,
+      "composure": 4,
+      "service_recovery": 4,
+      "anticipation": 4
+    },
+    "turns": 7
+  },
+  {
+    "id": "att-046",
+    "staff_id": "staff-012",
+    "staff_name": "Chloe",
+    "scenario_title": "Late main course, wrong order",
+    "completed_at": "2026-08-17",
+    "scores": {
+      "empathy": 3,
+      "communication": 3,
+      "composure": 3,
+      "service_recovery": 3,
+      "anticipation": null
+    },
+    "turns": 6
+  },
+  {
+    "id": "att-047",
+    "staff_id": "staff-012",
+    "staff_name": "Chloe",
+    "scenario_title": "Late main course, wrong order",
+    "completed_at": "2026-08-20",
+    "scores": {
+      "empathy": 3,
+      "communication": 3,
+      "composure": 3,
+      "service_recovery": 4,
+      "anticipation": 3
+    },
+    "turns": 7
+  },
+  {
+    "id": "att-048",
+    "staff_id": "staff-012",
+    "staff_name": "Chloe",
+    "scenario_title": "Guest asks about allergens",
+    "completed_at": "2026-08-23",
+    "scores": {
+      "empathy": 3,
+      "communication": 3,
+      "composure": 3,
+      "service_recovery": 3,
+      "anticipation": 4
+    },
+    "turns": 6
+  },
+  {
+    "id": "att-049",
+    "staff_id": "staff-012",
+    "staff_name": "Chloe",
+    "scenario_title": "Guest asks about allergens",
+    "completed_at": "2026-09-04",
+    "scores": {
+      "empathy": 3,
+      "communication": 3,
+      "composure": 4,
+      "service_recovery": 2,
+      "anticipation": 4
+    },
+    "turns": 8
+  },
+  {
+    "id": "att-050",
+    "staff_id": "staff-013",
+    "staff_name": "Bogdan",
+    "scenario_title": "Guest asks about allergens",
+    "completed_at": "2026-08-27",
+    "scores": {
+      "empathy": 4,
+      "communication": 4,
+      "composure": 3,
+      "service_recovery": 3,
+      "anticipation": 3
+    },
+    "turns": 9
+  },
+  {
+    "id": "att-051",
+    "staff_id": "staff-013",
+    "staff_name": "Bogdan",
+    "scenario_title": "Guest asks about allergens",
+    "completed_at": "2026-08-16",
+    "scores": {
+      "empathy": 3,
+      "communication": 3,
+      "composure": 4,
+      "service_recovery": 4,
+      "anticipation": 3
+    },
+    "turns": 6
+  },
+  {
+    "id": "att-052",
+    "staff_id": "staff-013",
+    "staff_name": "Bogdan",
+    "scenario_title": "Late main course, wrong order",
+    "completed_at": "2026-08-24",
+    "scores": {
+      "empathy": 3,
+      "communication": 2,
+      "composure": 3,
+      "service_recovery": 3,
+      "anticipation": 3
+    },
+    "turns": 6
+  },
+  {
+    "id": "att-053",
+    "staff_id": "staff-013",
+    "staff_name": "Bogdan",
+    "scenario_title": "Late main course, wrong order",
+    "completed_at": "2026-09-09",
+    "scores": {
+      "empathy": 4,
+      "communication": 3,
+      "composure": 4,
+      "service_recovery": 4,
+      "anticipation": 5
+    },
+    "turns": 7
+  }
+]
