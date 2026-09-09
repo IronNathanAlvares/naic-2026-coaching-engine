@@ -43,3 +43,8 @@ next-env.d.ts
 .vercel
 # Added by code-review-graph
 .code-review-graph/
+
+# Claude Code local tooling (machine-specific — not shared)
+.claude/
+.mcp.json
+.code-review-graph/
