@@ -61,7 +61,17 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    # Deployed, the browser is on Vercel and the API is somewhere else, so
+    # every request is cross-origin. Hardcoding localhost meant the site would
+    # load and then fail every single call with a CORS error that says nothing
+    # useful in the console. Extra origins come from CE_ALLOWED_ORIGINS as a
+    # comma-separated list; preview deployments get their own subdomain per
+    # commit, hence the regex.
+    allow_origins=[o for o in (
+        ["http://localhost:3000", "http://127.0.0.1:3000"]
+        + [x.strip() for x in os.environ.get("CE_ALLOWED_ORIGINS", "").split(",")]
+    ) if o],
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
