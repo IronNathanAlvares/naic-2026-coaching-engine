@@ -179,6 +179,23 @@ def score_transcript(cur, transcript: list[dict], target_dimensions: list[str],
 # The coaching run
 # --------------------------------------------------------------------------
 
+def _served_by(trace: Trace | None) -> dict:
+    """Who answered the call that just finished.
+
+    The glass box argues that the reasoning is ours and the model is one part
+    of it. That argument is weaker when a step says only "Classify the cause"
+    and a judge has to take on faith which provider ran it. Naming the provider
+    and model on the step makes the claim checkable, and it is the difference
+    between saying we run on Google Cloud and showing it.
+    """
+    if not trace or not trace.calls:
+        return {}
+    call = trace.calls[-1]
+    return {"served_by": f"{call.provider}/{call.model}",
+            "ms": call.ms,
+            **({"fell_back": True} if call.fell_back else {})}
+
+
 def run_coaching(cur, actor, staff_id: str, trace: Trace | None = None) -> dict:
     """Assemble, retrieve, classify, draft, gate. Returns a recommendation or
     an abstention, never an ungrounded recommendation."""
@@ -387,6 +404,7 @@ def run_coaching(cur, actor, staff_id: str, trace: Trace | None = None) -> dict:
         classification = c["classification"]
         trace.step("model", f"Classify the cause: {classification}",
                    decisive=True, chose_from=allowed,
+                   **_served_by(trace),
                    rationale=c.get("rationale", "")[:220])
     except ProviderError:
         pass                               # default stands; not worth failing the run
@@ -470,7 +488,7 @@ def run_coaching(cur, actor, staff_id: str, trace: Trace | None = None) -> dict:
                         quoted_span=c.get("quoted_span") or None)
                   for c in draft["claims"]]
         trace.step("model", f"Draft the recommendation (attempt {attempts + 1})",
-                   claims=len(claims),
+                   claims=len(claims), **_served_by(trace),
                    cited=sorted({r for c in claims for r in c.citation_refs}))
         gate_result = run_gate(claims, bundle, staff_id, repair_attempts=attempts)
         trace.step("code", ("Cite gate: PASSED" if gate_result.passed
