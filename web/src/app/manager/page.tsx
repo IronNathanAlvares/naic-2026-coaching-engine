@@ -15,6 +15,7 @@ import {
 import { RadarCaption } from "@/features/manager-console/components/radar-caption";
 import { managerApi } from "@/features/manager-console/api/managerApi";
 import { staffMembers } from "@/lib/mock/seed";
+
 import { dimensionLabels, dimensionShort } from "@/lib/format";
 import type { BarsDimension, CalibrationReading, TransferGap } from "@/lib/types";
 
@@ -89,11 +90,16 @@ function overallCalibration(rows: CalibrationReading[]): CalibrationSummary | nu
 }
 
 export default async function ManagerOverviewPage() {
+  // Roster first: everything else is per-person, so it decides the fan-out.
+  const roster = await managerApi.listStaff();
   const [recommendations, readings, insights, gaps] = await Promise.all([
     managerApi.listRecommendations(),
     managerApi.getCalibration(),
     managerApi.getTeamInsights(),
-    Promise.all(staffMembers.map((s) => managerApi.getGap(s.id))),
+    // One request per person. Fine at this size, and the honest shape: a gap
+    // is computed per staff member under that viewer's permissions, so there
+    // is no bulk endpoint that would not quietly bypass row level security.
+    Promise.all(roster.map((s) => managerApi.getGap(s.id))),
   ]);
 
   const pending = recommendations.filter(

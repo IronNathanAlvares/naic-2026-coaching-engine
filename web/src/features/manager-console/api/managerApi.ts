@@ -63,6 +63,26 @@ async function legacyCalibrationToReadings(): Promise<CalibrationReading[]> {
 }
 
 export const managerApi = {
+  /** The team, from the database in real mode.
+   *
+   * The overview used to map over the mock seed roster, which fixed the radar
+   * at whatever that file happened to contain. A larger property then shows
+   * fifteen of its fifty staff and nothing says so. The mock store still
+   * answers when the API is off, which is what keeps offline development
+   * working. */
+  listStaff: async (): Promise<Array<{ id: string; name: string }>> => {
+    if (!isRealApi()) {
+      // The mock store has no roster of its own; the seed file is the roster.
+      const { staffMembers } = await import("@/lib/mock/seed");
+      return staffMembers;
+    }
+    const body = await http.get<{ staff: Array<{ id: string; name: string;
+      role: string }> }>("/staff");
+    // Managers and L&D are not coached, so they do not belong on a radar of
+    // frontline transfer gaps.
+    return body.staff.filter((s) => s.role === "staff");
+  },
+
   listObservations: (): Promise<Observation[]> =>
     isRealApi() ? http.get("/observations") : mockDb.listObservations(),
 
