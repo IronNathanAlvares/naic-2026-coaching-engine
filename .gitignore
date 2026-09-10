@@ -24,6 +24,15 @@ Docs/SOPs/
 credentials.json
 service-account*.json
 gcp-key*.json
+# Any service account key, wherever someone happens to drop it. The named
+# patterns above only catch the filenames we thought of, and this repo is
+# public: a leaked service account is a live credential to a billed cloud
+# project, not an embarrassment to clean up later.
+**/*-sa.json
+**/sa-*.json
+credentials/
+*serviceaccount*.json
+*.iam.gserviceaccount.com.json
 secrets/
 
 # ============================================================
