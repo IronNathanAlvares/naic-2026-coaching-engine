@@ -194,19 +194,87 @@ def check_google() -> tuple[str, str]:
         pass
 
     where = f"project {project}" if project else "the GCP project"
-    if reason == "SERVICE_DISABLED":
-        return FAIL, (f"the Generative Language API is switched OFF on {where}. "
-                      f"Enable it at console.cloud.google.com/apis/library/"
-                      f"generativelanguage.googleapis.com, then re-run.")
-    if reason == "API_KEY_SERVICE_BLOCKED":
-        return FAIL, (f"the key is valid but RESTRICTED away from this API on "
-                      f"{where}. At console.cloud.google.com/apis/credentials "
-                      f"open the key, and under 'API restrictions' either pick "
-                      f"Don't restrict key, or add Generative Language API to "
-                      f"the allowed list.")
+
+    # Google alternates between these two reasons on byte-identical requests,
+    # so neither one on its own tells you the whole story. Observed: the same
+    # call returning SERVICE_DISABLED and then API_KEY_SERVICE_BLOCKED seconds
+    # apart. Both conditions are genuinely true here, and fixing only the one
+    # you happened to be shown leaves you with the same 403 and no idea why.
+    if reason in ("SERVICE_DISABLED", "API_KEY_SERVICE_BLOCKED"):
+        return FAIL, (
+            f"403 {reason} on {where}. Google alternates between these two "
+            f"reasons, so do BOTH: (1) enable the API at console.cloud.google"
+            f".com/apis/library/generativelanguage.googleapis.com, and (2) at "
+            f"console.cloud.google.com/apis/credentials open the key and under "
+            f"'API restrictions' allow Generative Language API.")
     if reason == "API_KEY_INVALID":
         return FAIL, "the key itself is not valid; issue a new one."
     return FAIL, f"HTTP {code} {reason}: {' '.join(body.split())[:130]}"
+
+
+def check_vertex() -> tuple[str, str]:
+    """Vertex AI proper: service account auth, not an API key.
+
+    Every failure below is reported with the exact next action, because the
+    setup has five separate places it can be wrong and the error Google
+    returns for four of them is an unhelpful 403.
+    """
+    project = os.environ.get("GCP_PROJECT_ID", "")
+    creds_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "")
+    region = os.environ.get("GCP_REGION", "europe-west1")
+
+    if not project and not creds_path:
+        return SKIP, "not configured (GCP_PROJECT_ID + service account JSON)"
+    if not project:
+        return FAIL, ("GCP_PROJECT_ID is empty. Use the project ID string, "
+                      "not the project number.")
+    if project.isdigit():
+        return FAIL, (f"GCP_PROJECT_ID is '{project}', which is the project "
+                      f"NUMBER. Vertex wants the project ID, the string form.")
+    if not creds_path:
+        return FAIL, ("GOOGLE_APPLICATION_CREDENTIALS is empty. Point it at "
+                      "the service account JSON you downloaded.")
+    if not Path(creds_path).exists():
+        return FAIL, f"no file at GOOGLE_APPLICATION_CREDENTIALS: {creds_path}"
+
+    try:
+        import google.auth                                   # noqa: PLC0415
+        from google.auth.transport.requests import Request   # noqa: PLC0415
+    except ImportError:
+        return FAIL, "google-auth not installed: pip install google-auth"
+
+    try:
+        creds, _ = google.auth.default(
+            scopes=["https://www.googleapis.com/auth/cloud-platform"])
+        creds.refresh(Request())
+    except Exception as e:                                   # noqa: BLE001
+        return FAIL, f"could not mint a token: {type(e).__name__}: {e}"[:180]
+
+    model = "gemini-2.0-flash"
+    url = (f"https://{region}-aiplatform.googleapis.com/v1/projects/{project}"
+           f"/locations/{region}/publishers/google/models/{model}"
+           f":generateContent")
+    code, body = _post(url,
+                       {"contents": [{"role": "user",
+                                      "parts": [{"text": "Reply with ok."}]}]},
+                       {"Authorization": f"Bearer {creds.token}",
+                        "Content-Type": "application/json"})
+    if code == 200:
+        return OK, f"{model} in {region}"
+    if code == 403 and "aiplatform.googleapis.com" in body:
+        return FAIL, (f"the Vertex AI API is not enabled on {project}. Run: "
+                      f"gcloud services enable aiplatform.googleapis.com "
+                      f"--project {project}")
+    if code == 403:
+        return FAIL, (f"the service account lacks the Vertex AI User role on "
+                      f"{project}. Grant roles/aiplatform.user, then re-run. "
+                      f"({' '.join(body.split())[:90]})")
+    if code == 404:
+        return FAIL, (f"{model} is not served from {region}. Try "
+                      f"GCP_REGION=us-central1, which carries every model.")
+    if code == 429:
+        return WARN, "quota exhausted, not a configuration problem"
+    return FAIL, f"HTTP {code}: {' '.join(body.split())[:140]}"
 
 
 def check_ollama() -> tuple[str, str]:
@@ -237,7 +305,8 @@ CHECKS = [
     ("Groq            whisper", check_groq_whisper),
     ("ElevenLabs      text to speech", check_elevenlabs),
     ("Manus           agent tasks", check_manus),
-    ("Google          gemini", check_google),
+    ("Google          gemini API", check_google),
+    ("Google          Vertex AI", check_vertex),
     ("Ollama          local fallback", check_ollama),
 ]
 

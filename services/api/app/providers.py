@@ -43,6 +43,18 @@ GEMINI_KEY = os.environ.get("GEMINI_API_KEY", "")
 ELEVENLABS_KEY = os.environ.get("ELEVENLABS_API_KEY", "")
 MANUS_KEY = os.environ.get("MANUS_API_KEY", "")
 
+# Vertex AI is a different product from the Gemini API, and conflating the two
+# is why this took three attempts. Same models, different everything else:
+#
+#   Gemini API   generativelanguage.googleapis.com   an API key (AIza...)
+#   Vertex AI    {region}-aiplatform.googleapis.com  a service account
+#
+# Vertex does not accept API keys at all. It wants an OAuth bearer token minted
+# from a service account, which is also why it is the one that draws on GCP
+# credits and the one worth citing as our cloud provider.
+VERTEX_PROJECT = os.environ.get("GCP_PROJECT_ID", "")
+VERTEX_REGION = os.environ.get("GCP_REGION", "europe-west1")
+
 
 class ProviderError(RuntimeError):
     """Raised when a provider fails. Never swallowed, never silently retried
@@ -146,6 +158,44 @@ FALLBACKS: dict[str, tuple[str, str]] = {
 # an embedding via the dimensions parameter, and Gemini's text-embedding-004 is
 # natively 768, so both providers land on the same column without a migration.
 EMBED_DIMS = 768
+
+
+_vertex_creds = None
+
+
+def _vertex_token() -> str:
+    """Mint (and refresh) an access token from the service account.
+
+    GOOGLE_APPLICATION_CREDENTIALS points at the JSON key file. google-auth
+    caches the credentials object and refreshes the token when it is within the
+    skew window, so this is cheap to call per request and we never hold a token
+    past its life.
+    """
+    global _vertex_creds
+    if not VERTEX_PROJECT:
+        raise ProviderError("GCP_PROJECT_ID is not set")
+    if not os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
+        raise ProviderError("GOOGLE_APPLICATION_CREDENTIALS is not set "
+                            "(path to the service account JSON)")
+    try:
+        from google.auth.transport.requests import Request   # noqa: PLC0415
+        import google.auth                                   # noqa: PLC0415
+    except ImportError:
+        raise ProviderError(
+            "google-auth is not installed. pip install google-auth") from None
+
+    if _vertex_creds is None:
+        _vertex_creds, _ = google.auth.default(
+            scopes=["https://www.googleapis.com/auth/cloud-platform"])
+    if not _vertex_creds.valid:
+        _vertex_creds.refresh(Request())
+    return _vertex_creds.token
+
+
+def _vertex_url(model: str, verb: str = "generateContent") -> str:
+    return (f"https://{VERTEX_REGION}-aiplatform.googleapis.com/v1/projects/"
+            f"{VERTEX_PROJECT}/locations/{VERTEX_REGION}/publishers/google/"
+            f"models/{model}:{verb}")
 
 
 def _post(url: str, payload: dict, headers: dict, timeout: int = 90) -> dict:
@@ -256,6 +306,30 @@ def _complete_once(task: str, provider: str, model: str, system: str, user: str,
             # surfacing three frames away.
             raise ProviderError(f"groq/{model} returned empty content")
 
+    elif provider == "vertex":
+        # Same request body as the Gemini API. Only the host and the auth
+        # differ, which is the entire practical difference between the two.
+        gen: dict = {"temperature": temperature, "maxOutputTokens": max_tokens}
+        if schema is not None:
+            gen["responseMimeType"] = "application/json"
+            gen["responseSchema"] = _to_gemini_schema(schema)
+        data = _post(_vertex_url(model), {
+            "systemInstruction": {"parts": [{"text": system}]},
+            "contents": [{"role": "user", "parts": [{"text": user}]}],
+            "generationConfig": gen,
+        }, {"Authorization": f"Bearer {_vertex_token()}"})
+        try:
+            text = data["candidates"][0]["content"]["parts"][0]["text"]
+        except (KeyError, IndexError):
+            raise ProviderError(
+                f"vertex/{model} returned no candidate "
+                f"(finishReason: "
+                f"{(data.get('candidates') or [{}])[0].get('finishReason')})"
+            ) from None
+        usage_meta = data.get("usageMetadata", {})
+        usage = {"prompt_tokens": usage_meta.get("promptTokenCount", 0),
+                 "completion_tokens": usage_meta.get("candidatesTokenCount", 0)}
+
     elif provider == "gemini":
         if not GEMINI_KEY:
             raise ProviderError("GEMINI_API_KEY is not set")
@@ -329,6 +403,12 @@ def embed(texts: list[str], trace: Trace | None = None) -> list[list[float]]:
                      {"model": model, "input": texts, "dimensions": EMBED_DIMS},
                      {"Authorization": f"Bearer {OPENAI_KEY}"}, timeout=120)
         vectors = [d["embedding"] for d in sorted(data["data"], key=lambda d: d["index"])]
+    elif provider == "vertex":
+        data = _post(_vertex_url(model, "predict"),
+                     {"instances": [{"content": t} for t in texts]},
+                     {"Authorization": f"Bearer {_vertex_token()}"}, timeout=120)
+        vectors = [p["embeddings"]["values"] for p in data["predictions"]]
+
     elif provider == "gemini":
         # text-embedding-004 is natively 768-dimensional, which is exactly the
         # width of the vector column. That is why this is a real fallback and
@@ -567,4 +647,6 @@ def available() -> dict[str, bool]:
     """
     return {"openai": bool(OPENAI_KEY), "groq": bool(GROQ_KEY),
             "gemini": bool(GEMINI_KEY), "elevenlabs": bool(ELEVENLABS_KEY),
-            "manus": bool(MANUS_KEY)}
+            "manus": bool(MANUS_KEY),
+            "vertex": bool(VERTEX_PROJECT
+                           and os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"))}
