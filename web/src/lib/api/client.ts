@@ -46,6 +46,13 @@ async function request<T>(
   const method = (init?.method ?? "GET").toUpperCase();
   const headers = new Headers(init?.headers);
   headers.set("Content-Type", "application/json; charset=utf-8");
+  // Demo identity. The real deployment sends a verified JWT and the backend
+  // reads the same three facts from it; what the backend does next (push the
+  // identity into the database session so row level security applies) is
+  // identical either way.
+  if (!headers.has("X-CE-Actor")) {
+    headers.set("X-CE-Actor", currentActor());
+  }
   if (WRITE_METHODS.has(method) && !headers.has("Idempotency-Key")) {
     headers.set("Idempotency-Key", newIdempotencyKey());
   }
@@ -75,5 +82,17 @@ export const http = {
   post: <T>(path: string, body: unknown) =>
     request<T>(path, { method: "POST", body: JSON.stringify(body) }),
 };
+
+/** Who the browser is acting as. Derived from the route so the manager and
+ * staff views get different identities without a login step, which keeps the
+ * demo to one click while still exercising the real authorisation path. */
+export function currentActor(): string {
+  if (typeof window !== "undefined") {
+    const override = window.localStorage.getItem("ce_actor");
+    if (override) return override;
+    if (window.location.pathname.startsWith("/staff")) return "Diego";
+  }
+  return "Marta";
+}
 
 export const isRealApi = (): boolean => USE_REAL_API;

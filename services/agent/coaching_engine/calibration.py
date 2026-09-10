@@ -47,6 +47,13 @@ class Calibration:
         return self.state == "unreliable"
 
     @property
+    def _checks(self) -> str:
+        """"1 check", not "1 checks". This string is the first thing a manager
+        reads about whether to trust the system, and a grammar slip there is
+        read as sloppiness about the number itself."""
+        return f"{self.n} check" + ("" if self.n == 1 else "s")
+
+    @property
     def display(self) -> str:
         """The sentence a manager actually reads."""
         if self.state == "unmeasured":
@@ -54,15 +61,15 @@ class Calibration:
         pct = round((self.rate or 0) * 100)
         if self.state == "provisional":
             return (f"Agrees with your managers {pct}% of the time "
-                    f"so far, on only {self.n} checks.")
+                    f"so far, on only {self._checks}.")
         if self.state == "unreliable":
             return (f"Agrees with your managers {pct}% of the time on this "
                     f"dimension. Treat with caution. We route these to a "
                     f"human first.")
         if self.state == "uncertain":
             return (f"Agrees with your managers {pct}% of the time "
-                    f"({self.n} checks). Still settling.")
-        return f"Agrees with your managers {pct}% of the time ({self.n} checks)."
+                    f"({self._checks}). Still settling.")
+        return f"Agrees with your managers {pct}% of the time ({self._checks})."
 
 
 def wilson_interval(agreements: int, n: int, z: float = Z_95

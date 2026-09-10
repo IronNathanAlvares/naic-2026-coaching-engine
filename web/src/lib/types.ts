@@ -230,6 +230,9 @@ export interface Recommendation {
   id: string;
   status: "pending_verify" | "confirmed" | "corrected" | "rejected" | "abstained";
   staff_id: string;
+  /** The server resolves the display name; absent in mock mode, where the
+   * seed roster answers instead. */
+  staff_name?: string;
   classification: Classification;
   headline: string;
   body: string;

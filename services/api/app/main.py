@@ -30,6 +30,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from . import queries as q
+from . import practice
 from . import recommendations as recs
 from .agent import run_coaching
 from .db import Actor, pool, resolve_actor, session
@@ -128,6 +129,7 @@ def get_scores(staff_id: str, source: str = "floor",
                                   "detail": "source must be practice or floor"})
 
     with session(actor) as cur:
+        staff_id = q.resolve_staff_ref(cur, staff_id) or staff_id
         # The sequencing gate. Checked explicitly so we can return a 409 that
         # explains itself, rather than an empty list the UI would have to guess
         # the meaning of. RLS enforces it regardless; this is the good error.
@@ -147,6 +149,7 @@ def get_scores(staff_id: str, source: str = "floor",
 def get_gap(staff_id: str, x_ce_actor: str | None = Header(default=None)):
     actor = actor_from(x_ce_actor)
     with session(actor) as cur:
+        staff_id = q.resolve_staff_ref(cur, staff_id) or staff_id
         if not q.staff_by_id(cur, staff_id):
             raise HTTPException(404, {"type": "not-found", "title": "Not found",
                                       "detail": "No such staff member"})
@@ -154,6 +157,13 @@ def get_gap(staff_id: str, x_ce_actor: str | None = Header(default=None)):
 
 
 # ---------------------------------------------------------------- observations
+
+@app.get("/api/v1/observations")
+def get_observations(x_ce_actor: str | None = Header(default=None)):
+    actor = actor_from(x_ce_actor)
+    with session(actor) as cur:
+        return q.list_observations(cur)
+
 
 @app.post("/api/v1/observations", status_code=201)
 def post_observation(payload: dict, x_ce_actor: str | None = Header(default=None),
@@ -168,6 +178,8 @@ def post_observation(payload: dict, x_ce_actor: str | None = Header(default=None
                                       "detail": f"'{field}' is required"})
 
     with session(actor) as cur:
+        payload["staff_id"] = (q.resolve_staff_ref(cur, payload["staff_id"])
+                               or payload["staff_id"])
         obs_id = q.create_observation(cur, actor, payload)
         q.audit(cur, actor, "observation.logged", obs_id,
                 {"staff_id": payload["staff_id"],
@@ -209,7 +221,7 @@ def list_recommendations(status: str | None = None,
                          x_ce_actor: str | None = Header(default=None)):
     actor = actor_from(x_ce_actor)
     with session(actor) as cur:
-        return {"recommendations": recs.listing(cur, status)}
+        return recs.listing(cur, status)
 
 
 @app.get("/api/v1/recommendations/{rec_id}")
@@ -258,6 +270,129 @@ def coach_now(staff_id: str, x_ce_actor: str | None = Header(default=None)):
     logging another observation."""
     actor = actor_from(x_ce_actor)
     with session(actor) as cur:
+        staff_id = q.resolve_staff_ref(cur, staff_id) or staff_id
         result = run_coaching(cur, actor, staff_id, trace=Trace())
         rec_id = recs.persist(cur, actor, staff_id, result)
     return {"recommendation_id": rec_id, **result}
+
+
+# ---------------------------------------------------------------- insights
+
+@app.get("/api/v1/insights/team")
+def team_insights(x_ce_actor: str | None = Header(default=None)):
+    """k-anonymised cohort patterns.
+
+    `suppressed` is deliberately visible. Telling a manager that two patterns
+    were hidden because the group was too small demonstrates the control is
+    working; silently omitting them would look like there was nothing there.
+    """
+    actor = actor_from(x_ce_actor)
+    with session(actor) as cur:
+        return q.team_insights(cur)
+
+
+# ---------------------------------------------------------------- practice
+
+@app.get("/api/v1/scenarios")
+def get_scenarios(x_ce_actor: str | None = Header(default=None)):
+    actor = actor_from(x_ce_actor)
+    with session(actor) as cur:
+        return practice.list_scenarios(cur, actor.staff_id)
+
+
+@app.post("/api/v1/scenarios/{scenario_id}/attempts", status_code=201)
+def start_attempt(scenario_id: str, x_ce_actor: str | None = Header(default=None),
+                  idempotency_key: str | None = Header(default=None)):
+    actor = actor_from(x_ce_actor)
+    with session(actor) as cur:
+        return practice.start_attempt(cur, actor, scenario_id, actor.staff_id)
+
+
+@app.post("/api/v1/attempts/{attempt_id}/turns")
+def add_turn(attempt_id: str, payload: dict,
+             x_ce_actor: str | None = Header(default=None)):
+    actor = actor_from(x_ce_actor)
+    content = (payload.get("content") or "").strip()
+    if not content:
+        raise HTTPException(422, {"type": "empty-turn", "title": "Empty turn",
+                                  "detail": "content is required"})
+    with session(actor) as cur:
+        out = practice.add_turn(cur, actor, attempt_id, content, trace=Trace())
+    if out.get("error"):
+        raise HTTPException(404, {"type": "not-found", "title": "Not found",
+                                  "detail": "No such attempt"})
+    return out
+
+
+@app.post("/api/v1/attempts/{attempt_id}/complete")
+def finish_attempt(attempt_id: str, x_ce_actor: str | None = Header(default=None),
+                   idempotency_key: str | None = Header(default=None)):
+    actor = actor_from(x_ce_actor)
+    with session(actor) as cur:
+        out = practice.complete_attempt(cur, actor, attempt_id, trace=Trace())
+    if out.get("error"):
+        raise HTTPException(404, {"type": "not-found", "title": "Not found",
+                                  "detail": "No such attempt"})
+    return out
+
+
+@app.get("/api/v1/attempts/{attempt_id}")
+def read_attempt(attempt_id: str, x_ce_actor: str | None = Header(default=None)):
+    actor = actor_from(x_ce_actor)
+    with session(actor) as cur:
+        a = practice.get_attempt(cur, attempt_id)
+    if not a:
+        raise HTTPException(404, {"type": "not-found", "title": "Not found",
+                                  "detail": "No such attempt"})
+    return a
+
+
+# ---------------------------------------------------------------- debrief
+
+@app.post("/api/v1/debriefs", status_code=202)
+def post_debrief(payload: dict, x_ce_actor: str | None = Header(default=None),
+                 idempotency_key: str | None = Header(default=None)):
+    actor = actor_from(x_ce_actor)
+    with session(actor) as cur:
+        out = practice.create_debrief(cur, actor, actor.staff_id,
+                                      text=payload.get("text"), trace=Trace())
+    # 202 with a registration, not the finished object. The pipeline is
+    # synchronous today, but the client polls by id either way, so the contract
+    # already holds when transcription moves off the request thread.
+    return {"id": out["id"], "status": out["status"], "poll_after_ms": 400}
+
+
+@app.get("/api/v1/debriefs/{debrief_id}")
+def get_debrief(debrief_id: str, x_ce_actor: str | None = Header(default=None)):
+    actor = actor_from(x_ce_actor)
+    with session(actor) as cur:
+        cur.execute("""
+            SELECT d.id::text, d.status, d.transcript, d.incident,
+                   d.standard_why,
+                   c.id::text AS chunk_id, c.section_path, c.step_number,
+                   c.content AS excerpt, doc.title AS document
+            FROM shift_debrief d
+            LEFT JOIN sop_chunk c ON c.id = d.standard_chunk_id
+            LEFT JOIN sop_document doc ON doc.id = c.document_id
+            WHERE d.id = %s
+        """, (debrief_id,))
+        d = cur.fetchone()
+    if not d:
+        raise HTTPException(404, {"type": "not-found", "title": "Not found",
+                                  "detail": "No such debrief"})
+
+    chunk_id = d.pop("chunk_id", None)
+    standard = {
+        "chunk_id": chunk_id,
+        "document": d.get("document"),
+        "section_path": d.get("section_path"),
+        "step_number": d.get("step_number") or 0,
+        "excerpt": (d.get("excerpt") or "")[:600],
+        "why_shown": d.get("standard_why") or "",
+    } if chunk_id else None
+    for k in ("document", "section_path", "step_number", "excerpt",
+              "standard_why"):
+        d.pop(k, None)
+    d["standard"] = standard
+    d["generated_scenario_id"] = None
+    return d

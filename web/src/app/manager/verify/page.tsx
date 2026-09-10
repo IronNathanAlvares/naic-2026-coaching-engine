@@ -15,8 +15,12 @@ export default async function VerifyQueuePage() {
 
   const toEntry = (rec: Recommendation): VerifyQueueEntry => ({
     recommendation: rec,
+    // Server first, roster second. Real rows carry database ids the mock
+    // roster cannot resolve; mock rows carry no staff_name.
     staffName:
-      staffMembers.find((s) => s.id === rec.staff_id)?.name ?? "Staff member",
+      rec.staff_name ??
+      staffMembers.find((s) => s.id === rec.staff_id)?.name ??
+      "Staff member",
   });
 
   return (

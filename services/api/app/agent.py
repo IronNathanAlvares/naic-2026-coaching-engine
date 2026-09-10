@@ -238,26 +238,39 @@ def run_coaching(cur, actor, staff_id: str, trace: Trace | None = None) -> dict:
     # failure mode without loosening a single check: the gate still verifies
     # existence, span support, sufficiency and scope. real_ref carries the
     # database identity through to the stored citation.
+    # The prefix is the stream, and that is load-bearing. The gate's hardest
+    # rule is "cite practice AND floor", and with a flat E1..E9 numbering the
+    # model cannot see which is which without re-reading the block, so it
+    # cites three practice refs, fails the rule, and a well grounded reading
+    # abstains for a bookkeeping reason. P/F/S/M makes the rule checkable at a
+    # glance. The gate is unchanged; only the model's view of it got clearer.
     bundle: list[EvidenceItem] = []
     real_ref: dict[str, str] = {}
+    counts: dict[str, int] = {}
 
-    def add(kind: str, content: str, ref: str, owner: str | None):
-        label = f"E{len(bundle) + 1}"
+    def add(prefix: str, kind: str, content: str, ref: str, owner: str | None):
+        counts[prefix] = counts.get(prefix, 0) + 1
+        label = f"{prefix}{counts[prefix]}"
         real_ref[label] = ref
         bundle.append(EvidenceItem(ref=label, kind=kind, content=content,
                                    staff_id=owner))
 
     for p in practice:
-        add("attempt_turn", p["evidence_span"] or "",
+        add("P", "attempt_turn", p["evidence_span"] or "",
             f"attempt:{p['attempt_id']}", staff_id)
-    add("observation", f"{obs['context']}. {obs['what_happened']}",
+    add("F", "observation", f"{obs['context']}. {obs['what_happened']}",
         f"obs:{obs['id']}", staff_id)
     for c in chunks:
-        add("sop_chunk", c["content"], f"sop:{c['id']}", None)
-    add("metric", json.dumps(focus), f"metric:gap:{focus['dimension']}", None)
+        add("S", "sop_chunk", c["content"], f"sop:{c['id']}", None)
+    add("M", "metric", json.dumps(focus), f"metric:gap:{focus['dimension']}", None)
 
     evidence_block = "\n".join(
         f"{e.ref}  [{e.kind}]  {e.content[:220]}" for e in bundle)
+    evidence_block = (
+        "Refs are prefixed by stream: P = practice (what they did in the "
+        "simulator), F = floor (what the manager observed on shift), "
+        "S = this hotel's own written standard, M = the computed metric.\n\n"
+        + evidence_block)
 
     # --- classify ---------------------------------------------------------
     cur.execute("""
@@ -270,7 +283,30 @@ def run_coaching(cur, actor, staff_id: str, trace: Trace | None = None) -> dict:
     """, (staff["department"],))
     cohort_size = cur.fetchone()["n"] or 0
 
-    classification = "behavioural"
+    # The quadrant constrains the classifier, it does not merely advise it.
+    #
+    # BLOCKED means the person produced the behaviour correctly in practice and
+    # did not produce it on the floor. Whatever is wrong, it is not that they
+    # lack the skill: the practice score is the proof they have it. So the
+    # model is not offered "behavioural" as an option. Leaving it in the enum
+    # and asking nicely produced exactly the contradiction you would expect,
+    # a headline reading "unsure about authority" filed as a skill problem,
+    # which would then route to training and tell a blocked person to practise
+    # something they can already do. This is principle one: the arithmetic
+    # decides what the model is allowed to say, not the prompt.
+    allowed = ["behavioural", "process", "policy"]
+    if focus["quadrant"] == "blocked":
+        allowed = ["process", "policy"]
+    elif focus["quadrant"] == "recalibrate":
+        # Floor above practice. They can do it where it counts, so the failing
+        # process is our measurement of them, not their behaviour.
+        allowed = ["process"]
+    classify_schema = {**CLASSIFY_SCHEMA,
+                       "properties": {**CLASSIFY_SCHEMA["properties"],
+                                      "classification": {"type": "string",
+                                                         "enum": allowed}}}
+
+    classification = ("behavioural" if len(allowed) == 3 else allowed[-1])
     try:
         c = complete(
             "classify",
@@ -291,10 +327,14 @@ def run_coaching(cur, actor, staff_id: str, trace: Trace | None = None) -> dict:
             f"STAFF: {staff['display_name']}, {staff['department']}\n"
             f"GAP: {focus['dimension']} practice {focus['practice_mean']} vs "
             f"floor {focus['floor_mean']} ({focus['quadrant']})\n"
+            + ("ALREADY SETTLED BY THE MEASUREMENT: they demonstrated this "
+               "correctly in practice and did not produce it on the floor, so "
+               "the skill is present. Decide only WHAT IS STOPPING THEM.\n"
+               if focus["quadrant"] == "blocked" else "") +
             f"OBSERVATION: {obs['what_happened']}\n"
             f"OTHERS WITH THE SAME SITUATION THIS FORTNIGHT: {cohort_size}\n"
             f"STANDARDS FOUND: {chr(10).join(c['content'][:120] for c in chunks[:3])}",
-            schema=CLASSIFY_SCHEMA, trace=trace)
+            schema=classify_schema, trace=trace)
         classification = c["classification"]
     except ProviderError:
         pass                               # default stands; not worth failing the run
@@ -331,17 +371,28 @@ def run_coaching(cur, actor, staff_id: str, trace: Trace | None = None) -> dict:
         "2. Only cite a standard if it genuinely supports the claim. A "
         "topically similar clause that does not say what you need is NOT "
         "support. Leave it out.\n"
-        "3. For sop citations, quoted_span must be copied verbatim from that "
-        "chunk.\n"
-        "4. You must cite at least one attempt ref AND one obs ref.\n"
+        "3. For S citations, quoted_span must be a character-for-character copy "
+        "of a contiguous run of text from that ONE chunk. These clauses "
+        "are short, often a single sentence: when in doubt copy the whole "
+        "clause. Never merge two clauses into one quote, never tidy the "
+        "wording, and never quote what a clause implies rather than what "
+        "it says. If no clause says what you need, drop the claim.\n"
+        "4. You must cite at least one P ref AND at least one F ref. A "
+        "reading with no F ref is roleplay feedback, not a transfer gap, and "
+        "it will be rejected.\n"
         "5. If the classification is process or policy, do NOT recommend "
         "individual coaching. Recommend the organisational fix.\n"
-        "6. Do not open with a score.\n\n"
+        "6. Refer to the person by the name in STAFF. Do NOT infer their "
+        "gender from that name: write the name, or they, never he or she. "
+        "This text is filed in an employment record about a real person, and "
+        "a guess that is wrong is worse than the plainer sentence.\n"
+        "7. Do not open with a score.\n\n"
         "STYLE\n"
         "headline: state the CONCLUSION in one plain sentence a busy manager "
-        "grasps instantly. Not a topic. Write 'This is not a training gap, he "
-        "does not know what he is allowed to offer', never 'Enhancing Service "
-        "Recovery Execution'. No title case, no abstract nouns.\n"
+        "grasps instantly. Not a topic. Write 'This is not a training gap, "
+        "Diego has not been told what they are allowed to offer', never 'Enhancing "
+        "Service Recovery Execution'. No title case, no abstract nouns.\n"
+
         "opening_line: the literal words the manager says to open the "
         "conversation. A question, usually. Not a description of what to say.\n"
         "suggested_action: one concrete thing, doable this week, by a named "
@@ -372,8 +423,14 @@ def run_coaching(cur, actor, staff_id: str, trace: Trace | None = None) -> dict:
         attempts += 1
         if gate_result.should_abstain:
             break
+        cited = {r for c in draft["claims"] for r in c["citation_refs"]}
+        missing = [name for prefix, name in (("P", "a P (practice) ref"),
+                                             ("F", "an F (floor) ref"))
+                   if not any(r.startswith(prefix) for r in cited)]
         user = (base_user + "\n\nYOUR PREVIOUS DRAFT WAS REJECTED:\n" +
                 "\n".join(f"- {f.describe()}" for f in gate_result.failures[:6]) +
+                (f"\n- your claims cite {sorted(cited) or 'nothing'}; you are "
+                 f"missing {' and '.join(missing)}" if missing else "") +
                 "\nFix these. Only cite refs listed in EVIDENCE, and only where "
                 "the source genuinely supports the claim.")
 
@@ -389,6 +446,7 @@ def run_coaching(cur, actor, staff_id: str, trace: Trace | None = None) -> dict:
     # --- route -------------------------------------------------------------
     esc = route(RoutingContext(
         classification=classification,
+        quadrant=focus["quadrant"],
         cohort_size=cohort_size,
         floor_mean=focus["floor_mean"],
         floor_n=focus["floor_n"],

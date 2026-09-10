@@ -106,10 +106,17 @@ def get(cur, rec_id: str) -> dict | None:
 
 
 def listing(cur, status: str | None = None) -> list[dict]:
+    """The queue. Whole Recommendation objects, citations included.
+
+    Not a summary projection: the verify screen renders its card from a list
+    row, and a card that fetches its own citations turns a queue of ten into
+    eleven round trips. The list stays small by construction, because a manager
+    with more than fifty pending decisions has a worse problem than paging.
+    """
     sql = """
-        SELECT r.id::text, r.status, r.classification, r.headline,
+        SELECT r.id::text, r.status, r.classification, r.headline, r.body,
                r.suggested_action, r.created_at, sm.display_name AS staff_name,
-               r.staff_id::text,
+               r.staff_id::text, r.abstain_reason,
                (SELECT count(*) FROM recommendation_citation c
                  WHERE c.recommendation_id = r.id) AS citation_count
         FROM recommendation r
@@ -122,8 +129,25 @@ def listing(cur, status: str | None = None) -> list[dict]:
     sql += " ORDER BY r.created_at DESC LIMIT 50"
     cur.execute(sql, params)
     rows = cur.fetchall()
+    if not rows:
+        return []
+
+    cur.execute("""
+        SELECT recommendation_id::text AS rec, kind, claim_text AS claim,
+               source_ref, quoted_span
+        FROM recommendation_citation
+        WHERE recommendation_id = ANY(%s::uuid[])
+    """, ([r["id"] for r in rows],))
+    by_rec: dict[str, list] = {}
+    for c in cur.fetchall():
+        by_rec.setdefault(c.pop("rec"), []).append(c)
+
+    calib = q.calibration(cur)
     for r in rows:
         r["created_at"] = r["created_at"].isoformat()
+        r["citations"] = by_rec.get(r["id"], [])
+        r["calibration"] = calib
+        r["trace_id"] = r["id"]
     return rows
 
 

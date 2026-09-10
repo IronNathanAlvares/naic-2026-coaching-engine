@@ -107,7 +107,28 @@ def span_supported(quoted: str, source_content: str,
         return False
     if q in s:
         return True
-    return SequenceMatcher(None, q, s).ratio() >= threshold
+
+    # Compare against the best-matching WINDOW, not the whole chunk.
+    #
+    # Ratio is a function of both lengths, so a sixty character quote measured
+    # against an eight hundred character SOP section scores near zero even when
+    # it is copied verbatim bar a hyphen. That made this fallback dead code for
+    # exactly the sources it exists to protect, and every near-miss quote fell
+    # through to abstention. Anchor on the longest shared run, then score the
+    # quote against the equivalent-length window around it.
+    # autojunk=False is mandatory, not a tuning choice. SequenceMatcher's
+    # default heuristic marks any element occurring in more than 1% of a
+    # sequence of 200+ as junk, and on CHARACTER sequences that is most of the
+    # alphabet, so the longest common run between a real quote and a real SOP
+    # section came back as two characters. Every long-source comparison was
+    # being scored against noise.
+    match = SequenceMatcher(None, q, s, autojunk=False).find_longest_match(
+        0, len(q), 0, len(s))
+    if not match.size:
+        return False
+    start = max(0, match.b - match.a)
+    window = s[start:start + len(q)]
+    return SequenceMatcher(None, q, window, autojunk=False).ratio() >= threshold
 
 
 def run_gate(claims: Sequence[Claim],

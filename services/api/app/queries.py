@@ -36,6 +36,65 @@ def list_staff(cur):
     return cur.fetchall()
 
 
+# Same namespace the seeder used, so a readable generator id maps to the same
+# uuid it was stored under.
+_NS = __import__("uuid").UUID("6f4d1c2e-0000-4000-8000-000000000001")
+
+
+def resolve_staff_ref(cur, ref: str) -> str | None:
+    """Accept a real uuid, a generator id (staff-001), or a display name.
+
+    The frontend's roster still carries the readable ids it was mocked against,
+    and those ids came from the same generator that seeded the database. Rather
+    than ask Ziyi to re-point every screen three days before submission, the API
+    resolves all three forms. It is forgiving at the edge and exact underneath:
+    whatever comes in, what goes to the database is a uuid.
+    """
+    import uuid as _uuid
+    try:
+        _uuid.UUID(ref)
+        return ref
+    except (ValueError, AttributeError):
+        pass
+
+    candidate = str(_uuid.uuid5(_NS, ref))
+    cur.execute("SELECT id::text FROM staff_member WHERE id = %s", (candidate,))
+    row = cur.fetchone()
+    if row:
+        return row["id"]
+
+    # Fall back to a name, including a decorated form like "9f2c-diego".
+    name = ref.rsplit("-", 1)[-1]
+    cur.execute("SELECT id::text FROM staff_member "
+                "WHERE lower(display_name) IN (%s, %s) LIMIT 1",
+                (ref.lower(), name.lower()))
+    row = cur.fetchone()
+    return row["id"] if row else None
+
+
+def list_observations(cur, limit: int = 50):
+    """Observations the actor may see. RLS scopes it; no Python filter."""
+    cur.execute("""
+        SELECT o.id::text, o.staff_id::text, o.observed_at, o.context,
+               o.what_happened, o.logged_at AS created_at,
+               coalesce(json_agg(json_build_object(
+                   'dimension', bd.code, 'level', orr.level
+               ) ORDER BY bd.code) FILTER (WHERE bd.code IS NOT NULL),
+               '[]'::json) AS ratings
+        FROM observation o
+        LEFT JOIN observation_rating orr ON orr.observation_id = o.id
+        LEFT JOIN bars_dimension bd ON bd.id = orr.dimension_id
+        GROUP BY o.id
+        ORDER BY o.observed_at DESC
+        LIMIT %s
+    """, (limit,))
+    rows = cur.fetchall()
+    for r in rows:
+        r["observed_at"] = r["observed_at"].isoformat()
+        r["created_at"] = r["created_at"].isoformat()
+    return rows
+
+
 def staff_by_id(cur, staff_id: str):
     cur.execute("SELECT id::text, display_name, department, role "
                 "FROM staff_member WHERE id = %s", (staff_id,))
@@ -242,3 +301,67 @@ def audit(cur, actor, event_type: str, subject_ref: str | None = None,
         VALUES (%s,%s,%s,%s,%s)
     """, (actor.property_id, f"{actor.role}:{actor.staff_id}", event_type,
           subject_ref, json.dumps(payload or {})))
+
+
+# ---------------------------------------------------------------- insights
+
+K_ANON = 5
+
+
+def team_insights(cur) -> dict:
+    """Cohort patterns, never below k distinct staff.
+
+    Grouped on situation_type rather than free text, because you cannot count
+    free text reliably and a pattern you cannot count is an anecdote.
+    """
+    cur.execute("""
+        SELECT sd.incident->>'situation_type' AS situation,
+               sm.department,
+               count(DISTINCT sd.staff_id) AS staff_count
+        FROM shift_debrief sd
+        JOIN staff_member sm ON sm.id = sd.staff_id
+        WHERE sd.created_at > now() - interval '21 days'
+          AND sd.incident->>'situation_type' IS NOT NULL
+        GROUP BY 1, 2
+        ORDER BY staff_count DESC
+    """)
+    rows = cur.fetchall()
+
+    patterns, suppressed = [], 0
+    for r in rows:
+        if r["staff_count"] < K_ANON:
+            # Below k a "pattern" identifies individuals, whatever the
+            # interface claims. Counted, never shown.
+            suppressed += 1
+            continue
+        situation = (r["situation"] or "other").replace("_", " ")
+        # Authority ambiguity is a policy gap, not a coaching problem: the
+        # staff escalated because nothing told them what they could decide.
+        is_policy = r["situation"] in ("room_not_ready", "billing_dispute")
+        patterns.append({
+            "id": f"{r['department']}:{r['situation']}",
+            "classification": "policy" if is_policy else "process",
+            "staff_count": r["staff_count"],
+            "dimension": "service_recovery",
+            "description": (f"{r['staff_count']} staff in "
+                            f"{r['department'].replace('_', ' ')} logged the same "
+                            f"situation this period: {situation}."),
+            "suggested_action": (
+                "Set and communicate what staff may offer without approval."
+                if is_policy else
+                "Run a ten minute briefing on this before it recurs."),
+            "route": "operations",
+        })
+
+    end = date.today()
+    start = end - timedelta(days=21)
+    for pat in patterns:
+        # The window is the detection, so the window end is the detection time.
+        # Inventing a per-pattern timestamp would imply a precision the
+        # aggregate does not have.
+        pat["detected_at"] = end.isoformat()
+
+    return {"window": {"start": start.isoformat(), "end": end.isoformat()},
+            "k_threshold": K_ANON, "patterns": patterns,
+            "suppressed": [{"reason": "below_k_threshold", "count": suppressed}]
+                          if suppressed else []}
