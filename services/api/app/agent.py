@@ -1,0 +1,434 @@
+"""
+agent.py
+========
+The coaching agent: assemble evidence, retrieve the standard, classify the root
+cause, draft a recommendation, and refuse to emit it unless every claim is
+cited.
+
+The division of labour follows 01B section 3. The model reads unstructured
+dialogue and writes prose. Code decides everything that touches an employment
+consequence: the transfer gap, the quadrant, whether a claim is grounded, and
+who an escalation routes to. The model is never asked whether it was grounded,
+because self-assessment of hallucination is not a control.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import sys
+from datetime import date
+from pathlib import Path
+
+from . import queries as q
+from .providers import ProviderError, Trace, complete
+from .retrieval import search
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "services" / "agent"))
+from coaching_engine.cite_gate import (  # noqa: E402
+    Claim, EvidenceItem, run_gate,
+)
+from coaching_engine.routing import RoutingContext, route  # noqa: E402
+
+# --------------------------------------------------------------------------
+# Schemas. Strict: an out-of-range level is a validation error, not a bad row.
+# --------------------------------------------------------------------------
+
+SCORE_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["scores"],
+    "properties": {
+        "scores": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["dimension", "level", "evidence_span", "anchor_matched"],
+                "properties": {
+                    "dimension": {"type": "string"},
+                    # null means the transcript did not evidence this dimension.
+                    # Never the midpoint: defaulting to 3 compresses every gap.
+                    "level": {"type": ["integer", "null"]},
+                    "evidence_span": {"type": "string"},
+                    "anchor_matched": {"type": "string"},
+                },
+            },
+        }
+    },
+}
+
+DRAFT_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["headline", "opening_line", "claims", "suggested_action", "trap_to_avoid"],
+    "properties": {
+        "headline": {"type": "string"},
+        "opening_line": {"type": "string"},
+        "claims": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["text", "citation_refs", "quoted_span"],
+                "properties": {
+                    "text": {"type": "string"},
+                    "citation_refs": {"type": "array", "items": {"type": "string"}},
+                    "quoted_span": {"type": "string"},
+                },
+            },
+        },
+        "suggested_action": {"type": "string"},
+        "trap_to_avoid": {"type": "string"},
+    },
+}
+
+CLASSIFY_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["classification", "rationale"],
+    "properties": {
+        # Three values, and code maps the value to a route. The model never
+        # decides who hears about this.
+        "classification": {"type": "string",
+                           "enum": ["behavioural", "process", "policy"]},
+        "rationale": {"type": "string"},
+    },
+}
+
+
+# --------------------------------------------------------------------------
+# Scoring
+# --------------------------------------------------------------------------
+
+def score_transcript(cur, transcript: list[dict], target_dimensions: list[str],
+                     trace: Trace | None = None) -> list[dict]:
+    """Score a practice transcript against the property's own BARS anchors.
+
+    The rubric is read from the database rather than baked into the prompt, so
+    "we are not letting the model decide what good looks like" is true
+    structurally and not just rhetorically.
+    """
+    cur.execute("""
+        SELECT bd.code, bd.label, ba.level, ba.anchor_text
+        FROM bars_dimension bd
+        JOIN bars_anchor ba ON ba.dimension_id = bd.id
+        JOIN bars_rubric br ON br.id = bd.rubric_id AND br.is_active
+        WHERE bd.code = ANY(%s)
+        ORDER BY bd.code, ba.level DESC
+    """, (target_dimensions,))
+
+    rubric: dict[str, list[str]] = {}
+    for r in cur.fetchall():
+        rubric.setdefault(r["code"], []).append(f"  {r['level']}: {r['anchor_text']}")
+    if not rubric:
+        return []
+
+    rubric_block = "\n\n".join(f"{code}:\n" + "\n".join(lines)
+                               for code, lines in rubric.items())
+    convo = "\n".join(f"[{i}] {t['speaker'].upper()}: {t['content']}"
+                      for i, t in enumerate(transcript))
+
+    system = (
+        "You score hospitality staff behaviour against a hotel's own rating "
+        "scale.\n\n"
+        "RULES\n"
+        "1. Score ONLY the dimensions listed. Use the written anchors, not your "
+        "own idea of good service.\n"
+        "2. level must be an integer 1 to 5, or null if the transcript contains "
+        "no evidence for that dimension. Never guess a middle value.\n"
+        "3. evidence_span MUST be copied verbatim from a STAFF turn. Do not "
+        "paraphrase. If you cannot quote it, the level is null.\n"
+        "4. anchor_matched is the text of the anchor you matched."
+    )
+    user = f"RATING SCALE\n{rubric_block}\n\nTRANSCRIPT\n{convo}"
+
+    result = complete("score", system, user, schema=SCORE_SCHEMA, trace=trace)
+
+    staff_text = " ".join(t["content"].lower() for t in transcript
+                          if t["speaker"] == "staff")
+    out = []
+    for s in result.get("scores", []):
+        if s["level"] is None:
+            continue
+        if not 1 <= s["level"] <= 5:
+            continue                       # schema should stop this; belt and braces
+        span = (s.get("evidence_span") or "").strip()
+        # A span the staff member never said is a fabricated quote. Drop the
+        # score rather than store evidence that does not exist.
+        if span and span.lower()[:40] not in staff_text:
+            continue
+        out.append(s)
+    return out
+
+
+# --------------------------------------------------------------------------
+# The coaching run
+# --------------------------------------------------------------------------
+
+def run_coaching(cur, actor, staff_id: str, trace: Trace | None = None) -> dict:
+    """Assemble, retrieve, classify, draft, gate. Returns a recommendation or
+    an abstention, never an ungrounded recommendation."""
+    trace = trace or Trace()
+
+    staff = q.staff_by_id(cur, staff_id)
+    if not staff:
+        return {"status": "abstained", "abstain_reason": "No such staff member."}
+
+    gap = q.transfer_gap(cur, staff_id)
+    if not gap["dimensions"]:
+        return {
+            "status": "abstained",
+            "abstain_reason": (
+                "Not enough evidence yet to give you grounded coaching: no "
+                "dimension has both a practice score and a floor observation."),
+            "what_would_help": [{"action": "log_observation", "dimension": d}
+                                for d in gap["insufficient_evidence"][:3]],
+            "trace": trace.as_dict(),
+        }
+
+    # The dimension with the widest gap is the one worth a conversation.
+    focus = max(gap["dimensions"], key=lambda d: abs(d["gap"]))
+
+    # --- evidence bundle -------------------------------------------------
+    cur.execute("""
+        SELECT o.id::text, o.context, o.what_happened, o.observed_at
+        FROM observation o WHERE o.staff_id = %s
+        ORDER BY o.observed_at DESC LIMIT 1
+    """, (staff_id,))
+    obs = cur.fetchone()
+
+    cur.execute("""
+        SELECT s.id::text, s.level, s.evidence_span, s.attempt_id::text, s.scored_at
+        FROM score s
+        JOIN bars_dimension bd ON bd.id = s.dimension_id
+        WHERE s.staff_id = %s AND s.source = 'practice' AND bd.code = %s
+        ORDER BY s.scored_at DESC LIMIT 3
+    """, (staff_id, focus["dimension"]))
+    practice = cur.fetchall()
+
+    if not obs or not practice:
+        return {"status": "abstained",
+                "abstain_reason": "Missing one of the two evidence streams.",
+                "trace": trace.as_dict()}
+
+    # --- retrieve the standard -------------------------------------------
+    query = f"{focus['dimension'].replace('_', ' ')}. {obs['what_happened']}"
+    chunks = search(cur, query, department=staff["department"], limit=5, trace=trace)
+
+    if not chunks:
+        return {
+            "status": "abstained",
+            "abstain_reason": (
+                f"No applicable standard found for this situation in "
+                f"{staff['department'].replace('_', ' ')}. The coaching would be "
+                f"generic advice rather than grounded in this hotel's own "
+                f"procedure, so it is not offered."),
+            "what_would_help": [{"action": "add_standard",
+                                 "dimension": focus["dimension"]}],
+            "trace": trace.as_dict(),
+        }
+
+    # --- evidence, in the shape the gate validates ------------------------
+    #
+    # Labels are short and opaque (E1, E2, ...) rather than raw uuids. A model
+    # asked to copy a 36-character uuid drops the prefix or mangles a digit,
+    # the gate correctly rejects the citation, and a perfectly well grounded
+    # recommendation abstains for a formatting reason. Short labels remove that
+    # failure mode without loosening a single check: the gate still verifies
+    # existence, span support, sufficiency and scope. real_ref carries the
+    # database identity through to the stored citation.
+    bundle: list[EvidenceItem] = []
+    real_ref: dict[str, str] = {}
+
+    def add(kind: str, content: str, ref: str, owner: str | None):
+        label = f"E{len(bundle) + 1}"
+        real_ref[label] = ref
+        bundle.append(EvidenceItem(ref=label, kind=kind, content=content,
+                                   staff_id=owner))
+
+    for p in practice:
+        add("attempt_turn", p["evidence_span"] or "",
+            f"attempt:{p['attempt_id']}", staff_id)
+    add("observation", f"{obs['context']}. {obs['what_happened']}",
+        f"obs:{obs['id']}", staff_id)
+    for c in chunks:
+        add("sop_chunk", c["content"], f"sop:{c['id']}", None)
+    add("metric", json.dumps(focus), f"metric:gap:{focus['dimension']}", None)
+
+    evidence_block = "\n".join(
+        f"{e.ref}  [{e.kind}]  {e.content[:220]}" for e in bundle)
+
+    # --- classify ---------------------------------------------------------
+    cur.execute("""
+        SELECT count(DISTINCT sd.staff_id) AS n
+        FROM shift_debrief sd
+        JOIN staff_member sm ON sm.id = sd.staff_id
+        WHERE sm.department = %s
+          AND sd.incident->>'situation_type' = 'room_not_ready'
+          AND sd.created_at > now() - interval '14 days'
+    """, (staff["department"],))
+    cohort_size = cur.fetchone()["n"] or 0
+
+    classification = "behavioural"
+    try:
+        c = complete(
+            "classify",
+            "You classify why a performance gap exists. Choose exactly one:\n\n"
+            "behavioural - an individual skill gap. Only choose this if the "
+            "person genuinely cannot do it, including in practice.\n"
+            "process - an operational step is failing upstream and creating "
+            "these situations in the first place.\n"
+            "policy - staff do not know what they are PERMITTED to do. Choose "
+            "this when someone escalates or freezes rather than acting, when "
+            "they say they were unsure what they could offer, or when the "
+            "standards describe escalation but never state what the person may "
+            "decide themselves.\n\n"
+            "Two rules that override your instinct:\n"
+            "- If they performed the behaviour correctly in practice, it is NOT "
+            "behavioural. They have the skill.\n"
+            "- If your best staff also fail it, it is not a skill problem.",
+            f"STAFF: {staff['display_name']}, {staff['department']}\n"
+            f"GAP: {focus['dimension']} practice {focus['practice_mean']} vs "
+            f"floor {focus['floor_mean']} ({focus['quadrant']})\n"
+            f"OBSERVATION: {obs['what_happened']}\n"
+            f"OTHERS WITH THE SAME SITUATION THIS FORTNIGHT: {cohort_size}\n"
+            f"STANDARDS FOUND: {chr(10).join(c['content'][:120] for c in chunks[:3])}",
+            schema=CLASSIFY_SCHEMA, trace=trace)
+        classification = c["classification"]
+    except ProviderError:
+        pass                               # default stands; not worth failing the run
+
+    # --- draft, then gate, with a bounded repair loop ----------------------
+    quadrant_rule = {
+        "blocked":
+            "THIS PERSON IS IN THE BLOCKED QUADRANT. They demonstrated the "
+            "behaviour correctly in practice and did not produce it on the "
+            "floor. They are NOT missing the skill. You are therefore "
+            "FORBIDDEN from recommending training, practice, coaching on the "
+            "technique, or 'reinforcing the SOP'. Something is stopping them: "
+            "unclear authority, time pressure, or not knowing what they are "
+            "permitted to offer. Name what is stopping them and recommend "
+            "removing it.",
+        "skill_gap":
+            "This is a genuine skill gap, weak in practice and on the floor. "
+            "Targeted practice IS the right answer here.",
+        "competent":
+            "Competent in both. Recommend stretch, not remediation.",
+        "recalibrate":
+            "Strong on the floor, weak in practice. This is a signal that OUR "
+            "scoring or scenario may be wrong. Say so.",
+    }.get(focus["quadrant"], "")
+
+    system = (
+        "You write coaching guidance for a hotel duty manager who has had no "
+        "coaching training and ninety seconds to read this.\n\n"
+        f"{quadrant_rule}\n\n"
+        "HARD RULES\n"
+        "1. Every factual claim about this person MUST carry a citation_refs "
+        "entry copied EXACTLY from the EVIDENCE block. Never cite a ref that is "
+        "not listed.\n"
+        "2. Only cite a standard if it genuinely supports the claim. A "
+        "topically similar clause that does not say what you need is NOT "
+        "support. Leave it out.\n"
+        "3. For sop citations, quoted_span must be copied verbatim from that "
+        "chunk.\n"
+        "4. You must cite at least one attempt ref AND one obs ref.\n"
+        "5. If the classification is process or policy, do NOT recommend "
+        "individual coaching. Recommend the organisational fix.\n"
+        "6. Do not open with a score.\n\n"
+        "STYLE\n"
+        "headline: state the CONCLUSION in one plain sentence a busy manager "
+        "grasps instantly. Not a topic. Write 'This is not a training gap, he "
+        "does not know what he is allowed to offer', never 'Enhancing Service "
+        "Recovery Execution'. No title case, no abstract nouns.\n"
+        "opening_line: the literal words the manager says to open the "
+        "conversation. A question, usually. Not a description of what to say.\n"
+        "suggested_action: one concrete thing, doable this week, by a named "
+        "role. Never 'review the process' or 'ensure staff are trained'.\n"
+        "trap_to_avoid: the specific mistake this manager is likely to make."
+    )
+    base_user = (
+        f"STAFF: {staff['display_name']} ({staff['department']})\n"
+        f"CLASSIFICATION: {classification}\n"
+        f"FOCUS DIMENSION: {focus['dimension']}\n"
+        f"READING: {focus['reading']}\n"
+        f"PRACTICE {focus['practice_mean']} vs FLOOR {focus['floor_mean']}, "
+        f"gap {focus['gap']}\n\nEVIDENCE\n{evidence_block}"
+    )
+
+    draft, gate_result, attempts = None, None, 0
+    user = base_user
+    while attempts < 3:
+        draft = complete("coach", system, user, schema=DRAFT_SCHEMA,
+                         temperature=0.2, trace=trace)
+        claims = [Claim(text=c["text"],
+                        citation_refs=tuple(c["citation_refs"]),
+                        quoted_span=c.get("quoted_span") or None)
+                  for c in draft["claims"]]
+        gate_result = run_gate(claims, bundle, staff_id, repair_attempts=attempts)
+        if gate_result.passed:
+            break
+        attempts += 1
+        if gate_result.should_abstain:
+            break
+        user = (base_user + "\n\nYOUR PREVIOUS DRAFT WAS REJECTED:\n" +
+                "\n".join(f"- {f.describe()}" for f in gate_result.failures[:6]) +
+                "\nFix these. Only cite refs listed in EVIDENCE, and only where "
+                "the source genuinely supports the claim.")
+
+    if gate_result is None or not gate_result.passed:
+        return {
+            "status": "abstained",
+            "abstain_reason": gate_result.abstain_reason() if gate_result else
+                              "Could not ground a recommendation.",
+            "gate_failures": [f.describe() for f in (gate_result.failures if gate_result else [])],
+            "trace": trace.as_dict(),
+        }
+
+    # --- route -------------------------------------------------------------
+    esc = route(RoutingContext(
+        classification=classification,
+        cohort_size=cohort_size,
+        floor_mean=focus["floor_mean"],
+        floor_n=focus["floor_n"],
+    ))
+
+    by_ref = {e.ref: e for e in bundle}
+    citations = []
+    for c in draft["claims"]:
+        for ref in c["citation_refs"]:
+            src = by_ref.get(ref)
+            if not src:
+                continue
+            citations.append({
+                "kind": src.kind, "claim": c["text"],
+                "source_ref": real_ref.get(ref, ref),
+                "quoted_span": c.get("quoted_span") or src.content[:200],
+            })
+
+    evidence_hash = hashlib.sha256(
+        json.dumps([e.ref for e in bundle], sort_keys=True).encode()).hexdigest()
+
+    return {
+        "status": "pending_verify",
+        "staff_id": staff_id,
+        "staff_name": staff["display_name"],
+        "classification": classification,
+        "headline": draft["headline"],
+        "opening_line": draft["opening_line"],
+        "body": draft["opening_line"],
+        "suggested_action": draft["suggested_action"],
+        "trap_to_avoid": draft.get("trap_to_avoid"),
+        "focus_dimension": focus["dimension"],
+        "gap": focus,
+        "citations": citations,
+        "escalation": {
+            "rule_id": esc.rule_id, "route": esc.route, "severity": esc.severity,
+            "summary": esc.copy,
+            "suppress_individual_coaching": esc.suppress_individual_coaching,
+        },
+        "evidence_hash": evidence_hash,
+        "repair_attempts": attempts,
+        "trace": trace.as_dict(),
+    }

@@ -30,7 +30,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from . import queries as q
+from . import recommendations as recs
+from .agent import run_coaching
 from .db import Actor, pool, resolve_actor, session
+from .providers import Trace, available
 
 DEFAULT_ACTOR = os.environ.get("CE_DEFAULT_ACTOR", "Marta")
 
@@ -100,7 +103,7 @@ def health():
         with session() as cur:
             cur.execute("SELECT 1 AS ok")
             cur.fetchone()
-        return {"status": "ok", "database": "up"}
+        return {"status": "ok", "database": "up", "providers": available()}
     except Exception as e:
         return JSONResponse(status_code=503,
                             content={"status": "degraded", "database": str(e)[:120]})
@@ -175,12 +178,18 @@ def post_observation(payload: dict, x_ce_actor: str | None = Header(default=None
         # the practice history is no longer capable of anchoring it.
         unlocked = q.has_observed(cur, actor.staff_id, payload["staff_id"])
 
+    # The agent runs now, synchronously. It takes a few seconds and the manager
+    # has just spent twenty of them writing the observation, so making them poll
+    # would be worse than making them wait.
+    with session(actor) as cur:
+        result = run_coaching(cur, actor, payload["staff_id"], trace=Trace())
+        rec_id = recs.persist(cur, actor, payload["staff_id"], result)
+
     return {
         "id": obs_id,
         "unlocked_practice_history": unlocked,
-        # S3 replaces this with a real agent run.
-        "recommendation_id": None,
-        "recommendation_status": "generating",
+        "recommendation_id": rec_id,
+        "recommendation_status": result["status"],
     }
 
 
@@ -191,3 +200,64 @@ def get_calibration(x_ce_actor: str | None = Header(default=None)):
     actor = actor_from(x_ce_actor)
     with session(actor) as cur:
         return q.calibration(cur)
+
+
+# ---------------------------------------------------------------- recommendations
+
+@app.get("/api/v1/recommendations")
+def list_recommendations(status: str | None = None,
+                         x_ce_actor: str | None = Header(default=None)):
+    actor = actor_from(x_ce_actor)
+    with session(actor) as cur:
+        return {"recommendations": recs.listing(cur, status)}
+
+
+@app.get("/api/v1/recommendations/{rec_id}")
+def get_recommendation(rec_id: str, x_ce_actor: str | None = Header(default=None)):
+    actor = actor_from(x_ce_actor)
+    with session(actor) as cur:
+        rec = recs.get(cur, rec_id)
+        if not rec:
+            raise HTTPException(404, {"type": "not-found", "title": "Not found",
+                                      "detail": "No such recommendation"})
+        rec["calibration"] = q.calibration(cur)
+        return rec
+
+
+@app.post("/api/v1/recommendations/{rec_id}/verify")
+def verify_recommendation(rec_id: str, payload: dict,
+                          x_ce_actor: str | None = Header(default=None),
+                          idempotency_key: str | None = Header(default=None)):
+    actor = actor_from(x_ce_actor)
+    if actor.role not in ("manager", "ld_admin"):
+        raise HTTPException(403, {"type": "role-required", "title": "Manager only",
+                                  "detail": "Only a manager can verify."})
+    verdict = payload.get("verdict")
+    if verdict not in ("confirmed", "corrected", "rejected"):
+        raise HTTPException(422, {"type": "bad-verdict", "title": "Invalid verdict",
+                                  "detail": "verdict must be confirmed, corrected or rejected"})
+
+    with session(actor) as cur:
+        out = recs.verify(cur, actor, rec_id, verdict,
+                          payload.get("dimension_verdicts", []),
+                          payload.get("reason"),
+                          payload.get("seconds_to_decide"))
+    if out.get("error") == "not_found":
+        raise HTTPException(404, {"type": "not-found", "title": "Not found",
+                                  "detail": "No such recommendation"})
+    if out.get("error") == "already_decided":
+        raise HTTPException(409, {"type": "already-decided",
+                                  "title": "Already decided",
+                                  "detail": f"This was already {out['status']}."})
+    return out
+
+
+@app.post("/api/v1/staff/{staff_id}/coach")
+def coach_now(staff_id: str, x_ce_actor: str | None = Header(default=None)):
+    """Run the agent on demand. Used by the demo to re-generate without
+    logging another observation."""
+    actor = actor_from(x_ce_actor)
+    with session(actor) as cur:
+        result = run_coaching(cur, actor, staff_id, trace=Trace())
+        rec_id = recs.persist(cur, actor, staff_id, result)
+    return {"recommendation_id": rec_id, **result}
