@@ -25,9 +25,10 @@ from __future__ import annotations
 import os
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi import (FastAPI, File, Form, Header, HTTPException, Request,
+                     UploadFile)
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 
 from . import demo
 from . import queries as q
@@ -35,7 +36,8 @@ from . import practice
 from . import recommendations as recs
 from .agent import run_coaching
 from .db import Actor, pool, resolve_actor, session
-from .providers import Trace, available
+from .providers import (ProviderError, Trace, available, manus_task,
+                        voice_budget, voice_file)
 
 DEFAULT_ACTOR = os.environ.get("CE_DEFAULT_ACTOR", "Marta")
 
@@ -290,6 +292,131 @@ def team_insights(x_ce_actor: str | None = Header(default=None)):
     actor = actor_from(x_ce_actor)
     with session(actor) as cur:
         return q.team_insights(cur)
+
+
+# ---------------------------------------------------------------- media
+
+MAX_DEBRIEF_BYTES = 25 * 1024 * 1024      # Whisper's own per-file ceiling
+
+
+@app.get("/api/v1/voice/{digest}.mp3")
+def get_voice(digest: str):
+    """Serve one synthesised guest line by its content hash.
+
+    Addressed by hash rather than by text so no guest dialogue travels in a
+    URL, and so the browser can cache it forever: the same words in the same
+    voice are always the same file.
+    """
+    audio = voice_file(digest)
+    if audio is None:
+        raise HTTPException(404, {"type": "not-found", "title": "No audio",
+                                  "detail": "That line was never synthesised."})
+    return Response(content=audio, media_type="audio/mpeg",
+                    headers={"Cache-Control": "public, max-age=31536000, immutable"})
+
+
+@app.get("/api/v1/voice/budget")
+def get_voice_budget():
+    """Characters left on the speech account. Check this before a demo."""
+    return voice_budget()
+
+
+@app.post("/api/v1/debriefs/audio", status_code=202)
+async def post_debrief_audio(file: UploadFile = File(...),
+                             x_ce_actor: str | None = Header(default=None),
+                             idempotency_key: str | None = Header(default=None)):
+    """Speak a debrief instead of typing it.
+
+    This is the whole point of the debrief for the people who will actually use
+    it. A room attendant finishing a shift will not type three paragraphs into
+    a phone, but they will say them. The recording is transcribed and then
+    dropped: audio_deleted_at is stamped in the same transaction that stores
+    the transcript, so the system never holds voice biometrics.
+    """
+    actor = actor_from(x_ce_actor)
+    audio = await file.read()
+    if not audio:
+        raise HTTPException(422, {"type": "empty-upload", "title": "No audio",
+                                  "detail": "The upload was empty."})
+    if len(audio) > MAX_DEBRIEF_BYTES:
+        raise HTTPException(413, {"type": "too-large", "title": "Recording too long",
+                                  "detail": "Keep it under 25MB, roughly ten minutes."})
+
+    try:
+        with session(actor) as cur:
+            out = practice.create_debrief(
+                cur, actor, actor.staff_id, audio=audio,
+                filename=file.filename or "debrief.webm", trace=Trace())
+    except ProviderError as exc:
+        raise HTTPException(503, {"type": "transcription-unavailable",
+                                  "title": "Could not transcribe",
+                                  "detail": str(exc)[:200]}) from None
+
+    return {"id": out["id"], "status": out["status"], "poll_after_ms": 400}
+
+
+# ---------------------------------------------------------------- reports
+
+@app.post("/api/v1/reports/weekly", status_code=202)
+def post_weekly_report(x_ce_actor: str | None = Header(default=None)):
+    """Hand the week's cohort patterns to Manus for a written brief.
+
+    Only k-anonymised aggregates leave the building. The prompt is assembled
+    from the same team_insights() the console renders, so nothing reaches an
+    external agent that a manager could not already see on screen, and no
+    individual is named. Asynchronous because it takes minutes and nobody is
+    waiting at a screen for it.
+    """
+    actor = actor_from(x_ce_actor)
+    if actor.role not in ("manager", "ld_admin"):
+        raise HTTPException(403, {"type": "role-required", "title": "Manager only",
+                                  "detail": "Only a manager or L&D can commission this."})
+
+    with session(actor) as cur:
+        insights = q.team_insights(cur)
+        calib = q.calibration(cur)
+
+    if not insights["patterns"]:
+        return {"status": "nothing_to_report",
+                "detail": ("No pattern reached the k-anonymity threshold this "
+                           "period. There is nothing to write up.")}
+
+    lines = [f"- {p['description']} Classification: {p['classification']}. "
+             f"Suggested: {p['suggested_action']}"
+             for p in insights["patterns"]]
+    measured = [c for c in calib if c["sample_size"]]
+
+    prompt = (
+        "You are writing a one page operations brief for a hotel general "
+        "manager, covering "
+        f"{insights['window']['start']} to {insights['window']['end']}.\n\n"
+        "PATTERNS DETECTED ACROSS TEAMS (each covers at least "
+        f"{insights['k_threshold']} staff; no individual is identified):\n"
+        + "\n".join(lines)
+        + "\n\nAGENT CALIBRATION: "
+        + ("; ".join(f"{c['dimension']} {c['advice']}" for c in measured)
+           if measured else "not yet measured this period.")
+        + "\n\nWrite: what changed, what it costs to leave alone, and the "
+          "single action worth taking this week. Name the role that owns each "
+          "action. Do not recommend individual coaching for a pattern that "
+          "spans a team, and do not invent numbers that are not above."
+    )
+
+    try:
+        task = manus_task(prompt, mode="fast")
+    except ProviderError as exc:
+        raise HTTPException(503, {"type": "manus-unavailable",
+                                  "title": "Report service unavailable",
+                                  "detail": str(exc)[:200]}) from None
+
+    with session(actor) as cur:
+        q.audit(cur, actor, "report.commissioned", task.get("task_id"),
+                {"patterns": len(insights["patterns"]),
+                 "k_threshold": insights["k_threshold"]})
+        cur.connection.commit()
+
+    return {"status": "submitted", "patterns_included": len(insights["patterns"]),
+            **task}
 
 
 # ---------------------------------------------------------------- glass box

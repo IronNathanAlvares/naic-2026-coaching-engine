@@ -81,6 +81,31 @@ export const http = {
   get: <T>(path: string) => request<T>(path),
   post: <T>(path: string, body: unknown) =>
     request<T>(path, { method: "POST", body: JSON.stringify(body) }),
+
+  /** Multipart upload. Separate from post() because the browser has to set
+   * its own Content-Type with the boundary, and request() always sets JSON. */
+  upload: async <T>(path: string, file: Blob, filename: string): Promise<T> => {
+    const form = new FormData();
+    form.append("file", file, filename);
+    const res = await fetch(`${API_BASE_URL}${path}`, {
+      method: "POST",
+      body: form,
+      headers: {
+        "X-CE-Actor": currentActor(),
+        "Idempotency-Key": newIdempotencyKey(),
+      },
+    });
+    if (!res.ok) {
+      const problem = (await res.json().catch(() => ({}))) as Partial<ApiError>;
+      throw new ContractError({
+        type: problem.type ?? "about:blank",
+        title: problem.title ?? "Upload failed",
+        status: res.status,
+        detail: problem.detail ?? `HTTP ${res.status}`,
+      });
+    }
+    return res.json() as Promise<T>;
+  },
 };
 
 /** Who the browser is acting as. Derived from the route so the manager and

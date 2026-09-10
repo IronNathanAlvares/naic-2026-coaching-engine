@@ -93,6 +93,9 @@ export interface Scenario {
 export interface GuestTurn {
   content: string;
   mood: "neutral" | "frustrated" | "escalating" | "calming";
+  /** Content hash of the synthesised line, when speech was available.
+   * Absent is normal: the conversation is designed to work as text. */
+  audio_id?: string;
 }
 
 export interface TurnResponse {

@@ -19,7 +19,8 @@ from __future__ import annotations
 import json
 
 from .agent import score_transcript
-from .providers import ProviderError, Trace, complete, transcribe
+from .providers import (ProviderError, Trace, complete, speak, transcribe,
+                        voice_key)
 from .retrieval import search
 
 GUEST_SCHEMA = {
@@ -115,10 +116,30 @@ def start_attempt(cur, actor, scenario_id: str, staff_id: str) -> dict:
         "id": attempt_id,
         "scenario_id": scenario_id,
         "status": "in_progress",
-        "turns": [{"turn_index": 0, "guest": opening,
+        "turns": [{"turn_index": 0, "guest": _voiced(opening, sc),
                    "turns_remaining": MAX_TURNS, "can_complete": False}],
         "result": None,
     }
+
+
+def _voiced(guest: dict, scenario) -> dict:
+    """Attach an audio id to a guest turn, if we can make one.
+
+    A staff member practising a complaint should hear a person, not read one.
+    Tone is most of what makes service recovery hard, and a transcript hides
+    exactly the thing being trained. It is strictly additive: when synthesis is
+    unavailable the key is absent and the interface stays as it was.
+    """
+    text = guest.get("content", "")
+    # An escalating guest gets a sharper voice. Same words, different problem.
+    voice = "guest_upset" if guest.get("mood") in ("frustrated", "escalating") \
+        else "guest_female"
+    try:
+        if speak(text, voice) is not None:
+            guest["audio_id"] = voice_key(text, voice)
+    except Exception:
+        pass                    # voice is a bonus; never fail a turn over it
+    return guest
 
 
 def add_turn(cur, actor, attempt_id: str, content: str,
@@ -169,7 +190,7 @@ def add_turn(cur, actor, attempt_id: str, content: str,
     cur.connection.commit()
 
     staff_turns = sum(1 for t in history if t["speaker"] == "staff") + 1
-    return {"turn_index": idx + 1, "guest": guest,
+    return {"turn_index": idx + 1, "guest": _voiced(guest, a),
             "turns_remaining": max(0, MAX_TURNS - staff_turns),
             "can_complete": staff_turns >= 2}
 
@@ -303,7 +324,7 @@ def get_attempt(cur, attempt_id: str) -> dict | None:
 # ---------------------------------------------------------------- debrief
 
 def create_debrief(cur, actor, staff_id: str, text: str | None = None,
-                   audio: bytes | None = None,
+                   audio: bytes | None = None, filename: str = "debrief.webm",
                    trace: Trace | None = None) -> dict:
     """Voice or text in, structured incident and the hotel's own clause out.
 
@@ -313,7 +334,10 @@ def create_debrief(cur, actor, staff_id: str, text: str | None = None,
     """
     transcript = text or ""
     if audio:
-        transcript = transcribe(audio, trace=trace)
+        # The filename carries the container format, and Whisper uses it to
+        # pick a decoder. A browser MediaRecorder gives us webm on Chrome and
+        # mp4 on Safari; passing the wrong extension fails on one of them.
+        transcript = transcribe(audio, filename=filename, trace=trace)
 
     if len(transcript.split()) < 5:
         # Still a row. The client polls by id, so a failure with no id is a

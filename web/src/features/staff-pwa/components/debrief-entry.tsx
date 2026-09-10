@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, BookOpen, Mic, Sparkles } from "lucide-react";
+import { ArrowRight, BookOpen, Mic, Sparkles, Square } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { staffApi } from "@/features/staff-pwa/api/staffApi";
 import { useVoiceInput } from "@/features/staff-pwa/lib/use-voice-input";
+import { useRecorder } from "@/features/staff-pwa/lib/use-recorder";
+import { isRealApi } from "@/lib/api/client";
 import type { Debrief } from "@/lib/types";
 
 const DEMO_VOICE_LINE =
@@ -17,6 +19,31 @@ export function DebriefEntry() {
   const [text, setText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<Debrief | null>(null);
+
+  // Speaking it is the real path: the people this is built for are finishing a
+  // shift on their feet and will not type three paragraphs into a phone. The
+  // text box stays for anyone who would rather write, or whose browser will
+  // not give us a microphone.
+  const handleRecorded = async (blob: Blob, filename: string) => {
+    setSubmitting(true);
+    try {
+      const debrief = await staffApi.createDebriefAudio(blob, filename);
+      if (debrief.status === "failed") {
+        toast.error("That was too short to work with — try a sentence or two more.");
+        return;
+      }
+      setResult(debrief);
+      if (debrief.transcript) setText(debrief.transcript);
+      toast.success("Got it — here's what your standard says");
+    } catch {
+      toast.error("Could not send that recording. You can type it instead.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const recorder = useRecorder({ onComplete: handleRecorded });
+  const recording = recorder.state === "recording";
 
   const { listening, toggleVoice, stop } = useVoiceInput({
     demoLine: DEMO_VOICE_LINE,
@@ -125,7 +152,7 @@ export function DebriefEntry() {
         <Textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          disabled={submitting || listening}
+          disabled={submitting || listening || recording}
           placeholder={
             listening
               ? "Listening — speak your debrief…"
@@ -133,10 +160,47 @@ export function DebriefEntry() {
           }
           className="mt-3 min-h-28"
         />
+        {recording && (
+          <p className="mt-3 flex items-center gap-2 text-sm font-medium text-destructive">
+            <span className="inline-block size-2 animate-pulse rounded-full bg-destructive" />
+            Recording {Math.floor(recorder.seconds / 60)}:
+            {String(recorder.seconds % 60).padStart(2, "0")}
+            <span className="text-xs font-normal text-muted-foreground">
+              tap stop when you&apos;re done
+            </span>
+          </p>
+        )}
+        {recorder.state === "denied" && (
+          <p className="mt-3 text-xs text-muted-foreground">
+            No microphone access, so type it instead — same result.
+          </p>
+        )}
         <div className="mt-3 flex items-center gap-2">
+          {isRealApi() && (
+            <Button
+              type="button"
+              variant={recording ? "destructive" : "default"}
+              onClick={() => (recording ? recorder.stop() : void recorder.start())}
+              disabled={submitting || listening}
+              className="flex-1"
+            >
+              {recording ? (
+                <>
+                  <Square className="size-4" />
+                  Stop and send
+                </>
+              ) : (
+                <>
+                  <Mic className="size-4" />
+                  Speak your debrief
+                </>
+              )}
+            </Button>
+          )}
           <Button
             onClick={handleSubmit}
-            disabled={submitting}
+            disabled={submitting || recording}
+            variant={isRealApi() ? "outline" : "default"}
             className="flex-1"
           >
             {submitting ? "Checking against your standard…" : "Get instant feedback"}

@@ -2,9 +2,10 @@
 
 import { Fragment, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Mic, Send } from "lucide-react";
+import { Mic, Send, Square, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useVoiceInput } from "@/features/staff-pwa/lib/use-voice-input";
+import { API_BASE_URL } from "@/lib/api/client";
 import type { PracticeAttempt } from "@/lib/types";
 
 interface Message {
@@ -12,6 +13,60 @@ interface Message {
   content: string;
   mood?: string;
   turn_index: number;
+  audioId?: string;
+}
+
+/** Plays one guest line.
+ *
+ * Tone is most of what makes service recovery hard, and a transcript hides
+ * exactly the thing being trained: you cannot practise staying calm with
+ * someone who is only annoyed in writing. Autoplay is deliberately not used —
+ * a staff member may be on a shift floor, or on a bus — so the line is offered
+ * and never forced. When the backend could not synthesise, audioId is absent
+ * and nothing renders at all. */
+function GuestAudio({ audioId }: { audioId?: string }) {
+  const ref = useRef<HTMLAudioElement | null>(null);
+  const [playing, setPlaying] = useState(false);
+  const [broken, setBroken] = useState(false);
+
+  if (!audioId || broken) return null;
+
+  return (
+    <>
+      <button
+        type="button"
+        aria-label={playing ? "Stop the guest" : "Hear the guest"}
+        onClick={() => {
+          const el = ref.current;
+          if (!el) return;
+          if (playing) {
+            el.pause();
+            el.currentTime = 0;
+            setPlaying(false);
+          } else {
+            void el.play().catch(() => setBroken(true));
+          }
+        }}
+        className="mt-1.5 inline-flex items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+      >
+        {playing ? (
+          <Square className="size-3" />
+        ) : (
+          <Volume2 className="size-3" />
+        )}
+        {playing ? "stop" : "hear it"}
+      </button>
+      <audio
+        ref={ref}
+        src={`${API_BASE_URL}/voice/${audioId}.mp3`}
+        preload="none"
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
+        onEnded={() => setPlaying(false)}
+        onError={() => setBroken(true)}
+      />
+    </>
+  );
 }
 
 const moodLabel: Record<string, string> = {
@@ -65,6 +120,7 @@ export function PracticeChat({
       content: t.guest.content,
       mood: t.guest.mood,
       turn_index: t.turn_index,
+      audioId: t.guest.audio_id,
     }))
   );
   const [input, setInput] = useState("");
@@ -131,6 +187,7 @@ export function PracticeChat({
           role: "guest",
           content: turn.guest.content,
           mood: turn.guest.mood,
+          audioId: turn.guest.audio_id,
           turn_index: turn.turn_index,
         },
       ]);
@@ -225,6 +282,7 @@ export function PracticeChat({
               <GuestRow
                 content={message.content}
                 mood={message.mood ?? "neutral"}
+                audioId={message.audioId}
               />
             ) : (
               <StaffRow content={message.content} />
@@ -321,7 +379,15 @@ function GuestAvatar() {
   );
 }
 
-function GuestRow({ content, mood }: { content: string; mood: string }) {
+function GuestRow({
+  content,
+  mood,
+  audioId,
+}: {
+  content: string;
+  mood: string;
+  audioId?: string;
+}) {
   return (
     <div className="flex msg-in items-end gap-2">
       <GuestAvatar />
@@ -329,13 +395,16 @@ function GuestRow({ content, mood }: { content: string; mood: string }) {
         <div className="rounded-2xl rounded-bl-sm border bg-card px-4 py-2.5 text-sm">
           {content}
         </div>
-        <p
-          className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-            moodTone[mood] ?? moodTone.neutral
-          }`}
-        >
-          guest · {moodLabel[mood] ?? "neutral"}
-        </p>
+        <div className="flex items-center gap-2">
+          <p
+            className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+              moodTone[mood] ?? moodTone.neutral
+            }`}
+          >
+            guest · {moodLabel[mood] ?? "neutral"}
+          </p>
+          <GuestAudio audioId={audioId} />
+        </div>
       </div>
     </div>
   );
