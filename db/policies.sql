@@ -37,12 +37,21 @@ $$;
 
 ALTER TABLE score          ENABLE ROW LEVEL SECURITY;
 ALTER TABLE observation    ENABLE ROW LEVEL SECURITY;
-ALTER TABLE recommendation ENABLE ROW LEVEL SECURITY;
+ALTER TABLE recommendation      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE observation_rating  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_event    ENABLE ROW LEVEL SECURITY;
 
 
 -- 1. Hard tenant boundary. Nothing crosses a property, ever.
-CREATE POLICY score_tenant ON score
+--
+--    RESTRICTIVE is load bearing. Postgres OR's permissive policies together,
+--    so a permissive tenant policy would grant every row in the property to
+--    every role and silently defeat all four policies below it. Restrictive
+--    policies are AND'd, which is what a boundary actually means.
+--
+--    This was a real bug: it let a staff member read a colleague's scores.
+--    Caught by NT4.
+CREATE POLICY score_tenant ON score AS RESTRICTIVE
     USING (property_id = app_property());
 
 
@@ -96,16 +105,54 @@ CREATE POLICY score_ld_aggregate_only ON score FOR SELECT
 
 
 -- 6. Observations follow the same tenant and parity rules.
-CREATE POLICY observation_tenant ON observation
+CREATE POLICY observation_tenant ON observation AS RESTRICTIVE
     USING (property_id = app_property());
 
+-- A staff member reads observations about themselves. Transparency parity.
 CREATE POLICY observation_self_read ON observation FOR SELECT
-    USING (property_id = app_property() AND staff_id = app_staff());
+    USING (staff_id = app_staff());
+
+-- A manager reads and writes observations for their own team.
+CREATE POLICY observation_manager ON observation
+    USING (
+        app_role() IN ('manager', 'ld_admin')
+        AND EXISTS (SELECT 1 FROM team_assignment t
+                     WHERE t.manager_id = app_staff()
+                       AND t.staff_id = observation.staff_id)
+    )
+    WITH CHECK (
+        app_role() IN ('manager', 'ld_admin')
+        AND manager_id = app_staff()
+    );
 
 
--- 7. Audit is insert only. Article 12 record keeping is worth nothing if the
---    record can be edited afterwards.
+-- 7. Writes.
+--
+--    Scores are written by the agent after scoring an attempt, and by the API
+--    when a manager's observation ratings land. No human role writes them
+--    directly, so the policy is scoped to the tenant and the API is the only
+--    caller. Note there is deliberately no UPDATE or DELETE policy: a score is
+--    a record of a judgement at a point in time, and rewriting one would
+--    corrupt both the transfer gap and the calibration series.
+CREATE POLICY score_insert ON score FOR INSERT
+    WITH CHECK (property_id = app_property());
+
+CREATE POLICY observation_rating_all ON observation_rating
+    USING (property_id = app_property())
+    WITH CHECK (property_id = app_property());
+
+--    Recommendations are written by the agent and updated once, by the
+--    verification step, to record the manager's verdict.
+CREATE POLICY recommendation_rw ON recommendation
+    USING (property_id = app_property())
+    WITH CHECK (property_id = app_property());
+
+-- 8. Audit is insert only. Article 12 record keeping is worth nothing if the
+--    record can be edited afterwards. The REVOKE in roles.sql is what enforces
+--    that; this policy just permits the insert.
 CREATE POLICY audit_insert ON audit_event FOR INSERT WITH CHECK (true);
+CREATE POLICY audit_read ON audit_event FOR SELECT
+    USING (property_id = app_property());
 
 COMMIT;
 

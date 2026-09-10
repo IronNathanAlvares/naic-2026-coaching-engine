@@ -1,0 +1,570 @@
+"""
+providers.py
+============
+One door to every model provider.
+
+Nothing else in the system calls an AI provider directly. That is deliberate
+and it buys three things:
+
+* Tracing. Every call, its token count and its latency pass through one place,
+  so "show me what the agent actually did" is a query rather than an
+  archaeology exercise.
+* Provider swap. Gemini is wired and ready; it is disabled only because the
+  Generative Language API has not been enabled on the GCP project. When it is,
+  routing a task to Gemini is a one-line change here, not a change at seven
+  call sites.
+* Failing loudly. A provider outage raises. It never silently falls back to a
+  different model, because a silent swap would pollute the calibration series
+  that the accuracy claim on stage depends on.
+
+Routing follows 01B section 7: cheap models for schema-constrained extraction,
+better models for anything a manager will read.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+import time
+from pathlib import Path
+import urllib.error
+import urllib.request
+from dataclasses import dataclass, field
+from typing import Any
+
+# A bare urllib User-Agent gets a 403 Cloudflare 1010 from Groq. Cost an hour
+# to find; leave this here.
+UA = "coaching-engine/0.1 (+https://github.com/IronNathanAlvares)"
+
+OPENAI_KEY = os.environ.get("OPENAI_API_KEY", "")
+GROQ_KEY = os.environ.get("GROQ_API_KEY", "")
+GEMINI_KEY = os.environ.get("GEMINI_API_KEY", "")
+ELEVENLABS_KEY = os.environ.get("ELEVENLABS_API_KEY", "")
+MANUS_KEY = os.environ.get("MANUS_API_KEY", "")
+
+
+class ProviderError(RuntimeError):
+    """Raised when a provider fails. Never swallowed, never silently retried
+    against a different model."""
+
+
+@dataclass
+class ModelCall:
+    """One call, recorded. Collected per agent run for the trace view."""
+    task: str
+    provider: str
+    model: str
+    ms: int
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    fell_back: bool = False       # true when the first-choice provider failed
+
+
+@dataclass
+class Step:
+    """One decision in the pipeline, and who made it.
+
+    `actor` is the whole point. A trace of model calls alone invites exactly
+    the reading we want to refute, that the product is a prompt with a database
+    behind it. Recording the deterministic steps in the same timeline, at the
+    same granularity, shows where the reasoning actually lives: the model
+    drafts and classifies, and code decides what may be said, who hears about
+    it, and whether it ships at all.
+    """
+    seq: int
+    actor: str                    # "code" | "model" | "database"
+    label: str
+    ms: int = 0
+    detail: dict = field(default_factory=dict)
+
+
+@dataclass
+class Trace:
+    calls: list[ModelCall] = field(default_factory=list)
+    steps: list[Step] = field(default_factory=list)
+
+    @property
+    def total_ms(self) -> int:
+        return sum(c.ms for c in self.calls)
+
+    @property
+    def total_tokens(self) -> int:
+        return sum(c.prompt_tokens + c.completion_tokens for c in self.calls)
+
+    def step(self, actor: str, label: str, ms: int = 0, **detail) -> None:
+        self.steps.append(Step(seq=len(self.steps) + 1, actor=actor,
+                               label=label, ms=ms, detail=detail))
+
+    def as_dict(self) -> dict:
+        decisive = [st for st in self.steps if st.detail.get("decisive")]
+        return {
+            "calls": [vars(c) for c in self.calls],
+            "steps": [vars(st) for st in self.steps],
+            "total_ms": self.total_ms,
+            "total_tokens": self.total_tokens,
+            # Counted here rather than in the page, so the number cannot drift
+            # from the trace it describes.
+            "decisions_by_code": sum(1 for st in decisive if st.actor == "code"),
+            "decisions_by_model": sum(1 for st in decisive if st.actor == "model"),
+        }
+
+
+# --------------------------------------------------------------------------
+# Task routing. Change these, not the call sites.
+# --------------------------------------------------------------------------
+
+ROUTES: dict[str, tuple[str, str]] = {
+    # task                     provider   model
+    "score":                   ("openai", "gpt-4o-mini"),
+    "coach":                   ("openai", "gpt-4o"),
+    "classify":                ("openai", "gpt-4o-mini"),
+    # The guest is the only task a human waits on in real time, and Groq
+    # returns in roughly half the time for output we cannot tell apart. Every
+    # other task runs behind a spinner or a shift, where latency buys nothing.
+    "guest_turn":              ("groq",   "qwen/qwen3.8-27b"),
+    "extract_incident":        ("openai", "gpt-4o-mini"),
+    "embed":                   ("openai", "text-embedding-3-small"),
+    "transcribe":              ("groq",   "whisper-large-v3-turbo"),
+}
+
+# Where a task goes when its first choice fails.
+#
+# This exists because of the demo, and it is honest about that. A provider
+# outage during a five minute pitch is not a hypothetical: Groq has changed its
+# model catalogue under us once already, retiring the exact model id we had
+# pinned. Falling back to a slower model beats a stack trace on a projector.
+# Every fallback is recorded in the trace, so the glass box still shows what
+# actually happened rather than what we hoped would.
+FALLBACKS: dict[str, tuple[str, str]] = {
+    "guest_turn": ("openai", "gpt-4o-mini"),
+    "score":      ("openai", "gpt-4o"),
+    "classify":   ("openai", "gpt-4o"),
+}
+
+# Matches the vector(768) column in db/schema.sql. OpenAI supports shortening
+# an embedding via the dimensions parameter, and Gemini's text-embedding-004 is
+# natively 768, so both providers land on the same column without a migration.
+EMBED_DIMS = 768
+
+
+def _post(url: str, payload: dict, headers: dict, timeout: int = 90) -> dict:
+    req = urllib.request.Request(
+        url, data=json.dumps(payload).encode("utf-8"),
+        headers={"User-Agent": UA, "Content-Type": "application/json", **headers})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return json.loads(r.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        body = e.read()[:400].decode("utf-8", "replace")
+        raise ProviderError(f"HTTP {e.code} from {url.split('/')[2]}: {body}") from None
+    except Exception as e:
+        raise ProviderError(f"{type(e).__name__} calling {url.split('/')[2]}: {e}") from None
+
+
+# --------------------------------------------------------------------------
+# Chat / structured output
+# --------------------------------------------------------------------------
+
+def complete(task: str, system: str, user: str, *, schema: dict | None = None,
+             temperature: float = 0.0, trace: Trace | None = None,
+             max_tokens: int = 1500) -> Any:
+    """Run a task. Returns parsed JSON when a schema is given, else text.
+
+    temperature defaults to 0: scoring a transcript against a written anchor is
+    a matching problem, not a creative one, and non-determinism here shows up
+    later as noise in the calibration statistic.
+    """
+    attempts = [ROUTES[task]]
+    if task in FALLBACKS and FALLBACKS[task] != ROUTES[task]:
+        attempts.append(FALLBACKS[task])
+
+    last: ProviderError | None = None
+    for index, (provider, model) in enumerate(attempts):
+        try:
+            return _complete_once(task, provider, model, system, user,
+                                  schema=schema, temperature=temperature,
+                                  trace=trace, max_tokens=max_tokens,
+                                  fell_back=index > 0)
+        except ProviderError as exc:
+            last = exc
+            if trace is not None and index + 1 < len(attempts):
+                nxt = attempts[index + 1]
+                trace.step("code", f"Provider {provider} failed, falling back "
+                                   f"to {nxt[0]}",
+                           failed_provider=provider, failed_model=model,
+                           error=str(exc)[:180],
+                           note=("Recorded rather than hidden. A demo that "
+                                 "silently swaps models is telling you "
+                                 "something untrue about what you just saw."))
+    raise last if last else ProviderError(f"task '{task}' had no route")
+
+
+def _complete_once(task: str, provider: str, model: str, system: str, user: str,
+                   *, schema: dict | None, temperature: float,
+                   trace: Trace | None, max_tokens: int,
+                   fell_back: bool = False) -> Any:
+    """One attempt at one provider. complete() owns the retry policy."""
+    started = time.time()
+
+    if provider == "openai":
+        if not OPENAI_KEY:
+            raise ProviderError("OPENAI_API_KEY is not set")
+        payload: dict = {
+            "model": model,
+            "messages": [{"role": "system", "content": system},
+                         {"role": "user", "content": user}],
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
+        if schema is not None:
+            payload["response_format"] = {
+                "type": "json_schema",
+                "json_schema": {"name": "result", "strict": True, "schema": schema},
+            }
+        data = _post("https://api.openai.com/v1/chat/completions", payload,
+                     {"Authorization": f"Bearer {OPENAI_KEY}"})
+        text = data["choices"][0]["message"]["content"]
+        usage = data.get("usage", {})
+
+    elif provider == "groq":
+        # Groq speaks the OpenAI chat protocol, including strict json_schema,
+        # so the payload is identical bar the host and the key.
+        if not GROQ_KEY:
+            raise ProviderError("GROQ_API_KEY is not set")
+        payload = {
+            "model": model,
+            "messages": [{"role": "system", "content": system},
+                         {"role": "user", "content": user}],
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
+        if schema is not None:
+            payload["response_format"] = {
+                "type": "json_schema",
+                "json_schema": {"name": "result", "strict": True,
+                                "schema": schema},
+            }
+        data = _post("https://api.groq.com/openai/v1/chat/completions", payload,
+                     {"Authorization": f"Bearer {GROQ_KEY}"})
+        text = data["choices"][0]["message"]["content"]
+        usage = data.get("usage", {})
+        if not (text or "").strip():
+            # Reasoning models on Groq can spend the whole budget thinking and
+            # return an empty content field. Empty is a failure, not an answer:
+            # say so here so the fallback fires instead of a JSON parse error
+            # surfacing three frames away.
+            raise ProviderError(f"groq/{model} returned empty content")
+
+    elif provider == "gemini":
+        if not GEMINI_KEY:
+            raise ProviderError("GEMINI_API_KEY is not set")
+        # v1beta, not v1. Every current model id (the gemini-2.x family
+        # included) is only served from v1beta; v1 answers 404 for them, which
+        # reads like a bad key and sends you looking in the wrong place.
+        url = (f"https://generativelanguage.googleapis.com/v1beta/models/"
+               f"{model}:generateContent?key={GEMINI_KEY}")
+        gen: dict = {"temperature": temperature, "maxOutputTokens": max_tokens}
+        if schema is not None:
+            gen["responseMimeType"] = "application/json"
+            gen["responseSchema"] = _to_gemini_schema(schema)
+        data = _post(url, {
+            "systemInstruction": {"parts": [{"text": system}]},
+            "contents": [{"parts": [{"text": user}]}],
+            "generationConfig": gen,
+        }, {})
+        text = data["candidates"][0]["content"]["parts"][0]["text"]
+        usage = {}
+
+    else:
+        raise ProviderError(f"unknown provider '{provider}' for task '{task}'")
+
+    if trace is not None:
+        trace.calls.append(ModelCall(
+            task=task, provider=provider, model=model,
+            ms=int((time.time() - started) * 1000),
+            prompt_tokens=usage.get("prompt_tokens", 0),
+            completion_tokens=usage.get("completion_tokens", 0),
+            fell_back=fell_back))
+
+    if schema is None:
+        return text
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        raise ProviderError(f"task '{task}' returned malformed JSON") from None
+
+
+def _to_gemini_schema(schema: dict) -> dict:
+    """Gemini rejects the JSON Schema keywords OpenAI accepts."""
+    drop = {"additionalProperties", "$schema", "strict"}
+    out = {}
+    for k, v in schema.items():
+        if k in drop:
+            continue
+        if k == "properties":
+            out[k] = {pk: _to_gemini_schema(pv) for pk, pv in v.items()}
+        elif k == "items":
+            out[k] = _to_gemini_schema(v)
+        else:
+            out[k] = v
+    return out
+
+
+# --------------------------------------------------------------------------
+# Embeddings
+# --------------------------------------------------------------------------
+
+def embed(texts: list[str], trace: Trace | None = None) -> list[list[float]]:
+    """Embed a batch. Always EMBED_DIMS long, whichever provider serves it."""
+    if not texts:
+        return []
+    provider, model = ROUTES["embed"]
+    started = time.time()
+
+    if provider == "openai":
+        if not OPENAI_KEY:
+            raise ProviderError("OPENAI_API_KEY is not set")
+        data = _post("https://api.openai.com/v1/embeddings",
+                     {"model": model, "input": texts, "dimensions": EMBED_DIMS},
+                     {"Authorization": f"Bearer {OPENAI_KEY}"}, timeout=120)
+        vectors = [d["embedding"] for d in sorted(data["data"], key=lambda d: d["index"])]
+    elif provider == "gemini":
+        # text-embedding-004 is natively 768-dimensional, which is exactly the
+        # width of the vector column. That is why this is a real fallback and
+        # not a migration: either provider drops into the same table.
+        if not GEMINI_KEY:
+            raise ProviderError("GEMINI_API_KEY is not set")
+        data = _post(
+            "https://generativelanguage.googleapis.com/v1beta/models/"
+            f"{model}:batchEmbedContents?key={GEMINI_KEY}",
+            {"requests": [{"model": f"models/{model}",
+                           "content": {"parts": [{"text": t}]}}
+                          for t in texts]},
+            {}, timeout=120)
+        vectors = [e["values"] for e in data["embeddings"]]
+    else:
+        raise ProviderError(f"embeddings not wired for provider '{provider}'")
+
+    if any(len(v) != EMBED_DIMS for v in vectors):
+        # The column is vector(768) and Postgres will refuse a different width
+        # anyway. Failing here names the provider that got it wrong.
+        raise ProviderError(
+            f"{provider}/{model} returned {len(vectors[0])} dimensions, "
+            f"expected {EMBED_DIMS}")
+
+    if trace is not None:
+        trace.calls.append(ModelCall("embed", provider, model,
+                                     int((time.time() - started) * 1000)))
+    return vectors
+
+
+# --------------------------------------------------------------------------
+# Speech to text
+# --------------------------------------------------------------------------
+
+def transcribe(audio: bytes, filename: str = "debrief.webm",
+               trace: Trace | None = None) -> str:
+    """Groq Whisper. Batch, not streaming: post-shift capture has no latency
+    requirement and streaming would add a failure mode for nothing."""
+    provider, model = ROUTES["transcribe"]
+    if provider != "groq":
+        raise ProviderError(f"transcription not wired for '{provider}'")
+    if not GROQ_KEY:
+        raise ProviderError("GROQ_API_KEY is not set")
+
+    boundary = "----coachingengine"
+    parts: list[bytes] = []
+
+    def field(name: str, value: str):
+        parts.append(
+            f"--{boundary}\r\nContent-Disposition: form-data; name=\"{name}\"\r\n\r\n"
+            f"{value}\r\n".encode())
+
+    parts.append(
+        f"--{boundary}\r\nContent-Disposition: form-data; name=\"file\"; "
+        f"filename=\"{filename}\"\r\nContent-Type: application/octet-stream\r\n\r\n"
+        .encode())
+    parts.append(audio)
+    parts.append(b"\r\n")
+    field("model", model)
+    field("response_format", "json")
+    field("language", "en")
+    parts.append(f"--{boundary}--\r\n".encode())
+    body = b"".join(parts)
+
+    started = time.time()
+    req = urllib.request.Request(
+        "https://api.groq.com/openai/v1/audio/transcriptions", data=body,
+        headers={"User-Agent": UA,
+                 "Authorization": f"Bearer {GROQ_KEY}",
+                 "Content-Type": f"multipart/form-data; boundary={boundary}"})
+    try:
+        with urllib.request.urlopen(req, timeout=120) as r:
+            data = json.loads(r.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        raise ProviderError(
+            f"HTTP {e.code} from groq: {e.read()[:300].decode('utf-8','replace')}") from None
+
+    if trace is not None:
+        trace.calls.append(ModelCall("transcribe", provider, model,
+                                     int((time.time() - started) * 1000)))
+    return data.get("text", "").strip()
+
+
+# --------------------------------------------------------------------------
+# Text to speech
+# --------------------------------------------------------------------------
+
+# The free tier is 10,000 characters for the lifetime of the account, not per
+# month. Three careless demo rehearsals would spend it, so every line is cached
+# on disk by (voice, text) and re-synthesised never. The cache is what makes
+# this safe to leave switched on.
+_VOICE_CACHE = Path(os.environ.get("CE_VOICE_CACHE", "")
+                    or Path(__file__).resolve().parents[3] / ".cache" / "voice")
+
+# ElevenLabs' stock voices. Named here so a scenario can pick a guest that
+# sounds like a different person, which matters more than fidelity: the point
+# is that the staff member is talking to someone, not to a text box.
+VOICES = {
+    "guest_female": "EXAVITQu4vr4xnSDxMaL",   # Sarah, calm
+    "guest_male":   "TX3LPaxmHKxFdv7VOQHJ",   # Liam, measured
+    "guest_upset":  "pFZP5JQG7iQjIQuC4Bku",   # Lily, sharper
+}
+
+VOICE_CHAR_BUDGET = 400          # per line; a guest turn is one or two sentences
+
+
+def speak(text: str, voice: str = "guest_female", *,
+          trace: Trace | None = None) -> bytes | None:
+    """Synthesise one guest line. Returns mp3 bytes, or None if unavailable.
+
+    None is a normal return, not an error. Voice is an enhancement on top of a
+    conversation that already works as text, so a missing key, an exhausted
+    quota or a slow network must degrade to silence rather than break the
+    practice session someone is in the middle of.
+    """
+    text = (text or "").strip()
+    if not text or not ELEVENLABS_KEY:
+        return None
+    if len(text) > VOICE_CHAR_BUDGET:
+        # Truncating protects the budget from a runaway generation. A guest
+        # turn this long is a bug upstream anyway.
+        text = text[:VOICE_CHAR_BUDGET]
+
+    voice_id = VOICES.get(voice, VOICES["guest_female"])
+    digest = hashlib.sha256(f"{voice_id}:{text}".encode()).hexdigest()[:32]
+    cached = _VOICE_CACHE / f"{digest}.mp3"
+    if cached.exists():
+        if trace is not None:
+            trace.calls.append(ModelCall("speak", "cache", voice_id, 0))
+        return cached.read_bytes()
+
+    started = time.time()
+    req = urllib.request.Request(
+        f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}",
+        data=json.dumps({
+            "text": text,
+            "model_id": "eleven_flash_v2_5",     # lowest latency tier
+            "voice_settings": {"stability": 0.4, "similarity_boost": 0.7},
+        }).encode(),
+        headers={"xi-api-key": ELEVENLABS_KEY, "Content-Type": "application/json",
+                 "Accept": "audio/mpeg", "User-Agent": UA})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            audio = r.read()
+    except Exception as exc:                                  # noqa: BLE001
+        # Deliberately swallowed. See the docstring: text still works.
+        if trace is not None:
+            trace.step("code", "Voice unavailable, continuing in text",
+                       error=str(exc)[:160],
+                       note="The practice session does not depend on audio.")
+        return None
+
+    try:
+        _VOICE_CACHE.mkdir(parents=True, exist_ok=True)
+        cached.write_bytes(audio)
+    except OSError:
+        pass                                   # a cache miss is not a failure
+
+    if trace is not None:
+        trace.calls.append(ModelCall("speak", "elevenlabs", voice_id,
+                                     int((time.time() - started) * 1000)))
+    return audio
+
+
+def voice_key(text: str, voice: str = "guest_female") -> str:
+    """The cache key for a line. Same computation as speak(), on purpose:
+    the API hands this id to the browser and the browser asks for the mp3 by
+    it, so no guest text ever travels in a URL."""
+    voice_id = VOICES.get(voice, VOICES["guest_female"])
+    trimmed = (text or "").strip()[:VOICE_CHAR_BUDGET]
+    return hashlib.sha256(f"{voice_id}:{trimmed}".encode()).hexdigest()[:32]
+
+
+def voice_file(digest: str) -> bytes | None:
+    """Read a synthesised line back. None when it was never made."""
+    if not digest.isalnum() or len(digest) != 32:
+        return None                        # never build a path from free text
+    path = _VOICE_CACHE / f"{digest}.mp3"
+    return path.read_bytes() if path.exists() else None
+
+
+def voice_budget() -> dict:
+    """Characters left on the account. Checked before a demo, not during one."""
+    if not ELEVENLABS_KEY:
+        return {"configured": False}
+    req = urllib.request.Request(
+        "https://api.elevenlabs.io/v1/user/subscription",
+        headers={"xi-api-key": ELEVENLABS_KEY, "User-Agent": UA})
+    try:
+        with urllib.request.urlopen(req, timeout=15) as r:
+            sub = json.loads(r.read().decode())
+    except Exception:                                         # noqa: BLE001
+        return {"configured": True, "reachable": False}
+    used, cap = sub.get("character_count", 0), sub.get("character_limit", 0)
+    cached_lines = len(list(_VOICE_CACHE.glob("*.mp3"))) if _VOICE_CACHE.exists() else 0
+    return {"configured": True, "reachable": True, "tier": sub.get("tier"),
+            "used": used, "limit": cap, "remaining": cap - used,
+            "cached_lines": cached_lines}
+
+
+# --------------------------------------------------------------------------
+# Manus: long-running agent tasks
+# --------------------------------------------------------------------------
+
+def manus_task(prompt: str, *, mode: str = "fast",
+               trace: Trace | None = None) -> dict:
+    """Hand a research or drafting job to Manus and return its handle.
+
+    Manus authenticates with a bare API_KEY header rather than a bearer token,
+    which is not guessable and cost us an afternoon. It is asynchronous by
+    design, so this returns a task id and a URL rather than a result: the work
+    it suits, a weekly operations write-up, is measured in minutes and nobody
+    is waiting at a screen for it.
+    """
+    if not MANUS_KEY:
+        raise ProviderError("MANUS_API_KEY is not set")
+    started = time.time()
+    data = _post("https://api.manus.ai/v1/tasks",
+                 {"prompt": prompt, "mode": mode},
+                 {"API_KEY": MANUS_KEY})
+    if trace is not None:
+        trace.calls.append(ModelCall("manus_task", "manus", mode,
+                                     int((time.time() - started) * 1000)))
+    return {"task_id": data.get("task_id") or data.get("id"),
+            "task_url": data.get("task_url") or data.get("url"),
+            "status": data.get("status", "submitted")}
+
+
+def available() -> dict[str, bool]:
+    """What is actually configured. Surfaced on /health so a missing key is
+    visible before the demo rather than during it.
+
+    Configured is not the same as working: a key can be present and the call
+    still refused, which is exactly what happened with Google. Run
+    services/api/check_providers.py for the stronger claim.
+    """
+    return {"openai": bool(OPENAI_KEY), "groq": bool(GROQ_KEY),
+            "gemini": bool(GEMINI_KEY), "elevenlabs": bool(ELEVENLABS_KEY),
+            "manus": bool(MANUS_KEY)}

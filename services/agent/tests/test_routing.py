@@ -150,3 +150,47 @@ def test_cohort_at_k_is_displayable():
 
 def test_the_demo_cohort_of_nine_clears_the_threshold():
     assert cohort_is_displayable(9) is True
+
+
+# --- the instrument, not the person ----------------------------------------
+#
+# RECALIBRATE means the floor score is HIGHER than the practice score: they do
+# it correctly where it counts and not in the simulator. Routing that at the
+# staff member would be the precise failure this product argues against, so it
+# is a claim about our scoring and it outranks every other rule.
+
+def test_recalibrate_routes_to_ld_as_a_measurement_concern():
+    e = route(RoutingContext(classification="process", quadrant="recalibrate"))
+    assert e.rule_id == "RC-MEASUREMENT"
+    assert e.route == "ld_hr"
+    assert e.suppress_individual_coaching is True
+
+
+def test_recalibrate_outranks_a_process_cohort():
+    # Even with a full cohort behind it, the instrument claim wins.
+    e = route(RoutingContext(classification="process", quadrant="recalibrate",
+                             cohort_size=9))
+    assert e.rule_id == "RC-MEASUREMENT"
+
+
+def test_recalibrate_outranks_severe_floor_scores():
+    # A low floor mean cannot be true at the same time as recalibrate, but if
+    # the data ever says both, we must not send a person to HR on the strength
+    # of a reading we have just called unreliable.
+    e = route(RoutingContext(classification="process", quadrant="recalibrate",
+                             floor_mean=1.2, floor_n=4))
+    assert e.rule_id == "RC-MEASUREMENT"
+    assert e.route == "ld_hr"
+    assert e.severity == 1
+
+
+def test_other_quadrants_are_unaffected():
+    assert route(RoutingContext(classification="behavioural",
+                                quadrant="skill_gap")).rule_id == "RC-BEHAV-DEFAULT"
+    assert route(RoutingContext(classification="policy", quadrant="blocked",
+                                cohort_size=6)).rule_id == "RC-POLICY-COHORT"
+
+
+def test_quadrant_defaults_to_none_and_changes_nothing():
+    # Callers that predate the field must route exactly as before.
+    assert route(RoutingContext(classification="behavioural")).rule_id == "RC-BEHAV-DEFAULT"

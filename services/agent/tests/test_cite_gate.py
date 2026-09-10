@@ -155,3 +155,47 @@ def test_passing_gate_does_not_increment_repairs():
     result = run_gate(grounded_claims(), BUNDLE, DIEGO, repair_attempts=1)
     assert result.passed
     assert result.repair_attempts == 1
+
+
+# --- span support against long sources -------------------------------------
+#
+# These pin the bug the window fix repaired. The gate compared a short quote
+# against the WHOLE chunk, and ratio() falls with length difference, so a
+# verbatim-bar-one-character quote from a realistic SOP section scored near
+# zero and abstained. Both directions matter: near-verbatim must pass, and
+# paraphrase must still fail, or the fix would have bought recall with
+# precision.
+
+LONG_SOP = (
+    "Nine Step Complaint Handling Procedure. Step 1: Listen to the guest "
+    "without interrupting and allow them to finish. Step 2: Apologise "
+    "sincerely on behalf of the property, regardless of fault. Step 3: "
+    "Acknowledge the specific inconvenience the guest has described, in their "
+    "own words. Step 4: Ask what outcome would resolve the matter for them. "
+    "Step 5: Escalate to the Duty Manager where the resolution exceeds your "
+    "authority. Step 6: Record the complaint in the daily log before the end "
+    "of shift. Step 7: Follow up with the guest before departure. Step 8: "
+    "Brief the incoming shift. Step 9: Review recurring complaints weekly."
+)
+
+
+def test_near_verbatim_quote_from_a_long_section_is_supported():
+    quoted = "Acknowledge the specific inconvenience the guest has described"
+    assert span_supported(quoted, LONG_SOP)
+
+
+def test_verbatim_quote_with_punctuation_drift_is_supported():
+    quoted = "Escalate to the Duty Manager, where the resolution exceeds your authority"
+    assert span_supported(quoted, LONG_SOP)
+
+
+def test_paraphrase_of_a_long_section_is_still_rejected():
+    # Same topic, same vocabulary, but the section never says it. This is the
+    # failure the gate exists to catch.
+    quoted = "Staff may offer a complimentary night to any dissatisfied guest"
+    assert not span_supported(quoted, LONG_SOP)
+
+
+def test_plausible_invention_about_authority_is_rejected():
+    quoted = "Front office staff may authorise refunds up to two hundred euro"
+    assert not span_supported(quoted, LONG_SOP)
