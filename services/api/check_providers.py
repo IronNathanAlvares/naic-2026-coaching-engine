@@ -270,9 +270,17 @@ def check_vertex() -> tuple[str, str]:
     if code == 200:
         return OK, f"{model} in {region}"
     if code == 403 and "aiplatform.googleapis.com" in body:
-        return FAIL, (f"the Vertex AI API is not enabled on {project}. Run: "
-                      f"gcloud services enable aiplatform.googleapis.com "
-                      f"--project {project}")
+        # Google renamed Vertex AI to Agent Platform, so the console and the
+        # error message use a name the code does not. Link straight to the
+        # enable page with the project already selected, because searching for
+        # "Vertex AI" in the API library now finds the wrong thing.
+        return FAIL, (
+            f"the API is not enabled on {project}. One click: "
+            f"https://console.cloud.google.com/apis/library/"
+            f"aiplatform.googleapis.com?project={project}   "
+            f"(it is listed as 'Vertex AI API' / 'Agent Platform API'). "
+            f"Everything else already works: the service account "
+            f"authenticates and the project resolves.")
     if code == 403:
         return FAIL, (f"the service account lacks the Vertex AI User role on "
                       f"{project}. Grant roles/aiplatform.user, then re-run. "

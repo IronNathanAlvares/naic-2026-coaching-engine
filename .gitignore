@@ -89,3 +89,12 @@ tmp/
 # we have already paid for. Eight files, about 1MB.
 !services/api/.voice-cache/
 !services/api/.voice-cache/*.mp3
+
+# Google hands you a service account key named after the PROJECT, e.g.
+# project-7ffd39d7-3c02-4599-ae9-644687ddfe43.json, which matches none of the
+# patterns above. One arrived in the repo root and was one `git add -A` from
+# being published. Any JSON at the repo root is now ignored by default: nothing
+# the project legitimately tracks lives there.
+/*.json
+!/package.json
+!/tsconfig.json
