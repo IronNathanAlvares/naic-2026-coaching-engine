@@ -73,7 +73,10 @@ CREATE TABLE sop_document (
     version         integer     NOT NULL DEFAULT 1,
     is_synthetic    boolean     NOT NULL DEFAULT false,
     ingested_at     timestamptz NOT NULL DEFAULT now(),
-    UNIQUE (property_id, doc_type, department, version)
+    -- Keyed on title, not doc_type: a property has several documents of the
+    -- same type. The Service Promise, Professional Ethic and Positive
+    -- Alternatives are all doc_type 'standard' for department 'all'.
+    UNIQUE (property_id, title, version)
 );
 
 -- Chunks are IMMUTABLE once written. A corpus update creates a new document
