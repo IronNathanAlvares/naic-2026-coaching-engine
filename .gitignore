@@ -98,3 +98,8 @@ tmp/
 /*.json
 !/package.json
 !/tsconfig.json
+
+# Generated crib sheet of every secret, for pasting into a host's dashboard.
+# Convenient and therefore dangerous: it is one file containing all of them.
+render-env.txt
+*-env.txt
