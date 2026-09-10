@@ -61,6 +61,15 @@ async function request<T>(
     ...init,
     method,
     headers,
+    // Never cached, and never prerendered.
+    //
+    // Next caches fetches in Server Components and will happily render a page
+    // at BUILD time and serve that HTML forever. The manager console then
+    // shows whatever the queue contained the last time Vercel deployed:
+    // observed here as "0 recommendations waiting" while the API had nine.
+    // Every read on this client is a read of live coaching data about a real
+    // decision someone is about to make, so none of it may be stale.
+    cache: "no-store",
   });
 
   if (!res.ok) {
