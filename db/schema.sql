@@ -233,6 +233,13 @@ CREATE TABLE shift_debrief (
     transcript       text,
     incident         jsonb,
     duration_ms      integer,
+    -- The clause this debrief was matched against, resolved once at extraction
+    -- and stored. A staff member should be shown their employer's OWN wording
+    -- for the situation they just described, not a generic tip, and storing
+    -- the chunk id means every later read shows the same clause rather than
+    -- re-rolling the retrieval on each page load.
+    standard_chunk_id uuid REFERENCES sop_chunk(id),
+    standard_why      text,
     created_at       timestamptz NOT NULL DEFAULT now()
 );
 

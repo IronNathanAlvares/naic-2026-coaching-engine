@@ -107,7 +107,18 @@ def health():
         with session() as cur:
             cur.execute("SELECT 1 AS ok")
             cur.fetchone()
-        return {"status": "ok", "database": "up", "providers": available()}
+        # Report the search index, because an unembedded corpus is invisible
+        # from the outside: every endpoint answers 200 and the agent abstains
+        # on everyone with a reason that reads like good judgement.
+        with session() as cur:
+            cur.execute("SELECT count(*) FILTER (WHERE embedding IS NULL) AS missing,"
+                        "       count(*) AS total FROM sop_chunk")
+            idx = cur.fetchone()
+        return {"status": "ok", "database": "up", "providers": available(),
+                "search_index": {
+                    "chunks": idx["total"],
+                    "embedded": idx["total"] - idx["missing"],
+                    "ready": idx["total"] > 0 and idx["missing"] == 0}}
     except Exception as e:
         return JSONResponse(status_code=503,
                             content={"status": "degraded", "database": str(e)[:120]})

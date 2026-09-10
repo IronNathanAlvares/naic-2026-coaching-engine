@@ -95,7 +95,14 @@ def check_groq_chat() -> tuple[str, str]:
          "User-Agent": UA})
     if code == 200:
         return OK, f"{P.ROUTES['guest_turn'][1]} chat"
-    return FAIL, f"HTTP {code}: {body[:150]}"
+    if code == 429:
+        # The free tier is generous but finite. This is a WARN because the
+        # wiring is correct and FALLBACKS will carry the task to OpenAI; it
+        # still needs saying, because the demo gets slower when it happens.
+        fb = P.FALLBACKS.get("guest_turn")
+        return WARN, (f"rate limited on the free tier. Falls back to "
+                      f"{fb[0]}/{fb[1]}" if fb else "rate limited, no fallback")
+    return FAIL, f"HTTP {code}: {' '.join(body.split())[:130]}"
 
 
 def check_groq_whisper() -> tuple[str, str]:
@@ -168,24 +175,38 @@ def check_google() -> tuple[str, str]:
         {"Content-Type": "application/json", "User-Agent": UA})
     if code == 200:
         return OK, "gemini-2.0-flash"
-    # Two different 403s that look identical in a log and need opposite fixes.
-    project = ""
-    if "projects/" in body:
-        project = body.split("projects/")[1].split('"')[0].strip("' ,}")
-    if "SERVICE_DISABLED" in body:
-        return FAIL, (f"the Generative Language API is switched OFF on GCP "
-                      f"project {project or '(unknown)'}. Enable it at "
-                      f"console.cloud.google.com/apis/library/"
-                      f"generativelanguage.googleapis.com then re-run.")
-    if "API_KEY_SERVICE_BLOCKED" in body:
-        return FAIL, (f"the key is valid but RESTRICTED away from this API on "
-                      f"project {project or '(unknown)'}. In console.cloud."
-                      f"google.com/apis/credentials open the key, and under "
-                      f"'API restrictions' either choose Don't restrict key or "
-                      f"add Generative Language API to the allowed list.")
     if code == 429:
-        return WARN, "quota exhausted, not a configuration problem"
-    return FAIL, f"HTTP {code}: {' '.join(body.split())[:150]}"
+        return WARN, "quota exhausted, which is not a configuration problem"
+
+    # Read the structured reason, never a substring of the message. Google's
+    # prose mentions several failure modes in one body and grepping it told us
+    # to open the wrong console page: the two 403s below look identical in a
+    # log and need opposite fixes.
+    reason, project = "", ""
+    try:
+        err = json.loads(body).get("error", {})
+        for detail in err.get("details", []):
+            if detail.get("@type", "").endswith("ErrorInfo"):
+                reason = detail.get("reason", "")
+                project = (detail.get("metadata", {})
+                           .get("consumer", "")).replace("projects/", "")
+    except Exception:                                       # noqa: BLE001
+        pass
+
+    where = f"project {project}" if project else "the GCP project"
+    if reason == "SERVICE_DISABLED":
+        return FAIL, (f"the Generative Language API is switched OFF on {where}. "
+                      f"Enable it at console.cloud.google.com/apis/library/"
+                      f"generativelanguage.googleapis.com, then re-run.")
+    if reason == "API_KEY_SERVICE_BLOCKED":
+        return FAIL, (f"the key is valid but RESTRICTED away from this API on "
+                      f"{where}. At console.cloud.google.com/apis/credentials "
+                      f"open the key, and under 'API restrictions' either pick "
+                      f"Don't restrict key, or add Generative Language API to "
+                      f"the allowed list.")
+    if reason == "API_KEY_INVALID":
+        return FAIL, "the key itself is not valid; issue a new one."
+    return FAIL, f"HTTP {code} {reason}: {' '.join(body.split())[:130]}"
 
 
 def check_ollama() -> tuple[str, str]:
@@ -240,6 +261,9 @@ def main() -> int:
         results.append((label, state, detail))
         print(f"  [{state}] {label:32} {ms:>5}ms  {detail}")
 
+    warned = [r for r in results if r[1] == WARN]
+    for label, _, detail in warned:
+        print(f"  note  {label.split()[0]}: {detail}")
     failed = [r for r in results if r[1] == FAIL]
     print()
     if failed:
