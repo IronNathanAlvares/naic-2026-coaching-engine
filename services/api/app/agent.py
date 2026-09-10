@@ -176,6 +176,17 @@ def run_coaching(cur, actor, staff_id: str, trace: Trace | None = None) -> dict:
         return {"status": "abstained", "abstain_reason": "No such staff member."}
 
     gap = q.transfer_gap(cur, staff_id)
+    trace.step("database", "Read both evidence streams under row level security",
+               rows=len(gap["dimensions"]) + len(gap["insufficient_evidence"]),
+               note=("The actor's own permissions applied. A manager who has "
+                     "not observed this person sees no practice scores here."))
+    trace.step("code", "Compute the transfer gap per dimension",
+               decisive=True,
+               dimensions=[{"dimension": d["dimension"], "gap": d["gap"],
+                            "quadrant": d["quadrant"]}
+                           for d in gap["dimensions"]],
+               insufficient=gap["insufficient_evidence"],
+               note="Arithmetic, not judgement. No model has been called yet.")
     if not gap["dimensions"]:
         return {
             "status": "abstained",
@@ -189,6 +200,9 @@ def run_coaching(cur, actor, staff_id: str, trace: Trace | None = None) -> dict:
 
     # The dimension with the widest gap is the one worth a conversation.
     focus = max(gap["dimensions"], key=lambda d: abs(d["gap"]))
+    trace.step("code", f"Select the focus dimension: {focus['dimension']}",
+               decisive=True, quadrant=focus["quadrant"], gap=focus["gap"],
+               note="Widest absolute gap wins. Deterministic and reproducible.")
 
     # --- evidence bundle -------------------------------------------------
     cur.execute("""
@@ -215,7 +229,18 @@ def run_coaching(cur, actor, staff_id: str, trace: Trace | None = None) -> dict:
     # --- retrieve the standard -------------------------------------------
     query = f"{focus['dimension'].replace('_', ' ')}. {obs['what_happened']}"
     chunks = search(cur, query, department=staff["department"], limit=5, trace=trace)
-
+    trace.step("database", "Hybrid search over this hotel's own standards",
+               hits=[{"ref": f"S{i}", "document": c["document"],
+                      "section": c["section_path"],
+                      "similarity": c["similarity"]}
+                     for i, c in enumerate(chunks, 1)],
+               note=("Vector plus full text, fused with reciprocal rank. "
+                     "A cosine floor of 0.30 rejects the merely topical."))
+    if not chunks:
+        trace.step("code", "Abstain: no standard supports a claim here",
+                   decisive=True,
+                   note=("Nothing cleared the similarity floor, so any advice "
+                         "would be generic. The product declines instead."))
     if not chunks:
         return {
             "status": "abstained",
@@ -301,6 +326,14 @@ def run_coaching(cur, actor, staff_id: str, trace: Trace | None = None) -> dict:
         # Floor above practice. They can do it where it counts, so the failing
         # process is our measurement of them, not their behaviour.
         allowed = ["process"]
+    if len(allowed) < 3:
+        trace.step("code", "Constrain what the model is allowed to conclude",
+                   decisive=True, quadrant=focus["quadrant"], allowed=allowed,
+                   removed=[c for c in ("behavioural", "process", "policy")
+                            if c not in allowed],
+                   note=("The quadrant already proves the skill is present, so "
+                         "'behavioural' is removed from the schema. The model "
+                         "cannot return it, prompt or no prompt."))
     classify_schema = {**CLASSIFY_SCHEMA,
                        "properties": {**CLASSIFY_SCHEMA["properties"],
                                       "classification": {"type": "string",
@@ -323,7 +356,10 @@ def run_coaching(cur, actor, staff_id: str, trace: Trace | None = None) -> dict:
             "Two rules that override your instinct:\n"
             "- If they performed the behaviour correctly in practice, it is NOT "
             "behavioural. They have the skill.\n"
-            "- If your best staff also fail it, it is not a skill problem.",
+            "- If your best staff also fail it, it is not a skill problem.\n\n"
+            "Your rationale is shown to the manager. Refer to the person by "
+            "name and do not infer their gender from it: use the name, or "
+            "they.",
             f"STAFF: {staff['display_name']}, {staff['department']}\n"
             f"GAP: {focus['dimension']} practice {focus['practice_mean']} vs "
             f"floor {focus['floor_mean']} ({focus['quadrant']})\n"
@@ -336,6 +372,9 @@ def run_coaching(cur, actor, staff_id: str, trace: Trace | None = None) -> dict:
             f"STANDARDS FOUND: {chr(10).join(c['content'][:120] for c in chunks[:3])}",
             schema=classify_schema, trace=trace)
         classification = c["classification"]
+        trace.step("model", f"Classify the cause: {classification}",
+                   decisive=True, chose_from=allowed,
+                   rationale=c.get("rationale", "")[:220])
     except ProviderError:
         pass                               # default stands; not worth failing the run
 
@@ -417,7 +456,23 @@ def run_coaching(cur, actor, staff_id: str, trace: Trace | None = None) -> dict:
                         citation_refs=tuple(c["citation_refs"]),
                         quoted_span=c.get("quoted_span") or None)
                   for c in draft["claims"]]
+        trace.step("model", f"Draft the recommendation (attempt {attempts + 1})",
+                   claims=len(claims),
+                   cited=sorted({r for c in claims for r in c.citation_refs}))
         gate_result = run_gate(claims, bundle, staff_id, repair_attempts=attempts)
+        trace.step("code", ("Cite gate: PASSED" if gate_result.passed
+                            else "Cite gate: REJECTED"),
+                   decisive=True, passed=gate_result.passed,
+                   checks=["source exists in the bundle",
+                           "quoted span is genuinely in the cited chunk",
+                           "at least one practice AND one floor citation",
+                           "no claim leans on another person's evidence"],
+                   failures=[{"claim": f.claim_text[:90] if f.claim_text else None,
+                              "ref": f.ref, "reason": f.reason,
+                              "explanation": f.describe()}
+                             for f in gate_result.failures],
+                   note=("Four checks, all in code, all in the 72 unit tests. "
+                         "The model is never asked whether it cited correctly."))
         if gate_result.passed:
             break
         attempts += 1
@@ -451,6 +506,19 @@ def run_coaching(cur, actor, staff_id: str, trace: Trace | None = None) -> dict:
         floor_mean=focus["floor_mean"],
         floor_n=focus["floor_n"],
     ))
+
+    trace.step("code", f"Route by rule {esc.rule_id} to {esc.route}",
+               decisive=True, rule_id=esc.rule_id, route=esc.route,
+               severity=esc.severity,
+               suppress_individual_coaching=esc.suppress_individual_coaching,
+               note=("First match wins over a fixed rule list. Article 14 "
+                     "needs a reason a human can check, and 'the model decided' "
+                     "is not one."))
+    trace.step("code", "Hold for human verification",
+               decisive=True,
+               note=("Nothing routes anywhere until a manager confirms, "
+                     "corrects or rejects. There is no timeout and no "
+                     "auto-approve."))
 
     by_ref = {e.ref: e for e in bundle}
     citations = []

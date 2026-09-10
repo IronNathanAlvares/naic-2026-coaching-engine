@@ -57,8 +57,27 @@ class ModelCall:
 
 
 @dataclass
+class Step:
+    """One decision in the pipeline, and who made it.
+
+    `actor` is the whole point. A trace of model calls alone invites exactly
+    the reading we want to refute, that the product is a prompt with a database
+    behind it. Recording the deterministic steps in the same timeline, at the
+    same granularity, shows where the reasoning actually lives: the model
+    drafts and classifies, and code decides what may be said, who hears about
+    it, and whether it ships at all.
+    """
+    seq: int
+    actor: str                    # "code" | "model" | "database"
+    label: str
+    ms: int = 0
+    detail: dict = field(default_factory=dict)
+
+
+@dataclass
 class Trace:
     calls: list[ModelCall] = field(default_factory=list)
+    steps: list[Step] = field(default_factory=list)
 
     @property
     def total_ms(self) -> int:
@@ -68,11 +87,21 @@ class Trace:
     def total_tokens(self) -> int:
         return sum(c.prompt_tokens + c.completion_tokens for c in self.calls)
 
+    def step(self, actor: str, label: str, ms: int = 0, **detail) -> None:
+        self.steps.append(Step(seq=len(self.steps) + 1, actor=actor,
+                               label=label, ms=ms, detail=detail))
+
     def as_dict(self) -> dict:
+        decisive = [st for st in self.steps if st.detail.get("decisive")]
         return {
             "calls": [vars(c) for c in self.calls],
+            "steps": [vars(st) for st in self.steps],
             "total_ms": self.total_ms,
             "total_tokens": self.total_tokens,
+            # Counted here rather than in the page, so the number cannot drift
+            # from the trace it describes.
+            "decisions_by_code": sum(1 for st in decisive if st.actor == "code"),
+            "decisions_by_model": sum(1 for st in decisive if st.actor == "model"),
         }
 
 

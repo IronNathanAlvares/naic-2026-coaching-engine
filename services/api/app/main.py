@@ -29,6 +29,7 @@ from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from . import demo
 from . import queries as q
 from . import practice
 from . import recommendations as recs
@@ -289,6 +290,40 @@ def team_insights(x_ce_actor: str | None = Header(default=None)):
     actor = actor_from(x_ce_actor)
     with session(actor) as cur:
         return q.team_insights(cur)
+
+
+# ---------------------------------------------------------------- glass box
+#
+# Three endpoints whose only job is to let someone check our claims instead of
+# believing them. They call production code paths; see demo.py.
+
+@app.post("/api/v1/demo/trace/{staff_id}")
+def demo_trace(staff_id: str, x_ce_actor: str | None = Header(default=None)):
+    """Run the agent and return the whole pipeline, step by step."""
+    actor = actor_from(x_ce_actor)
+    with session(actor) as cur:
+        staff_id = q.resolve_staff_ref(cur, staff_id) or staff_id
+        return demo.trace_run(cur, actor, staff_id)
+
+
+@app.get("/api/v1/demo/gate")
+def demo_gate(staff_id: str = "Diego",
+              x_ce_actor: str | None = Header(default=None)):
+    """Put deliberately bad citations through the real cite gate."""
+    actor = actor_from(x_ce_actor)
+    with session(actor) as cur:
+        resolved = q.resolve_staff_ref(cur, staff_id) or staff_id
+        return demo.gate_probe(cur, resolved)
+
+
+@app.get("/api/v1/demo/rls")
+def demo_rls(staff_id: str = "Aoife",
+             x_ce_actor: str | None = Header(default=None)):
+    """Ask one question as three different people."""
+    actor = actor_from(x_ce_actor)
+    with session(actor) as cur:
+        resolved = q.resolve_staff_ref(cur, staff_id) or staff_id
+        return demo.rls_proof(cur, resolved)
 
 
 # ---------------------------------------------------------------- practice

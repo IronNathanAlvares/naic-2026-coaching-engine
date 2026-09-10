@@ -61,9 +61,16 @@ class Failure:
                 f"quoted text is not supported by {self.ref}",
             "cross_staff_reference":
                 f"{self.ref} is evidence about a different staff member",
+            # self.ref names the stream that is missing, so the repair
+            # message tells the model what to add. Naming only the floor was
+            # wrong half the time and sent the model to fix the stream it had
+            # already cited.
             "not_a_transfer_gap_recommendation":
-                "no citation from the floor-observation stream, this is "
-                "roleplay feedback, not a transfer-gap reading",
+                (f"no citation from the {self.ref} stream, this is "
+                 "roleplay feedback, not a transfer-gap reading"
+                 if self.ref else
+                 "a transfer gap needs both streams cited, practice AND "
+                 "floor; this is roleplay feedback"),
         }[self.reason]
 
 
@@ -175,8 +182,12 @@ def run_gate(claims: Sequence[Claim],
     # 3. sufficiency, this is what makes it a transfer-gap recommendation
     # rather than roleplay feedback. A competitor's system can cite the practice
     # transcript; only ours can be required to cite a floor observation too.
-    if not {"attempt_turn", "observation"} <= kinds_cited:
-        failures.append(Failure(None, None, "not_a_transfer_gap_recommendation"))
+    STREAM_NAMES = {"attempt_turn": "practice", "observation": "floor-observation"}
+    missing = [STREAM_NAMES[k] for k in ("attempt_turn", "observation")
+               if k not in kinds_cited]
+    if missing:
+        failures.append(Failure(None, " and ".join(missing),
+                                "not_a_transfer_gap_recommendation"))
 
     if not failures:
         return GateResult(passed=True, repair_attempts=repair_attempts)
