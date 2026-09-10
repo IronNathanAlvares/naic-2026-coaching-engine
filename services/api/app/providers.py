@@ -150,6 +150,10 @@ ROUTES: dict[str, tuple[str, str]] = {
 # actually happened rather than what we hoped would.
 FALLBACKS: dict[str, tuple[str, str]] = {
     "guest_turn": ("openai", "gpt-4o-mini"),
+    # The coaching draft had no second provider, so any failure on it took the
+    # whole run down. gpt-4o-mini writes a weaker headline than gpt-4o, and a
+    # weaker headline that ships beats a stack trace on a projector.
+    "coach":      ("openai", "gpt-4o-mini"),
     "score":      ("openai", "gpt-4o"),
     "classify":   ("openai", "gpt-4o"),
 }
@@ -198,18 +202,41 @@ def _vertex_url(model: str, verb: str = "generateContent") -> str:
             f"models/{model}:{verb}")
 
 
+# One retry, for transport failures only.
+#
+# A dropped TCP connection, a DNS blip or a TLS handshake that loses a race is
+# not a decision the provider made, and it is not something to surface as a 500
+# in front of an audience. Observed here: an intermittent
+# CERTIFICATE_VERIFY_FAILED from a TLS-inspecting network, roughly one call in
+# fifteen, with the same call succeeding immediately afterwards.
+#
+# HTTP errors are deliberately NOT retried. A 400 is a bug in our payload, a
+# 401 is a bad key and a 429 is a rate limit that a retry makes worse; all
+# three should fail fast so the fallback in complete() can pick the task up.
+_TRANSPORT_RETRIES = 1
+_RETRY_BACKOFF_S = 0.6
+
+
 def _post(url: str, payload: dict, headers: dict, timeout: int = 90) -> dict:
     req = urllib.request.Request(
         url, data=json.dumps(payload).encode("utf-8"),
         headers={"User-Agent": UA, "Content-Type": "application/json", **headers})
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as r:
-            return json.loads(r.read().decode("utf-8"))
-    except urllib.error.HTTPError as e:
-        body = e.read()[:400].decode("utf-8", "replace")
-        raise ProviderError(f"HTTP {e.code} from {url.split('/')[2]}: {body}") from None
-    except Exception as e:
-        raise ProviderError(f"{type(e).__name__} calling {url.split('/')[2]}: {e}") from None
+    host = url.split("/")[2]
+
+    for attempt in range(_TRANSPORT_RETRIES + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return json.loads(r.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            body = e.read()[:400].decode("utf-8", "replace")
+            raise ProviderError(f"HTTP {e.code} from {host}: {body}") from None
+        except Exception as e:
+            if attempt < _TRANSPORT_RETRIES:
+                time.sleep(_RETRY_BACKOFF_S)
+                continue
+            raise ProviderError(
+                f"{type(e).__name__} calling {host}: {e}") from None
+    raise ProviderError(f"{host} unreachable")
 
 
 # --------------------------------------------------------------------------
@@ -500,8 +527,20 @@ def transcribe(audio: bytes, filename: str = "debrief.webm",
 # month. Three careless demo rehearsals would spend it, so every line is cached
 # on disk by (voice, text) and re-synthesised never. The cache is what makes
 # this safe to leave switched on.
-_VOICE_CACHE = Path(os.environ.get("CE_VOICE_CACHE", "")
-                    or Path(__file__).resolve().parents[3] / ".cache" / "voice")
+def _default_voice_cache() -> Path:
+    """Repo .cache/voice when there is a repo, otherwise beside the app.
+
+    The container has fewer directories above this file than the checkout does,
+    so a fixed parent index raises IndexError on import. CE_VOICE_CACHE is set
+    explicitly in every deployed environment anyway; this is the fallback.
+    """
+    parents = Path(__file__).resolve().parents
+    if len(parents) > 3:
+        return parents[3] / ".cache" / "voice"
+    return parents[1] / ".voice-cache"
+
+
+_VOICE_CACHE = Path(os.environ.get("CE_VOICE_CACHE", "") or _default_voice_cache())
 
 # ElevenLabs' stock voices. Named here so a scenario can pick a guest that
 # sounds like a different person, which matters more than fidelity: the point

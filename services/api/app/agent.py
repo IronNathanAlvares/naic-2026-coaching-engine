@@ -24,7 +24,20 @@ from . import queries as q
 from .providers import ProviderError, Trace, complete
 from .retrieval import search
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "services" / "agent"))
+# The tested deterministic core. 72 unit tests, no I/O, no model calls.
+#
+# Two layouts have to work: the repo (services/agent, four levels up) and the
+# container, where it is copied to /agent and PYTHONPATH already points there.
+# Inserting a path that does not exist is harmless, but checking first means an
+# import failure names the real problem instead of surfacing three frames later
+# as a bare ModuleNotFoundError.
+_parents = Path(__file__).resolve().parents
+# parents[3] exists in the repo and does NOT exist in the container, where this
+# file sits at /app/app/. Indexing it directly raised IndexError at import and
+# the platform showed a dead service with no explanation.
+_AGENT = (_parents[3] / "services" / "agent") if len(_parents) > 3 else None
+if _AGENT is not None and _AGENT.is_dir():
+    sys.path.insert(0, str(_AGENT))
 from coaching_engine.cite_gate import (  # noqa: E402
     Claim, EvidenceItem, run_gate,
 )

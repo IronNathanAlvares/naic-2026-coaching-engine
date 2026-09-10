@@ -81,3 +81,11 @@ desktop.ini
 *.local
 .cache/
 tmp/
+
+# The warmed demo lines are the exception to the cache rule above. They must
+# ship inside the image: a deployed container has an ephemeral filesystem, and
+# the ElevenLabs free tier is 10,000 characters for the life of the account, so
+# re-synthesising them on every cold start would spend the budget on dialogue
+# we have already paid for. Eight files, about 1MB.
+!services/api/.voice-cache/
+!services/api/.voice-cache/*.mp3

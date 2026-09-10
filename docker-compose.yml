@@ -32,7 +32,10 @@ services:
 
   api:
     build:
-      context: ./services/api
+      # Repo root, matching services/api/Dockerfile: the image needs
+      # services/agent as well as services/api.
+      context: .
+      dockerfile: services/api/Dockerfile
     container_name: ce-api
     depends_on:
       db:
@@ -59,7 +62,6 @@ services:
       - "8000:8000"
     volumes:
       - ./services/api:/app
-      - ./services/agent:/agent:ro       # the tested deterministic core
       - ./data-generation/output:/seed:ro
       - ce-voice:/voice-cache
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
