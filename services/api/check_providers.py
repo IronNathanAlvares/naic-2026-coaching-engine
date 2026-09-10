@@ -77,6 +77,14 @@ def check_openai() -> tuple[str, str]:
         {"Authorization": f"Bearer {key}", "Content-Type": "application/json"})
     if code == 200:
         return OK, "chat + embeddings + structured output"
+    if code == 429:
+        # The distinction that matters before a demo: a per-minute limit
+        # clears itself, a per-DAY limit does not.
+        spare = " (a spare key is configured)" if os.environ.get(
+            "OPENAI_API_KEY_FALLBACK") else " and NO spare key is configured"
+        return (WARN if os.environ.get("OPENAI_API_KEY_FALLBACK") else FAIL), (
+            f"rate limited{spare}. Free-tier accounts are 50 requests per DAY "
+            f"per model; add billing or apply the credits to the org.")
     return FAIL, f"HTTP {code}: {body[:150]}"
 
 

@@ -38,6 +38,16 @@ from typing import Any
 UA = "coaching-engine/0.1 (+https://github.com/IronNathanAlvares)"
 
 OPENAI_KEY = os.environ.get("OPENAI_API_KEY", "")
+# A second OpenAI key, used only when the first is rate limited.
+#
+# Not redundancy for its own sake. The organisation key is on the free tier,
+# which is FIFTY requests per day per model: one agent run costs three, one
+# practice session costs six, and the end-to-end suite costs about twenty. A
+# demo would exhaust it in ten minutes and then have no AI at all, with a reset
+# that is 24 hours away rather than 24 minutes.
+#
+# Delete this the moment billing is on the org account. It is a splint.
+OPENAI_KEY_FALLBACK = os.environ.get("OPENAI_API_KEY_FALLBACK", "")
 GROQ_KEY = os.environ.get("GROQ_API_KEY", "")
 GEMINI_KEY = os.environ.get("GEMINI_API_KEY", "")
 ELEVENLABS_KEY = os.environ.get("ELEVENLABS_API_KEY", "")
@@ -299,8 +309,21 @@ def _complete_once(task: str, provider: str, model: str, system: str, user: str,
                 "type": "json_schema",
                 "json_schema": {"name": "result", "strict": True, "schema": schema},
             }
-        data = _post("https://api.openai.com/v1/chat/completions", payload,
-                     {"Authorization": f"Bearer {OPENAI_KEY}"})
+        try:
+            data = _post("https://api.openai.com/v1/chat/completions", payload,
+                         {"Authorization": f"Bearer {OPENAI_KEY}"})
+        except ProviderError as exc:
+            if "HTTP 429" not in str(exc) or not OPENAI_KEY_FALLBACK:
+                raise
+            if trace is not None:
+                trace.step("code", "Primary OpenAI key rate limited, using "
+                                   "the spare",
+                           note=("The organisation key is on the free tier. "
+                                 "Recorded rather than hidden: the run that "
+                                 "follows was not served by the key we say we "
+                                 "use."))
+            data = _post("https://api.openai.com/v1/chat/completions", payload,
+                         {"Authorization": f"Bearer {OPENAI_KEY_FALLBACK}"})
         text = data["choices"][0]["message"]["content"]
         usage = data.get("usage", {})
 
@@ -426,9 +449,19 @@ def embed(texts: list[str], trace: Trace | None = None) -> list[list[float]]:
     if provider == "openai":
         if not OPENAI_KEY:
             raise ProviderError("OPENAI_API_KEY is not set")
-        data = _post("https://api.openai.com/v1/embeddings",
-                     {"model": model, "input": texts, "dimensions": EMBED_DIMS},
-                     {"Authorization": f"Bearer {OPENAI_KEY}"}, timeout=120)
+        try:
+            data = _post("https://api.openai.com/v1/embeddings",
+                         {"model": model, "input": texts,
+                          "dimensions": EMBED_DIMS},
+                         {"Authorization": f"Bearer {OPENAI_KEY}"}, timeout=120)
+        except ProviderError as exc:
+            if "HTTP 429" not in str(exc) or not OPENAI_KEY_FALLBACK:
+                raise
+            data = _post("https://api.openai.com/v1/embeddings",
+                         {"model": model, "input": texts,
+                          "dimensions": EMBED_DIMS},
+                         {"Authorization": f"Bearer {OPENAI_KEY_FALLBACK}"},
+                         timeout=120)
         vectors = [d["embedding"] for d in sorted(data["data"], key=lambda d: d["index"])]
     elif provider == "vertex":
         data = _post(_vertex_url(model, "predict"),
