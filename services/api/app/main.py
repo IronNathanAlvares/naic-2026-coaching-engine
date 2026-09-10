@@ -32,6 +32,7 @@ from fastapi.responses import JSONResponse, Response
 
 from . import demo
 from . import queries as q
+from . import tracing
 from . import practice
 from . import recommendations as recs
 from .agent import run_coaching
@@ -118,7 +119,8 @@ def health():
                 "search_index": {
                     "chunks": idx["total"],
                     "embedded": idx["total"] - idx["missing"],
-                    "ready": idx["total"] > 0 and idx["missing"] == 0}}
+                    "ready": idx["total"] > 0 and idx["missing"] == 0},
+                "tracing": tracing.status()}
     except Exception as e:
         return JSONResponse(status_code=503,
                             content={"status": "degraded", "database": str(e)[:120]})
@@ -287,6 +289,10 @@ def coach_now(staff_id: str, x_ce_actor: str | None = Header(default=None)):
         staff_id = q.resolve_staff_ref(cur, staff_id) or staff_id
         result = run_coaching(cur, actor, staff_id, trace=Trace())
         rec_id = recs.persist(cur, actor, staff_id, result)
+    # After the work, never during it. A tracing outage must not cost a
+    # manager their recommendation.
+    tracing.export_run(staff_id=staff_id, result=result,
+                       trace=result.get("trace"))
     return {"recommendation_id": rec_id, **result}
 
 

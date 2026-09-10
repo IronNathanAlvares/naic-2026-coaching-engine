@@ -51,7 +51,8 @@ class Failure:
     claim_text: str | None
     ref: str | None
     reason: Literal["source_not_found", "span_not_supported",
-                    "cross_staff_reference", "not_a_transfer_gap_recommendation"]
+                    "cross_staff_reference", "not_a_transfer_gap_recommendation",
+                    "standard_cited_without_quote"]
 
     def describe(self) -> str:
         return {
@@ -61,6 +62,9 @@ class Failure:
                 f"quoted text is not supported by {self.ref}",
             "cross_staff_reference":
                 f"{self.ref} is evidence about a different staff member",
+            "standard_cited_without_quote":
+                f"cited standard {self.ref} without quoting it, so there is "
+                f"nothing to check the claim against",
             # self.ref names the stream that is missing, so the repair
             # message tells the model what to add. Naming only the floor was
             # wrong half the time and sent the model to fix the stream it had
@@ -169,8 +173,19 @@ def run_gate(claims: Sequence[Claim],
             kinds_cited.add(source.kind)
 
             # 2. support
-            if source.kind == "sop_chunk" and claim.quoted_span:
-                if not span_supported(claim.quoted_span, source.content):
+            #
+            # A standard cited with no quote is the hole a red team found: the
+            # claim asserts what the standard says, an empty span skips
+            # verification entirely ("nothing quoted, nothing to verify"), and
+            # an invented policy ships with a real-looking reference beside it.
+            # Citing a standard is a claim ABOUT that standard, so it has to
+            # carry the words. Per-person evidence is different: "they froze"
+            # cited to an observation is supported by the observation existing.
+            if source.kind == "sop_chunk":
+                if not (claim.quoted_span or "").strip():
+                    failures.append(
+                        Failure(claim.text, ref, "standard_cited_without_quote"))
+                elif not span_supported(claim.quoted_span, source.content):
                     failures.append(
                         Failure(claim.text, ref, "span_not_supported"))
 

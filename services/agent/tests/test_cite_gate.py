@@ -199,3 +199,45 @@ def test_paraphrase_of_a_long_section_is_still_rejected():
 def test_plausible_invention_about_authority_is_rejected():
     quoted = "Front office staff may authorise refunds up to two hundred euro"
     assert not span_supported(quoted, LONG_SOP)
+
+
+# --- a standard cited without a quote ---------------------------------------
+#
+# Found by the red team suite (evals/redteam), not by us. span_supported()
+# returns True for an empty quote, on the reasonable-sounding grounds that
+# there is nothing to verify. Combined with a real reference that produced the
+# exact failure the gate exists to prevent: an invented policy, asserted
+# confidently, with a genuine-looking citation beside it and no way for a
+# manager to tell it apart from a real one.
+#
+# Citing a standard is a claim ABOUT that standard, so it must carry the words.
+
+def _person_claims():
+    return [
+        Claim(text="They produced the behaviour in practice.",
+              citation_refs=(TURN.ref,), quoted_span=None),
+        Claim(text="They did not produce it on the floor.",
+              citation_refs=(OBS.ref,), quoted_span=None),
+    ]
+
+
+def test_standard_cited_with_empty_quote_is_rejected():
+    claims = [Claim(text="The standard supports acting immediately.",
+                    citation_refs=(SOP.ref,), quoted_span="")] + _person_claims()
+    result = run_gate(claims, BUNDLE, DIEGO, repair_attempts=2)
+    assert not result.passed
+    assert any(f.reason == "standard_cited_without_quote" for f in result.failures)
+
+
+def test_standard_cited_with_whitespace_quote_is_rejected():
+    claims = [Claim(text="The standard allows a refund.",
+                    citation_refs=(SOP.ref,),
+                    quoted_span="      ")] + _person_claims()
+    assert not run_gate(claims, BUNDLE, DIEGO, repair_attempts=2).passed
+
+
+def test_per_person_evidence_still_needs_no_quote():
+    # The rule is deliberately narrow. "They froze", cited to an observation,
+    # is supported by that observation existing; demanding a quote there would
+    # push the model to invent one.
+    assert run_gate(_person_claims(), BUNDLE, DIEGO, repair_attempts=0).passed

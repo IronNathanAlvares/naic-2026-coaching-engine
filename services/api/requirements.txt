@@ -7,3 +7,5 @@ httpx>=0.28
 # accept API keys.
 google-auth>=2.35
 python-multipart>=0.0.9
+# Optional. The service starts and runs fine without it.
+langfuse>=2.50
