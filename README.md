@@ -170,6 +170,31 @@ meant "the call works" on this project.
 | Coaching, scoring, embeddings | OpenAI | Latency buys nothing behind a spinner |
 | Weekly operations brief | Manus | k-anonymised aggregates only |
 
+### What it costs
+
+Measured, not estimated. `/health` reports the running total and the trace
+carries a per-call figure.
+
+| | |
+|---|---|
+| One agent run (classify + draft) | **$0.005** |
+| Same run when the cite gate forces a repair | $0.010 |
+| Whole team, 13 staff (`bootstrap --coach`) | $0.07 |
+| Full end-to-end suite, 17 calls | **$0.02** |
+
+`CE_DAILY_USD_LIMIT` (default $5) is a runaway-loop stop, not a budget. At
+these numbers it is thousands of recommendations.
+
+**OpenAI is not the resource to ration. ElevenLabs is.** The free tier is
+10,000 characters for the LIFE of the account with no way to buy more, and a
+guest line is about 120 characters. Synthesis stops while
+`CE_VOICE_RESERVE` (default 1,200) characters remain, so the pitch always has
+voice. Cached lines still play, which is why the warmed demo lines are
+committed into the image.
+
+Free commands: `pytest`, `test_rls.py`, `test_e2e.py --skip-ai`,
+`evals/redteam`, `evals/retrieval` (without `--ragas`).
+
 If a provider fails, `FALLBACKS` carries the task elsewhere **and records the
 switch in the trace**. A demo that silently swaps models is telling you
 something untrue about what you just saw.

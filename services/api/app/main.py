@@ -32,6 +32,7 @@ from fastapi.responses import JSONResponse, Response
 
 from . import demo
 from . import queries as q
+from . import spend as spend_mod
 from . import tracing
 from . import practice
 from . import recommendations as recs
@@ -120,7 +121,8 @@ def health():
                     "chunks": idx["total"],
                     "embedded": idx["total"] - idx["missing"],
                     "ready": idx["total"] > 0 and idx["missing"] == 0},
-                "tracing": tracing.status()}
+                "tracing": tracing.status(),
+                "spend": spend_mod.summary()}
     except Exception as e:
         return JSONResponse(status_code=503,
                             content={"status": "degraded", "database": str(e)[:120]})

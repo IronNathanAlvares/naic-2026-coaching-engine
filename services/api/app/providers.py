@@ -28,6 +28,8 @@ import json
 import os
 import time
 from pathlib import Path
+
+from . import spend
 import urllib.error
 import urllib.request
 from dataclasses import dataclass, field
@@ -81,6 +83,7 @@ class ModelCall:
     prompt_tokens: int = 0
     completion_tokens: int = 0
     fell_back: bool = False       # true when the first-choice provider failed
+    usd: float = 0.0              # what this call cost, at list price
 
 
 @dataclass
@@ -114,6 +117,10 @@ class Trace:
     def total_tokens(self) -> int:
         return sum(c.prompt_tokens + c.completion_tokens for c in self.calls)
 
+    @property
+    def total_usd(self) -> float:
+        return round(sum(c.usd for c in self.calls), 6)
+
     def step(self, actor: str, label: str, ms: int = 0, **detail) -> None:
         self.steps.append(Step(seq=len(self.steps) + 1, actor=actor,
                                label=label, ms=ms, detail=detail))
@@ -125,6 +132,7 @@ class Trace:
             "steps": [vars(st) for st in self.steps],
             "total_ms": self.total_ms,
             "total_tokens": self.total_tokens,
+            "total_usd": self.total_usd,
             # Counted here rather than in the page, so the number cannot drift
             # from the trace it describes.
             "decisions_by_code": sum(1 for st in decisive if st.actor == "code"),
@@ -262,6 +270,10 @@ def complete(task: str, system: str, user: str, *, schema: dict | None = None,
     a matching problem, not a creative one, and non-determinism here shows up
     later as noise in the calibration statistic.
     """
+    # Before the call, not after. The ceiling exists to stop a runaway loop,
+    # and a loop that only notices it has overspent afterwards is not stopped.
+    spend.check()
+
     attempts = [ROUTES[task]]
     if task in FALLBACKS and FALLBACKS[task] != ROUTES[task]:
         attempts.append(FALLBACKS[task])
@@ -403,13 +415,15 @@ def _complete_once(task: str, provider: str, model: str, system: str, user: str,
     else:
         raise ProviderError(f"unknown provider '{provider}' for task '{task}'")
 
+    charged = spend.record(model, usage.get("prompt_tokens", 0),
+                           usage.get("completion_tokens", 0))
     if trace is not None:
         trace.calls.append(ModelCall(
             task=task, provider=provider, model=model,
             ms=int((time.time() - started) * 1000),
             prompt_tokens=usage.get("prompt_tokens", 0),
             completion_tokens=usage.get("completion_tokens", 0),
-            fell_back=fell_back))
+            fell_back=fell_back, usd=charged))
 
     if schema is None:
         return text
@@ -463,6 +477,7 @@ def embed(texts: list[str], trace: Trace | None = None) -> list[list[float]]:
                          {"Authorization": f"Bearer {OPENAI_KEY_FALLBACK}"},
                          timeout=120)
         vectors = [d["embedding"] for d in sorted(data["data"], key=lambda d: d["index"])]
+        spend.record(model, data.get("usage", {}).get("prompt_tokens", 0), 0)
     elif provider == "vertex":
         data = _post(_vertex_url(model, "predict"),
                      {"instances": [{"content": t} for t in texts]},
@@ -586,6 +601,20 @@ VOICES = {
 
 VOICE_CHAR_BUDGET = 400          # per line; a guest turn is one or two sentences
 
+# Characters held back for the pitch itself.
+#
+# OpenAI is not the resource to ration: a whole agent run is half a cent. This
+# one is. The free tier is 10,000 characters for the LIFE of the account, there
+# is no way to buy more without a card, and a guest line is about 120
+# characters. Rehearsing freely for two days would spend every line we have and
+# the demo would fall back to text on the day, silently.
+#
+# So synthesis stops while a reserve remains. Cached lines still play, because
+# a cache hit costs nothing, which is why the warmed demo lines are committed
+# into the image.
+VOICE_RESERVE_CHARS = int(os.environ.get("CE_VOICE_RESERVE", "1200"))
+_voice_remaining: int | None = None      # refreshed lazily, not per call
+
 
 def speak(text: str, voice: str = "guest_female", *,
           trace: Trace | None = None) -> bytes | None:
@@ -611,6 +640,15 @@ def speak(text: str, voice: str = "guest_female", *,
         if trace is not None:
             trace.calls.append(ModelCall("speak", "cache", voice_id, 0))
         return cached.read_bytes()
+
+    # Not cached, so this would spend. Check the reserve first.
+    if not _voice_has_headroom(len(text)):
+        if trace is not None:
+            trace.step("code", "Voice budget reserve reached, continuing in text",
+                       remaining=_voice_remaining, reserve=VOICE_RESERVE_CHARS,
+                       note=("Cached lines still play. The reserve keeps enough "
+                             "characters for the pitch itself."))
+        return None
 
     started = time.time()
     req = urllib.request.Request(
@@ -643,6 +681,25 @@ def speak(text: str, voice: str = "guest_female", *,
         trace.calls.append(ModelCall("speak", "elevenlabs", voice_id,
                                      int((time.time() - started) * 1000)))
     return audio
+
+
+def _voice_has_headroom(chars: int) -> bool:
+    """Is there room to synthesise, keeping the reserve intact?
+
+    The remaining count is fetched once and then decremented locally. Asking
+    the API before every line would double the request count for a number that
+    only ever moves when we move it.
+    """
+    global _voice_remaining
+    if _voice_remaining is None:
+        info = voice_budget()
+        if not info.get("reachable"):
+            return False              # cannot tell, so do not spend
+        _voice_remaining = int(info.get("remaining") or 0)
+    if _voice_remaining - chars < VOICE_RESERVE_CHARS:
+        return False
+    _voice_remaining -= chars
+    return True
 
 
 def voice_key(text: str, voice: str = "guest_female") -> str:
