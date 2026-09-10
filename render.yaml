@@ -56,6 +56,17 @@ services:
       - key: GEMINI_API_KEY
         sync: false
 
+      # ---- Vertex AI -----------------------------------------------------
+      # google-auth wants a FILE and a container has no file to point at, so
+      # the whole service account document travels as an env var and
+      # providers.py writes it to a temp path on first use.
+      - key: GOOGLE_CREDENTIALS_JSON
+        sync: false
+      - key: GCP_PROJECT_ID
+        value: project-7ffd39d7-3c02-4599-ae9
+      - key: GCP_REGION
+        value: europe-west1
+
       # ---- optional: tracing ---------------------------------------------
       - key: LANGFUSE_PUBLIC_KEY
         sync: false

@@ -148,7 +148,12 @@ ROUTES: dict[str, tuple[str, str]] = {
     # task                     provider   model
     "score":                   ("openai", "gpt-4o-mini"),
     "coach":                   ("openai", "gpt-4o"),
-    "classify":                ("openai", "gpt-4o-mini"),
+    # On Vertex, which makes "running on Google Cloud" a fact rather than a
+    # slide. classify is the right task to move: one call, a strict enum the
+    # code already constrains, and a fallback underneath it. It is slower than
+    # gpt-4o-mini (these are reasoning models and spend thinking tokens), so it
+    # stays off the guest turn, which is the only thing a human waits on live.
+    "classify":                ("vertex", "gemini-2.5-flash-lite"),
     # The guest is the only task a human waits on in real time, and Groq
     # returns in roughly half the time for output we cannot tell apart. Every
     # other task runs behind a spinner or a shift, where latency buys nothing.
@@ -173,7 +178,7 @@ FALLBACKS: dict[str, tuple[str, str]] = {
     # weaker headline that ships beats a stack trace on a projector.
     "coach":      ("openai", "gpt-4o-mini"),
     "score":      ("openai", "gpt-4o"),
-    "classify":   ("openai", "gpt-4o"),
+    "classify":   ("openai", "gpt-4o-mini"),
 }
 
 # Matches the vector(768) column in db/schema.sql. OpenAI supports shortening
@@ -183,6 +188,36 @@ EMBED_DIMS = 768
 
 
 _vertex_creds = None
+
+
+def _vertex_credentials_file() -> str | None:
+    """Where the service account JSON lives, materialising it if needed.
+
+    google-auth wants a FILE. A container platform gives you environment
+    variables and an ephemeral disk, so GOOGLE_CREDENTIALS_JSON carries the
+    whole document and this writes it once to a temp path. Without it Vertex
+    works locally and fails in production, which is the worst place to find out.
+    """
+    path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "")
+    if path and Path(path).is_file():
+        return path
+
+    raw = os.environ.get("GOOGLE_CREDENTIALS_JSON", "").strip()
+    if not raw:
+        return None
+    import json as _json
+    import tempfile
+    try:
+        _json.loads(raw)                       # fail loudly on a mangled paste
+    except ValueError:
+        raise ProviderError(
+            "GOOGLE_CREDENTIALS_JSON is not valid JSON. Paste the whole file "
+            "contents, including the braces.") from None
+    target = Path(tempfile.gettempdir()) / "ce-vertex-sa.json"
+    if not target.exists() or target.read_text(encoding="utf-8") != raw:
+        target.write_text(raw, encoding="utf-8")
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(target)
+    return str(target)
 
 
 def _vertex_token() -> str:
@@ -196,9 +231,10 @@ def _vertex_token() -> str:
     global _vertex_creds
     if not VERTEX_PROJECT:
         raise ProviderError("GCP_PROJECT_ID is not set")
-    if not os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
-        raise ProviderError("GOOGLE_APPLICATION_CREDENTIALS is not set "
-                            "(path to the service account JSON)")
+    if not _vertex_credentials_file():
+        raise ProviderError(
+            "No service account. Set GOOGLE_APPLICATION_CREDENTIALS to the "
+            "JSON file path, or GOOGLE_CREDENTIALS_JSON to its contents.")
     try:
         from google.auth.transport.requests import Request   # noqa: PLC0415
         import google.auth                                   # noqa: PLC0415
@@ -371,7 +407,12 @@ def _complete_once(task: str, provider: str, model: str, system: str, user: str,
     elif provider == "vertex":
         # Same request body as the Gemini API. Only the host and the auth
         # differ, which is the entire practical difference between the two.
-        gen: dict = {"temperature": temperature, "maxOutputTokens": max_tokens}
+        # Gemini 2.5 spends "thinking" tokens before it answers, and they come
+        # out of the same budget. A limit sized for the answer alone returns
+        # finishReason MAX_TOKENS with an empty candidate, which reads like the
+        # model refusing rather than running out of room.
+        gen: dict = {"temperature": temperature,
+                     "maxOutputTokens": max(max_tokens, 2048)}
         if schema is not None:
             gen["responseMimeType"] = "application/json"
             gen["responseSchema"] = _to_gemini_schema(schema)
@@ -777,5 +818,6 @@ def available() -> dict[str, bool]:
     return {"openai": bool(OPENAI_KEY), "groq": bool(GROQ_KEY),
             "gemini": bool(GEMINI_KEY), "elevenlabs": bool(ELEVENLABS_KEY),
             "manus": bool(MANUS_KEY),
-            "vertex": bool(VERTEX_PROJECT
-                           and os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"))}
+            "vertex": bool(VERTEX_PROJECT and (
+                os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+                or os.environ.get("GOOGLE_CREDENTIALS_JSON")))}

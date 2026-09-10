@@ -173,6 +173,14 @@ def check_manus() -> tuple[str, str]:
 
 
 def check_google() -> tuple[str, str]:
+    """The API-key path to Gemini, which we no longer use.
+
+    Kept as a SKIP rather than deleted: the key is still in .env and someone
+    will wonder why nothing checks it. Google is reached through Vertex now,
+    with a service account, which is the path that draws on the GCP credits.
+    """
+    if not any(prov == "gemini" for prov, _ in P.ROUTES.values()):
+        return SKIP, "not in use; Google is reached through Vertex AI below"
     key = os.environ.get("GEMINI_API_KEY", "")
     if not key:
         return SKIP, "GEMINI_API_KEY not set (no Google model in use)"
@@ -258,7 +266,10 @@ def check_vertex() -> tuple[str, str]:
     except Exception as e:                                   # noqa: BLE001
         return FAIL, f"could not mint a token: {type(e).__name__}: {e}"[:180]
 
-    model = "gemini-2.0-flash"
+    # The model we actually route to. Hardcoding one meant the check failed
+    # while production was fine, which is worse than no check at all.
+    model = next((m for prov, m in P.ROUTES.values() if prov == "vertex"),
+                 "gemini-2.5-flash-lite")
     url = (f"https://{region}-aiplatform.googleapis.com/v1/projects/{project}"
            f"/locations/{region}/publishers/google/models/{model}"
            f":generateContent")
@@ -286,8 +297,10 @@ def check_vertex() -> tuple[str, str]:
                       f"{project}. Grant roles/aiplatform.user, then re-run. "
                       f"({' '.join(body.split())[:90]})")
     if code == 404:
-        return FAIL, (f"{model} is not served from {region}. Try "
-                      f"GCP_REGION=us-central1, which carries every model.")
+        return FAIL, (f"{model} is not served from {region}. Verified working "
+                      f"in europe-west1 and us-central1: gemini-2.5-flash, "
+                      f"gemini-2.5-flash-lite, gemini-2.5-pro. The 2.0 names "
+                      f"are gone.")
     if code == 429:
         return WARN, "quota exhausted, not a configuration problem"
     return FAIL, f"HTTP {code}: {' '.join(body.split())[:140]}"

@@ -103,3 +103,8 @@ tmp/
 # Convenient and therefore dangerous: it is one file containing all of them.
 render-env.txt
 *-env.txt
+# Broader, because the pattern above missed render-env-vertex.txt: it ends in
+# -vertex.txt, not -env.txt. Anything whose name says "render-env" is a paste
+# sheet full of credentials, whatever comes after it.
+render-env*
+*credentials*.txt
