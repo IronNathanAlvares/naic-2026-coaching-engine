@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { BarsLevelPicker } from "@/features/manager-console/components/bars-level-picker";
-import { dimensionShort } from "@/lib/format";
+import { dimensionShort, primaryCalibration } from "@/lib/format";
 import type {
   BarsDimension,
   CalibrationState,
@@ -85,6 +85,14 @@ export function VerifyPanel({
   const [reason, setReason] = useState("");
   const [noteOpen, setNoteOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // calibration is an array from the API and an object from the mock.
+  // Resolve the dimension once: it is posted in the verdict body and
+  // drives the level picker, so undefined here silently corrupts a
+  // verification rather than failing where anyone would notice.
+  const calibrationDimension =
+    primaryCalibration(recommendation.calibration)?.dimension ??
+    ("service_recovery" as BarsDimension);
   const [response, setResponse] = useState<VerifyResponse | null>(null);
   const timerRef = useRef<number | null>(null);
 
@@ -123,7 +131,7 @@ export function VerifyPanel({
             verdict,
             dimension_verdicts: [
               {
-                dimension: recommendation.calibration.dimension,
+                dimension: calibrationDimension,
                 manager_level: managerLevel ?? 2,
               },
             ],
@@ -189,11 +197,11 @@ export function VerifyPanel({
       {verdict === "corrected" && (
         <div className="rounded-xl border p-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Your level for {dimensionShort[recommendation.calibration.dimension]} on the floor
+            Your level for {dimensionShort[calibrationDimension]} on the floor
           </p>
           <div className="mt-2">
             <BarsLevelPicker
-              dimension={recommendation.calibration.dimension}
+              dimension={calibrationDimension}
               value={managerLevel}
               onChange={setManagerLevel}
               label="Floor level"

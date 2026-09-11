@@ -16,7 +16,30 @@ export default async function VerifyDetailPage(
   const recommendation = await managerApi.getRecommendation(id);
   if (!recommendation) notFound();
 
-  const staff = staffMembers.find((s) => s.id === recommendation.staff_id);
+  // The recommendation's staff_id is a database uuid on real data, which the
+  // mock roster does not contain. Name comes from the server when it knows it;
+  // the roster fills in role and department; the seed answers in mock mode.
+  const roster = await managerApi.listStaff();
+  const fromRoster = roster.find((s) => s.id === recommendation.staff_id);
+  const fromSeed = staffMembers.find((s) => s.id === recommendation.staff_id);
+
+  const staffName =
+    recommendation.staff_name ?? fromRoster?.name ?? fromSeed?.name ?? "Unknown";
+  const initials =
+    staffName
+      .split(" ")
+      .map((part) => part[0])
+      .join("") || "?";
+  // Built from the parts that exist, so a missing one never leaves a stray
+  // separator behind.
+  const staffDetail = [
+    fromRoster?.role ?? fromSeed?.role,
+    fromRoster?.department ?? fromSeed?.department,
+    fromSeed?.started_at,
+  ]
+    .filter(Boolean)
+    .map((part) => String(part).replace(/_/g, " "))
+    .join(" · ");
 
   return (
     <div className="space-y-6">
@@ -32,16 +55,13 @@ export default async function VerifyDetailPage(
 
       <div className="msg-in flex flex-wrap items-center gap-3">
         <div className="flex size-10 items-center justify-center rounded-full bg-accent text-sm font-bold text-accent-foreground">
-          {staff?.name
-            .split(" ")
-            .map((p) => p[0])
-            .join("")}
+          {initials}
         </div>
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">{staff?.name}</h1>
-          <p className="text-xs text-muted-foreground">
-            {staff?.role} · {staff?.department} · {staff?.started_at}
-          </p>
+          <h1 className="text-xl font-semibold tracking-tight">{staffName}</h1>
+          {staffDetail && (
+            <p className="text-xs text-muted-foreground">{staffDetail}</p>
+          )}
         </div>
       </div>
 

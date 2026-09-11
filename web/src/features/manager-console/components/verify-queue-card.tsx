@@ -10,6 +10,7 @@ import { WhyExplainer } from "./why-explainer";
 import { dimensionShort } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Recommendation } from "@/lib/types";
+import { primaryCalibration } from "@/lib/format";
 
 /**
  * One row of the /manager/verify queue.
@@ -38,7 +39,14 @@ export function VerifyQueueCard({
 }) {
   const pending = recommendation.status === "pending_verify";
   const panelId = `verify-panel-${recommendation.id}`;
-  const dimensionLabel = dimensionShort[recommendation.calibration.dimension];
+  // Array from the API, object from the mock. Undefined here silently
+  // labelled every queue row "undefined" rather than failing loudly.
+  const calibrationDimension = primaryCalibration(
+    recommendation.calibration
+  )?.dimension;
+  const dimensionLabel = calibrationDimension
+    ? dimensionShort[calibrationDimension]
+    : null;
 
   /** Blank space on the pending header expands in place; clicks on the detail
    * link or the chevron are left to their own behaviour. */

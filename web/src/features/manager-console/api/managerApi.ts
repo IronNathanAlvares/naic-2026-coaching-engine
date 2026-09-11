@@ -70,14 +70,24 @@ export const managerApi = {
    * fifteen of its fifty staff and nothing says so. The mock store still
    * answers when the API is off, which is what keeps offline development
    * working. */
-  listStaff: async (): Promise<Array<{ id: string; name: string }>> => {
+  listStaff: async (): Promise<
+    Array<{ id: string; name: string; role?: string; department?: string }>
+  > => {
     if (!isRealApi()) {
       // The mock store has no roster of its own; the seed file is the roster.
       const { staffMembers } = await import("@/lib/mock/seed");
       return staffMembers;
     }
-    const body = await http.get<{ staff: Array<{ id: string; name: string;
-      role: string }> }>("/staff");
+    // role and department are both on the wire; the old signature hid them,
+    // which pushed callers back to the mock seed for a display name.
+    const body = await http.get<{
+      staff: Array<{
+        id: string;
+        name: string;
+        role: string;
+        department?: string;
+      }>;
+    }>("/staff");
     // Managers and L&D are not coached, so they do not belong on a radar of
     // frontline transfer gaps.
     return body.staff.filter((s) => s.role === "staff");
