@@ -1,5 +1,12 @@
 "use client";
 
+// Talks to the API through http from lib/api/client, never a bare fetch to a
+// relative path. A relative "/api/v1/..." resolves against whatever host serves
+// the page, so once deployed the browser asks the WEBSITE for coaching data
+// instead of the API. This repo also serves routes under /api/v1, so it comes
+// back 500 rather than 404 and reads as a backend fault. The client also adds
+// the actor header and the idempotency key.
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Lock, LockOpen, Timer } from "lucide-react";
 import { toast } from "sonner";
@@ -310,22 +317,13 @@ export function ObservationForm({ staff }: { staff: StaffMember[] }) {
       .map((d) => ({ dimension: d, level: ratings[d] as number }));
     setSubmitting(true);
     try {
-      const res = await fetch("/api/v1/observations", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Idempotency-Key": crypto.randomUUID(),
-        },
-        body: JSON.stringify({
-          staff_id: staffId,
-          observed_at: new Date().toISOString(),
-          context: "Quick floor capture",
-          what_happened: note.trim(),
-          ratings: payload,
-        }),
+      await managerApi.logObservation({
+        staff_id: staffId,
+        observed_at: new Date().toISOString(),
+        context: "Quick floor capture",
+        what_happened: note.trim(),
+        ratings: payload,
       });
-      if (!res.ok) throw new Error("Failed to log observation");
-      await res.json();
       setLoggedName(selectedName);
       clearCapture();
       setSubmitting(false);

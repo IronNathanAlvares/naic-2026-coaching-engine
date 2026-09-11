@@ -1,9 +1,17 @@
 "use client";
 
+// Talks to the API through http from lib/api/client, never a bare fetch to a
+// relative path. A relative "/api/v1/..." resolves against whatever host serves
+// the page, so once deployed the browser asks the WEBSITE for coaching data
+// instead of the API. This repo also serves routes under /api/v1, so it comes
+// back 500 rather than 404 and reads as a backend fault. The client also adds
+// the actor header and the idempotency key.
+
 import { Fragment, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Mic, Send, Square, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { staffApi } from "@/features/staff-pwa/api/staffApi";
 import { useVoiceInput } from "@/features/staff-pwa/lib/use-voice-input";
 import { API_BASE_URL } from "@/lib/api/client";
 import type { PracticeAttempt } from "@/lib/types";
@@ -171,16 +179,7 @@ export function PracticeChat({
     ]);
     setSending(true);
     try {
-      const res = await fetch(`/api/v1/attempts/${attempt.id}/turns`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Idempotency-Key": crypto.randomUUID(),
-        },
-        body: JSON.stringify({ content }),
-      });
-      if (!res.ok) throw new Error("Turn failed");
-      const turn = await res.json();
+      const turn = await staffApi.sendTurn(attempt.id, content);
       setMessages((prev) => [
         ...prev,
         {
@@ -210,10 +209,7 @@ export function PracticeChat({
     completingRef.current = true;
     setCompleting(true);
     try {
-      const res = await fetch(`/api/v1/attempts/${attempt.id}/complete`, {
-        method: "POST",
-      });
-      if (!res.ok) throw new Error("Complete failed");
+      await staffApi.completeAttempt(attempt.id);
       await router.push(`/staff/results/${attempt.id}`);
     } catch {
       // navigation blocked or scoring failed — stay on the chat for a retry

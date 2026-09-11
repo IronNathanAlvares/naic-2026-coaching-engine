@@ -189,8 +189,12 @@ def main() -> int:
                 page.wait_for_timeout(14000)
 
                 try:
-                    page.click("text=/finish|complete|done/i", timeout=8000)
-                    page.wait_for_timeout(20000)
+                    # The button is labelled "Finish and see my notes" in the
+                    # staff app; match loosely so a copy change does not silently
+                    # drop this step from the walkthrough.
+                    page.click("button:has-text('Finish'), button:has-text('notes'), "
+                               "button:has-text('Complete')", timeout=10000)
+                    page.wait_for_timeout(25000)
                     shot("practice-result", "The conversation is scored",
                          "Scored once, over the whole exchange, not per line. "
                          "Each level comes back with the exact words that "

@@ -1,6 +1,7 @@
 import { http, isRealApi } from "@/lib/api/client";
 import { mockDb } from "@/lib/mock/db";
 import type {
+  TurnResponse,
   Debrief,
   DebriefRegistration,
   DebriefStatus,
@@ -41,12 +42,9 @@ export const staffApi = {
   sendTurn: (
     attemptId: string,
     content: string
-  ): Promise<{
-    turn_index: number;
-    guest: { content: string; mood: string };
-    turns_remaining: number;
-    can_complete: boolean;
-  }> =>
+    // GuestTurn, not an inline shape: it carries the optional audio_id, and
+    // spelling it out here silently dropped the guest's voice from the chat.
+  ): Promise<TurnResponse> =>
     isRealApi()
       ? http.post(`/attempts/${attemptId}/turns`, { content })
       : mockDb.sendTurn(attemptId, content),
