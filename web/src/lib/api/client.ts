@@ -9,6 +9,34 @@
 const USE_REAL_API = process.env.NEXT_PUBLIC_USE_REAL_API === "true";
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "/api/v1";
 
+/**
+ * Shout if we are deployed and still pointing at ourselves.
+ *
+ * This cost an hour, so it is worth the eight lines. NEXT_PUBLIC_ variables are
+ * inlined at BUILD time for browser code, but read at RUNTIME on the server. If
+ * the variable is missing when Vercel builds, you get a deployment where:
+ *
+ *   server-rendered pages  read the runtime value  ->  correct, live data
+ *   anything the browser does  falls back to "/api/v1"  ->  hits Vercel itself
+ *
+ * So the manager console looks perfect and the practice conversation dies with
+ * "Couldn't send that message", and nothing connects the two symptoms. The
+ * relative fallback is right for local development and actively misleading
+ * anywhere else, because this repo also serves routes at /api/v1.
+ */
+if (typeof window !== "undefined" && API_BASE_URL.startsWith("/")) {
+  const host = window.location.hostname;
+  if (host !== "localhost" && host !== "127.0.0.1") {
+    console.error(
+      "[Coaching Engine] NEXT_PUBLIC_API_BASE_URL was not set when this site " +
+        "was BUILT, so browser requests are going to " +
+        window.location.origin + API_BASE_URL + " instead of the API. " +
+        "Set it in the host's environment variables and REDEPLOY without the " +
+        "build cache. Setting it without rebuilding changes nothing."
+    );
+  }
+}
+
 interface ApiError {
   type: string;
   title: string;
