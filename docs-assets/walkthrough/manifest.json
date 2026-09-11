@@ -1,6 +1,6 @@
 {
-  "base": "http://localhost:3000",
-  "captured": "2026-09-11 09:53",
+  "base": "https://naic-2026-coaching-engine.vercel.app",
+  "captured": "2026-09-11 17:07",
   "shots": [
     {
       "n": 1,

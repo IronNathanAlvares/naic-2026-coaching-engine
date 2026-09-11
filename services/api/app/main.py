@@ -37,6 +37,8 @@ from . import tracing
 from . import practice
 from . import recommendations as recs
 from .agent import run_coaching
+import psycopg
+
 from .db import Actor, pool, resolve_actor, session
 from .providers import (ProviderError, Trace, available, manus_task,
                         voice_budget, voice_file)
@@ -98,6 +100,24 @@ async def http_exception_handler(request: Request, exc: HTTPException):
                        exc.detail.get("title", "Error"),
                        exc.detail.get("detail", ""), str(request.url.path))
     return problem(exc.status_code, "error", "Error", str(exc.detail),
+                   str(request.url.path))
+
+
+@app.exception_handler(psycopg.errors.InvalidTextRepresentation)
+async def bad_id_handler(request: Request,
+                         exc: psycopg.errors.InvalidTextRepresentation):
+    """A path parameter that cannot be a uuid is a 404, not a 500.
+
+    Every id column here is a uuid. A readable id from an older link, or a
+    judge editing the address bar, reaches Postgres as text and it raises.
+    Left alone that is a 500, which reads as a server fault and looks alarming
+    on stage, when all that happened is somebody asked for a row that cannot
+    exist. The message is deliberately vague about the column: it is the
+    caller's id that is wrong, and naming internals helps nobody.
+    """
+    return problem(404, "not-found", "Not found",
+                   "No such record. The id in that link is not a valid "
+                   "identifier, so nothing can match it.",
                    str(request.url.path))
 
 
@@ -509,6 +529,11 @@ def add_turn(attempt_id: str, payload: dict,
                                   "detail": "content is required"})
     with session(actor) as cur:
         out = practice.add_turn(cur, actor, attempt_id, content, trace=Trace())
+    if out.get("error") == "turn_limit":
+        raise HTTPException(409, {
+            "type": "turn-limit", "title": "Conversation is over",
+            "detail": "This practice has used all of its turns. Finish it to "
+                      "see the notes."})
     if out.get("error"):
         raise HTTPException(404, {"type": "not-found", "title": "Not found",
                                   "detail": "No such attempt"})

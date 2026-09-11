@@ -19,7 +19,7 @@ export default function StaffHomePage() {
       <DebriefEntry />
       <LastPracticeCard />
       <p className="text-center text-xs leading-relaxed text-muted-foreground">
-        This is your practice space — just for you. Your manager never sees
+        This is your practice space, just for you. Your manager never sees
         your individual practice scores. They only get a coaching insight, and
         only after they&apos;ve logged their own observation of you.
       </p>

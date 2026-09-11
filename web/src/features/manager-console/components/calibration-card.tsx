@@ -10,9 +10,9 @@ import type { CalibrationState } from "@/lib/types";
  * advice of its own (LLD-D §5.3: managers read percentages, not scores). */
 const stateSentence: Record<CalibrationState, string> = {
   unmeasured: "Not measured yet on this dimension.",
-  provisional: "Early days — only a handful of checks so far.",
+  provisional: "Early days, only a handful of checks so far.",
   reliable: "Agreement is reliably high on this dimension.",
-  uncertain: "Still settling — keep verifying on this dimension.",
+  uncertain: "Still settling, keep verifying on this dimension.",
   unreliable: "Treat this read with caution for now.",
 };
 
@@ -39,7 +39,7 @@ export function CalibrationCard({
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-sm">
           <ShieldCheck className="size-4 text-primary" />
-          Calibration — overall agreement
+          Calibration · overall agreement
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -51,7 +51,7 @@ export function CalibrationCard({
           aria-expanded={open}
           aria-controls="calibration-details"
           onClick={() => setOpen((o) => !o)}
-          className="mt-3 inline-flex items-center gap-1 rounded-full border border-dashed px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+          className="mt-3 inline-flex min-h-9 items-center gap-1 rounded-full border border-dashed px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
         >
           Details
           <ChevronDown
@@ -67,7 +67,7 @@ export function CalibrationCard({
                   %
                 </>
               ) : (
-                "—"
+                "–"
               )}
             </p>
             <p className="text-xs text-muted-foreground">
@@ -84,7 +84,7 @@ export function CalibrationCard({
               </p>
             )}
             <p className="text-xs text-muted-foreground">
-              Watch the calibration number move — live.
+              Watch the calibration number move, live.
             </p>
           </div>
         )}

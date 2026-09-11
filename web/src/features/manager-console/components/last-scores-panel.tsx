@@ -54,7 +54,7 @@ export function LastScoresPanel({ staffId }: { staffId: string }) {
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {/* Practice side: a privacy note, not a stream. Practice scores stay
-          with the staff member — the manager's read is the insight only. */}
+          with the staff member, the manager's read is the insight only. */}
       <div className="rounded-xl border bg-card p-4">
         <div className="flex items-center gap-2">
           <span
@@ -66,7 +66,7 @@ export function LastScoresPanel({ staffId }: { staffId: string }) {
         <div className="mt-3 flex items-start gap-2 rounded-lg border border-dashed p-3">
           <Lock className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
           <p className="text-xs leading-relaxed text-muted-foreground">
-            Practice history stays private — the system compares it silently
+            Practice history stays private, the system compares it silently
             and only surfaces the coaching insight.
           </p>
         </div>
@@ -104,13 +104,13 @@ function StreamCard({ state }: { state: FloorState }) {
 
       {state.kind === "error" && (
         <p className="mt-3 rounded-lg border border-dashed p-3 text-xs text-muted-foreground">
-          Could not read the floor record right now — refresh to retry.
+          Could not read the floor record right now, refresh to retry.
         </p>
       )}
 
       {state.kind === "ready" && state.rows.length === 0 && (
         <p className="mt-3 rounded-lg border border-dashed p-3 text-xs text-muted-foreground">
-          No floor scores yet — they fill in once an observation is logged.
+          No floor scores yet, they fill in once an observation is logged.
         </p>
       )}
 
@@ -136,7 +136,7 @@ function StreamCard({ state }: { state: FloorState }) {
                     : ROSE_PILL
                 }`}
               >
-                {row.level ?? "—"}
+                {row.level ?? "–"}
               </span>
             </li>
           ))}

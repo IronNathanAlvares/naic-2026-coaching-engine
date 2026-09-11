@@ -1,6 +1,6 @@
 # Where we are
 
-Last updated 11 September 2026.
+Last updated 11 September 2026, evening.
 
 Written so everyone can read it, not just the developers. If a section looks
 technical, skip it. The first two parts are the ones that matter to everybody.
@@ -18,7 +18,42 @@ technical, skip it. The first two parts are the ones that matter to everybody.
 It is not a mock or a slideshow. When you click something it talks to a real
 server, which reads a real database and calls real AI models.
 
-What is left is mostly not code. Slides, a rehearsal, and a backup video.
+**It also works properly on a phone now**, which it did not this morning.
+
+What is left is a rehearsal and a backup video.
+
+---
+
+## What changed today
+
+Worth reading if you looked at the site earlier and something annoyed you.
+
+**Buttons that looked broken.** Clicking "Open as Marta" appeared to do
+nothing for up to a minute, so people clicked again. The link was always
+right: the page was loading with no sign that anything was happening. Every
+screen now shows a skeleton straight away, and says "waking the server" if the
+wait runs long, which only happens on the free hosting after fifteen quiet
+minutes.
+
+**A crash.** Opening "Why is the AI saying this?" took the whole page down
+with the browser's own error screen. Our code expected one calibration reading
+and the server sends a list of them. Fixed, and the same wrong assumption was
+found in four other places that were failing silently, including the screen a
+manager uses to verify a recommendation.
+
+**No way back.** Ten of the thirteen screens had no back link. The glass box
+had no navigation at all, which mattered because it is linked from the manager
+menu, so anyone who opened it was stuck. Every screen now has a back link that
+goes up exactly one level and says where it goes, plus a "Switch role" link
+for getting out to the other app.
+
+**Phones.** A script now checks all ten screens at phone, tablet and laptop
+width for the three things that make a site unusable: content wider than the
+screen, buttons too small to tap, and screens with no way out. It found eleven
+problems. All eleven are fixed and it now passes everywhere.
+
+**Writing.** Every em dash is gone from the site, so it reads the same way as
+the slides and the documents.
 
 ---
 
@@ -78,8 +113,10 @@ nothing.
 
 | | |
 |---|---|
-| Database with access rules built in | done, 10 out of 10 security tests pass |
+| Database with access rules built in | done, 10 out of 10 negative tests pass |
 | The scoring and reasoning engine | done, 75 tests, no AI involved |
+| Works on a phone as well as a laptop | done, checked at three screen widths |
+| A way back from every screen | done, all 13 |
 | The API | done, every part tested end to end |
 | Manager console and staff app | done, live online |
 | Glass box | done, all three panels working |
@@ -115,18 +152,29 @@ All of them are connected and checked automatically before a demo.
 
 **Needs a person, not code:**
 
-1. **Slides.** Due Sunday at 2pm with the demo link. This is the main thing
-   left and nobody has started it as far as I know.
-2. **Backup video.** Record the demo on Saturday. The free hosting goes to
-   sleep after fifteen minutes and takes a minute to wake up, so we want a
-   video in case that bites us on stage.
+1. **Backup video.** Record the demo on Saturday. This is now the biggest
+   risk left. The free hosting goes to sleep after fifteen minutes and takes
+   up to a minute to wake, so we want a recording in case that bites us on
+   stage.
+2. **Rehearsal.** The pitch script is written and timed to 6:32 against a
+   7:00 hard stop, with five speakers and the handovers written out. It has
+   not been read aloud by the people saying it.
 3. **Pick one link for the submission.** There are two versions of the site
-   live. We should agree which one goes in.
+   live. Ziyi's is still on mock data. We should agree which one goes in and
+   pause the other.
 4. **Evaluation labels (Mary-Susan).** We have 45 test cases, but the
    "correct answers" were generated automatically and they are wrong. One
    labels a phone complaint about noise as being about eye contact. Until
    someone who knows the SOPs fixes them, we should not call it a golden set
    in the pitch.
+5. **The four things nobody has clicked.** Hearing the guest voice, speaking a
+   reply, recording a debrief, and logging an observation to watch the gate
+   open. They need a microphone and a person, so they cannot be tested
+   automatically, and they are the parts most likely to surprise us on stage.
+
+**Done since the last update:** the slides (12, with speaker notes), the
+pitch script, the product walkthrough, and the four rounds of site fixes
+above.
 
 **Small technical things:**
 

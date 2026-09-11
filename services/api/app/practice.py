@@ -17,6 +17,7 @@ exactly the gaming behaviour we designed against.
 from __future__ import annotations
 
 import json
+import os
 
 from .agent import score_transcript
 from .providers import (ProviderError, Trace, complete, speak, transcribe,
@@ -53,7 +54,16 @@ INCIDENT_SCHEMA = {
     },
 }
 
-MAX_TURNS = 8
+# How many turns a staff member gets before the conversation closes.
+#
+# Eight is right for real practice and too long to show: a demo needs the guest
+# to soften, the reply to land and the scoring to appear inside a minute. Four
+# does that and still gives the guest room to react to what was actually said,
+# which is the point of the scenario.
+#
+# Env-overridable because nobody pushes code on pitch day: a push restarts the
+# API for about three minutes. Changing this is a dashboard edit instead.
+MAX_TURNS = int(os.environ.get("CE_MAX_PRACTICE_TURNS", "4"))
 
 
 # ---------------------------------------------------------------- scenarios
@@ -153,6 +163,16 @@ def add_turn(cur, actor, attempt_id: str, content: str,
     if not a:
         return {"error": "not_found"}
 
+    # The ceiling has to hold here, not only in the interface. The counter the
+    # client renders is a display of this, not the rule itself, and checking
+    # before the model call also means a refused turn costs nothing.
+    cur.execute("""
+        SELECT count(*) AS n FROM attempt_turn
+        WHERE attempt_id = %s AND speaker = 'staff'
+    """, (attempt_id,))
+    if cur.fetchone()["n"] >= MAX_TURNS:
+        return {"error": "turn_limit"}
+
     idx = a["turn_count"]
     cur.execute("""
         INSERT INTO attempt_turn (property_id, attempt_id, turn_index, speaker, content)
@@ -189,7 +209,10 @@ def add_turn(cur, actor, attempt_id: str, content: str,
                 (idx + 2, attempt_id))
     cur.connection.commit()
 
-    staff_turns = sum(1 for t in history if t["speaker"] == "staff") + 1
+    # history is read after the insert above, so it already includes this turn.
+    # The + 1 that used to be here counted it twice, which is why the counter
+    # fell from 4 to 2 on the very first reply.
+    staff_turns = sum(1 for t in history if t["speaker"] == "staff")
     return {"turn_index": idx + 1, "guest": _voiced(guest, a),
             "turns_remaining": max(0, MAX_TURNS - staff_turns),
             "can_complete": staff_turns >= 2}

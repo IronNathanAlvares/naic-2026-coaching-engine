@@ -29,7 +29,7 @@ export function DebriefEntry() {
   const handleSubmit = async () => {
     if (submitting) return;
     if (!text.trim()) {
-      toast.warning("Tell us what happened first — a sentence is enough.");
+      toast.warning("Tell us what happened first, a sentence is enough.");
       return;
     }
     stop();
@@ -46,7 +46,7 @@ export function DebriefEntry() {
         return;
       }
       setResult(debrief);
-      toast.success("Got it — here's what your standard says");
+      toast.success("Got it. Here's what your standard says");
     } catch {
       toast.error("Could not save that. Please try again.");
     } finally {
@@ -63,7 +63,7 @@ export function DebriefEntry() {
               <Sparkles className="size-4 text-[oklch(0.38_0.055_152)]" />
             </div>
             <p className="text-sm font-semibold">
-              Your hotel&apos;s own standard — straight after your shift
+              Your hotel&apos;s own standard, straight after your shift
             </p>
           </div>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -99,7 +99,7 @@ export function DebriefEntry() {
                 A 3-minute replay was built from what you just said
               </p>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                Practise it now while it&apos;s fresh — it&apos;s yours, not
+                Practise it now while it&apos;s fresh, it&apos;s yours, not
                 shared.
               </p>
             </div>
@@ -119,7 +119,7 @@ export function DebriefEntry() {
         </p>
         <p className="mt-0.5 text-xs text-muted-foreground">
           30–90 seconds, in your own words. It never routes to a disciplinary
-          path — it&apos;s how you get coaching that&apos;s about your actual
+          path, it&apos;s how you get coaching that&apos;s about your actual
           day.
         </p>
         <Textarea
@@ -128,8 +128,8 @@ export function DebriefEntry() {
           disabled={submitting || listening}
           placeholder={
             listening
-              ? "Listening — speak your debrief…"
-              : "A guest asked for something you weren't sure you could offer — or a moment that still feels off, in your own words…"
+              ? "Listening. Speak your debrief…"
+              : "A guest asked for something you weren't sure you could offer, or a moment that still feels off, in your own words…"
           }
           className="mt-3 min-h-28"
         />
@@ -164,11 +164,11 @@ export function DebriefEntry() {
             aria-live="polite"
             className="mt-2 text-center text-xs text-[oklch(0.44_0.09_28)]"
           >
-            Listening… your words fill the box — review, then submit.
+            Listening… your words fill the box. Review, then submit.
           </p>
         )}
         <p className="mt-2 text-center text-xs text-muted-foreground">
-          Voice is optional — audio stays on your device and is deleted once
+          Voice is optional, audio stays on your device and is deleted once
           the transcript is confirmed.
         </p>
       </div>
