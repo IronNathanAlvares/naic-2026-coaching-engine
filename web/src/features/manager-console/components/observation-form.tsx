@@ -440,7 +440,7 @@ export function ObservationForm({ staff }: { staff: StaffMember[] }) {
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Partial rates only the dimensions this kind of moment usually
-                  suggests — anything you did not witness stays unrated and is
+                  suggests, anything you did not witness stays unrated and is
                   never scored.
                 </p>
               </div>
@@ -468,7 +468,7 @@ export function ObservationForm({ staff }: { staff: StaffMember[] }) {
                   })}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Suggested dimensions are rated first — and are the only ones
+                  Suggested dimensions are rated first, and are the only ones
                   asked when the sighting was partial.
                 </p>
                 <p className="flex justify-end">
@@ -518,7 +518,7 @@ export function ObservationForm({ staff }: { staff: StaffMember[] }) {
                     size="sm"
                     onClick={skipDimension}
                   >
-                    Skip — doesn&apos;t apply
+                    Skip, doesn&apos;t apply
                   </Button>
                 </div>
               </div>
@@ -559,7 +559,7 @@ export function ObservationForm({ staff }: { staff: StaffMember[] }) {
                   </div>
                   {ratedCount === 0 && (
                     <p className="text-center text-xs text-muted-foreground">
-                      Rate at least one dimension — anything unrated is never
+                      Rate at least one dimension, anything unrated is never
                       scored.
                     </p>
                   )}
@@ -576,14 +576,14 @@ export function ObservationForm({ staff }: { staff: StaffMember[] }) {
               >
                 <LockOpen className="mt-0.5 size-4 shrink-0 text-primary" />
                 <p className="text-sm text-primary">
-                  Logged — the transfer-gap read on {loggedName} now lands in
+                  Logged, the transfer-gap read on {loggedName} now lands in
                   the queue. Practice history stays private.
                 </p>
               </div>
             ) : (
               <p className="flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
                 <Lock className="size-3 shrink-0" />
-                Your observation comes first — practice history stays private
+                Your observation comes first, practice history stays private
                 and the coaching read follows your judgement.
               </p>
             )}
@@ -618,7 +618,7 @@ function ScopeButton({
       }`}
     >
       <span className="text-sm font-semibold leading-tight">
-        {title} — {body}
+        {title}, {body}
       </span>
       {selected && (
         <span className="text-xs text-primary-foreground/85">
@@ -666,13 +666,13 @@ function RecordAnchors({
 
       {record.kind === "error" && (
         <p className="mt-3 rounded-lg border border-dashed p-3 text-xs text-muted-foreground">
-          Could not read the record right now — refresh to retry.
+          Could not read the record right now, refresh to retry.
         </p>
       )}
 
       {record.kind === "ready" && record.rows.length === 0 && (
         <p className="mt-3 rounded-lg border border-dashed p-3 text-xs text-muted-foreground">
-          Nothing on the record for {name} yet — your first capture lands here.
+          Nothing on the record for {name} yet, your first capture lands here.
         </p>
       )}
 
@@ -698,7 +698,7 @@ function RecordAnchors({
                     : FLOOR_PILL
                 }`}
               >
-                {row.level ?? "—"}
+                {row.level ?? "–"}
               </span>
             </li>
           ))}

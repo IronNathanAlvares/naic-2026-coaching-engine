@@ -16,7 +16,7 @@ import type { Recommendation } from "@/lib/types";
  */
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Verify queue — Manager Console" };
+export const metadata = { title: "Verify queue, Manager Console" };
 
 export default async function VerifyQueuePage() {
   const recommendations = await managerApi.listRecommendations();
@@ -39,7 +39,7 @@ export default async function VerifyQueuePage() {
         <h1 className="text-2xl font-semibold tracking-tight">Verify queue</h1>
         <p className="text-sm text-muted-foreground">
           The agent drafts with citations, then stops. Nothing routes until
-          you confirm, correct or reject — and every verdict trains the
+          you confirm, correct or reject, and every verdict trains the
           calibration number.
         </p>
       </div>

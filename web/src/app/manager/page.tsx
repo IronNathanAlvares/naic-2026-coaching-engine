@@ -293,8 +293,8 @@ export default async function ManagerOverviewPage() {
         independent streams. The AI combines them into a transfer-gap reading,
         drafts a recommendation where every claim cites its source, and holds
         it here until you confirm, correct or reject it. Every verdict trains
-        the calibration number shown above — that is the loop the system
-        learns from. Simulations only prove what staff can do in practice —
+        the calibration number shown above, that is the loop the system
+        learns from. Simulations only prove what staff can do in practice.
         Cornell's own AI-training research stops there. The floor is where it
         counts.
       </p>

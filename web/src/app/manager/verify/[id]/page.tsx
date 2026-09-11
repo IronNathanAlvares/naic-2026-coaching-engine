@@ -7,7 +7,7 @@ import { WhyExplainer } from "@/features/manager-console/components/why-explaine
 import { managerApi } from "@/features/manager-console/api/managerApi";
 import { staffMembers } from "@/lib/mock/seed";
 
-export const metadata = { title: "Verify — Manager Console" };
+export const metadata = { title: "Verify, Manager Console" };
 
 export default async function VerifyDetailPage(
   props: PageProps<"/manager/verify/[id]">

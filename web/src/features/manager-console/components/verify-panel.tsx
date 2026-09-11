@@ -38,9 +38,9 @@ const routeLabel: Record<EscalationRoute, string> = {
  * carries no advice of its own. */
 const stateSentence: Record<CalibrationState, string> = {
   unmeasured: "Not measured yet on this dimension.",
-  provisional: "Early days — only a handful of checks so far.",
+  provisional: "Early days, only a handful of checks so far.",
   reliable: "Agreement is reliably high on this dimension.",
-  uncertain: "Still settling — keep verifying on this dimension.",
+  uncertain: "Still settling, keep verifying on this dimension.",
   unreliable: "Treat this read with caution for now.",
 };
 
@@ -105,7 +105,7 @@ export function VerifyPanel({
   const handleSubmit = async () => {
     if (submitting) return;
     if (!verdict) {
-      toast.warning("Pick a verdict first — Confirm, Correct or Reject.");
+      toast.warning("Pick a verdict first: Confirm, Correct or Reject.");
       return;
     }
     if (verdict === "corrected" && managerLevel === null) {
@@ -138,7 +138,7 @@ export function VerifyPanel({
       onSettled?.();
       toast.success(
         data.escalation
-          ? `Confirmed — routed to ${routeLabel[data.escalation.route].toLowerCase()}`
+          ? `Confirmed, routed to ${routeLabel[data.escalation.route].toLowerCase()}`
           : `Marked ${verdict}. Calibration updated.`
       );
     } catch {
@@ -226,7 +226,7 @@ export function VerifyPanel({
           placeholder={
             verdict === "rejected"
               ? "What did you actually see? This becomes a labelled example for calibration."
-              : "Optional — one line on why. It feeds the calibration."
+              : "Optional, one line on why. It feeds the calibration."
           }
           value={reason}
           onChange={(e) => setReason(e.target.value)}
@@ -276,10 +276,10 @@ function VerifyResultPanel({
         <div>
           <p className="font-semibold">
             {verdict === "confirmed"
-              ? "Verified — this read matches the floor."
+              ? "Verified. This read matches the floor."
               : verdict === "corrected"
-                ? "Corrected — the AI's read has been adjusted."
-                : "Rejected — recorded as a labelled example."}
+                ? "Corrected. The AI's read has been adjusted."
+                : "Rejected, recorded as a labelled example."}
           </p>
           <p className="text-xs text-muted-foreground">
             Stored with your reason. This decision now counts toward the
@@ -295,7 +295,7 @@ function VerifyResultPanel({
           <div className="flex items-center gap-2">
             <ShieldAlert className="size-5 text-[oklch(0.45_0.08_30)]" />
             <p className="text-sm font-semibold text-[oklch(0.45_0.08_30)]">
-              Escalated — {routeLabel[data.escalation.route]} · rule{" "}
+              Escalated · {routeLabel[data.escalation.route]} · rule{" "}
               {data.escalation.rule_id}
             </p>
             <Badge variant="outline" className="ml-auto border-[oklch(0.66_0.09_30)]/30 text-[oklch(0.45_0.08_30)]">
@@ -312,7 +312,7 @@ function VerifyResultPanel({
         href="/manager"
         className="flex items-center justify-center gap-2 rounded-xl border p-3 text-sm font-medium text-primary transition-colors hover:bg-muted/40"
       >
-        Back to dashboard — see the calibration move
+        Back to dashboard, see the calibration move
         <ArrowRight className="size-4" />
       </Link>
     </div>
@@ -362,7 +362,7 @@ function CalibrationShift({ data }: { data: VerifyResponse }) {
   return (
     <div className="rounded-xl border bg-card p-5 text-center">
       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        Manager agreement on {dimensionShort[shift.dimension]} — live
+        Manager agreement on {dimensionShort[shift.dimension]}, live
       </p>
       <p
         aria-live="off"

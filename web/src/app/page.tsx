@@ -95,7 +95,7 @@ export default function LandingPage() {
           <div className="hero-enter" style={{ animationDelay: "0ms" }}>
             <Badge className="bg-accent text-accent-foreground">
               <Sparkles className="size-3" />
-              Demo build — seeded with the Diego story
+              Demo build · seeded with the Diego story
             </Badge>
           </div>
           <h1
@@ -114,7 +114,7 @@ export default function LandingPage() {
           >
             Staff practise AI-scored scenarios. Managers log 20-second floor
             observations. The agent combines both streams into a cited,
-            checkable coaching recommendation — and holds it until a human
+            checkable coaching recommendation, and holds it until a human
             verifies it.
           </p>
           <div
@@ -137,6 +137,23 @@ export default function LandingPage() {
               Open as Diego, Front Desk
             </Link>
           </div>
+          {/* Said plainly rather than left for a judge to spot. Picking a role
+              from a button is a demo affordance; the isolation it looks like it
+              is skipping is real and enforced in Postgres, which the glass box
+              proves. Naming the limitation is cheaper than being caught by it. */}
+          <p
+            className="hero-enter mx-auto mt-5 max-w-xl text-center text-xs leading-relaxed text-muted-foreground"
+            style={{ animationDelay: "330ms" }}
+          >
+            No sign-in: this is a demo on synthetic staff data, so you pick a role
+            instead. In a real deployment identity comes from the hotel&apos;s own
+            system. Who can see what is enforced in the database, not by the
+            buttons above, and you can check that yourself in the{" "}
+            <Link href="/glassbox" className="underline underline-offset-2 hover:text-foreground">
+              glass box
+            </Link>
+            .
+          </p>
           <div
             className="hero-enter mt-10 flex max-w-2xl flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-muted-foreground"
             style={{ animationDelay: "360ms" }}
@@ -163,7 +180,7 @@ export default function LandingPage() {
             </h2>
             <p className="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">
               Hospitality has the highest staff turnover of any sector. Training
-              gets completed and checked off — yet it rarely shows up on the
+              gets completed and checked off, yet it rarely shows up on the
               floor, and most new managers have never been shown how to coach.
             </p>
           </Reveal>
@@ -241,7 +258,7 @@ export default function LandingPage() {
                       </p>
                     </div>
                     <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-                      Diego's scored scenarios — his own words, rated on the
+                      Diego's scored scenarios, his own words, rated on the
                       BARS framework.
                     </p>
                   </div>
@@ -251,7 +268,7 @@ export default function LandingPage() {
                       <p className="text-xs font-semibold">Floor stream</p>
                     </div>
                     <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-                      Marta's 20-second observation — what she personally saw
+                      Marta's 20-second observation, what she personally saw
                       on shift.
                     </p>
                   </div>
@@ -259,7 +276,7 @@ export default function LandingPage() {
                 <div className="mt-3 flex items-center justify-center gap-2 rounded-xl border border-primary/25 bg-accent/25 p-3.5">
                   <Sparkles className="size-4 text-primary" />
                   <p className="text-xs font-semibold text-primary">
-                    Cited coaching recommendation — held until a human
+                    Cited coaching recommendation, held until a human
                     verifies it
                   </p>
                 </div>
@@ -296,7 +313,7 @@ export default function LandingPage() {
                 <p className="mt-3 text-sm font-semibold">Human-in-the-loop</p>
                 <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
                   Nothing routes on AI output alone. Confirm, correct or
-                  reject — and staff can see every record that touches them.
+                  reject, and staff can see every record that touches them.
                 </p>
               </div>
             </Reveal>
@@ -309,7 +326,7 @@ export default function LandingPage() {
                 <p className="mt-3 text-sm font-semibold">Calibration you can watch</p>
                 <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
                   The agreement between the agent's read and the manager's
-                  verdict — updated with every decision.
+                  verdict, updated with every decision.
                 </p>
                 <p className="mt-4 text-2xl font-bold tabular-nums text-primary">
                   0.840 <ArrowRight className="inline size-4 text-muted-foreground" /> 0.846
@@ -332,7 +349,7 @@ export default function LandingPage() {
                   Where research stops, we start
                 </p>
                 <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
-                  Cornell's AI hospitality training built the simulation —
+                  Cornell's AI hospitality training built the simulation:
                   guest, coach and report agents grounded in hotel SOPs. It
                   stopped at practice. We close the loop on the floor.
                 </p>
@@ -358,7 +375,7 @@ export default function LandingPage() {
                 Walk the demo in five minutes
               </h2>
               <p className="mx-auto mt-3 max-w-md text-sm text-muted-foreground">
-                One shift, one gap, one verdict — and a calibration number
+                One shift, one gap, one verdict, and a calibration number
                 that moves before your eyes.
               </p>
               <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -384,7 +401,7 @@ export default function LandingPage() {
 
         <footer className="border-t">
           <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-6 text-xs text-muted-foreground">
-            <p>The Coaching Engine — TechIreland National AI Challenge 2026</p>
+            <p>The Coaching Engine · TechIreland National AI Challenge 2026</p>
             <p>k-anonymised insights · no disciplinary routing · every record visible to staff</p>
           </div>
         </footer>

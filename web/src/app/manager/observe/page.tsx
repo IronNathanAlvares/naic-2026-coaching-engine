@@ -1,7 +1,7 @@
 import { ObservationForm } from "@/features/manager-console/components/observation-form";
 import { staffMembers } from "@/lib/mock/seed";
 
-export const metadata = { title: "Log observation — Manager Console" };
+export const metadata = { title: "Log observation, Manager Console" };
 
 export default function ObservePage() {
   return (

@@ -25,7 +25,7 @@ const ACTOR_STYLE: Record<StepActor, { label: string; className: string }> = {
 };
 
 const STAFF = [
-  { id: "staff-001", name: "Diego", hint: "blocked — knows it, cannot do it" },
+  { id: "staff-001", name: "Diego", hint: "blocked, knows it, cannot do it" },
   { id: "staff-002", name: "Niamh", hint: "a genuine skill gap" },
   { id: "staff-013", name: "Bogdan", hint: "scores higher on the floor" },
   { id: "staff-008", name: "Priya", hint: "usually abstains" },
@@ -262,7 +262,7 @@ export function GlassBox() {
                     <div className="min-w-0 flex-1">
                       <p className="font-medium">{p.title}</p>
                       <p className="mt-1 text-xs italic text-muted-foreground">
-                        &ldquo;{p.claim}&rdquo; — cites {p.cited.join(", ")}
+                        &ldquo;{p.claim}&rdquo;, cites {p.cited.join(", ")}
                       </p>
                       {p.failures.map((f) => (
                         <p key={f} className="mt-1 text-xs text-destructive">

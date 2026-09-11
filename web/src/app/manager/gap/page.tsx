@@ -18,7 +18,7 @@ import type { BarsDimension } from "@/lib/types";
  */
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Transfer gap — Manager Console" };
+export const metadata = { title: "Transfer gap · Manager Console" };
 
 const AXES = Object.keys(dimensionLabels) as BarsDimension[];
 
@@ -43,11 +43,11 @@ export default async function GapPage(
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">
-          Transfer gap — {staff?.name ?? staffId}
+          Transfer gap · {staff?.name ?? staffId}
         </h1>
         <p className="text-sm text-muted-foreground">
           Practice performance vs what you actually saw on the floor. Two
-          streams, one reading — computed only after your observation is in.
+          streams, one reading, computed only once your observation is in.
         </p>
       </div>
 
@@ -83,14 +83,14 @@ export default async function GapPage(
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base">
-                Practice vs floor radar —{" "}
+                Practice vs floor radar for{" "}
                 {(staff?.name ?? "staff member").split(" ")[0]}
               </CardTitle>
               <p className="text-xs text-muted-foreground">
-                Supporting chart — the scored dimensions at a glance. Solid =
+                Supporting chart: the scored dimensions at a glance. Solid =
                 practice (simulation). Dashed = floor (observed). Where the
                 dashed line falls inside the solid one, the floor is trailing
-                practice — that is the transfer gap.
+                practice. That is the transfer gap.
               </p>
             </CardHeader>
             <CardContent className="mx-auto w-full max-w-sm">
@@ -111,7 +111,7 @@ export default async function GapPage(
                     dashed: true,
                   },
                 ]}
-                caption="Where the dashed line falls inside the solid one, the floor is trailing practice — unscored axes sit at the centre"
+                caption="Where the dashed line falls inside the solid one the floor is trailing practice. Unscored axes sit at the centre"
                 showValues={false}
               />
             </CardContent>
@@ -119,8 +119,8 @@ export default async function GapPage(
         </>
       ) : (
         <p className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
-          No gap data yet for {staff ? staff.name.split(" ")[0] : "this staff member"}{" "}
-          — log a floor observation first; the transfer gap appears once both
+          No gap data yet for {staff ? staff.name.split(" ")[0] : "this staff member"}
+          . Log a floor observation first, and the transfer gap appears once both
           streams have scores.
         </p>
       )}

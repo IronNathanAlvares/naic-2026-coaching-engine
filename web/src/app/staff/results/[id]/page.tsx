@@ -44,7 +44,7 @@ export default async function ResultsPage(
         <div>
           <p className="text-sm font-semibold">Your practice notes</p>
           <p className="text-xs text-muted-foreground">
-            One read of the whole conversation — every label points back to
+            One read of the whole conversation, every label points back to
             your own words.
           </p>
           {result && (
@@ -60,7 +60,7 @@ export default async function ResultsPage(
         <ScoreResults result={result} />
       ) : (
         <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
-          This practice is still in progress — finish the conversation to see
+          This practice is still in progress, finish the conversation to see
           your notes.
         </p>
       )}

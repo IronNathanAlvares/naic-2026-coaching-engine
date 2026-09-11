@@ -76,7 +76,7 @@ export function RecommendationCard({
 
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Evidence — every claim, checkable in one tap
+            Evidence, every claim, checkable in one tap
           </p>
           {recommendation.citations.map((citation) => {
             const open = openCitation === citation.source_ref;

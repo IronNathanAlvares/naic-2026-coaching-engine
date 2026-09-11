@@ -15,7 +15,7 @@ import type { EscalationRoute, TeamPattern } from "@/lib/types";
  */
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Team insights — Manager Console" };
+export const metadata = { title: "Team insights · Manager Console" };
 
 const routeLabel: Record<EscalationRoute, string> = {
   manager: "Duty manager",
@@ -88,7 +88,7 @@ export default async function InsightsPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Team insights</h1>
         <p className="text-sm text-muted-foreground">
           Patterns across the whole team, shown only when at least{" "}
-          {insights.k_threshold} staff share them — so no individual can be
+          {insights.k_threshold} staff share them, so no individual can be
           singled out. Individual coaching is suppressed when the root cause
           is process or policy.
         </p>
@@ -180,7 +180,7 @@ export default async function InsightsPage() {
             className="flex items-center gap-3 rounded-xl border border-dashed p-4 text-sm text-muted-foreground"
           >
             <EyeOff className="size-4 shrink-0" />
-            {s.count} pattern{s.count > 1 ? "s" : ""} hidden — group smaller
+            {s.count} pattern{s.count > 1 ? "s" : ""} hidden, group smaller
             than {insights.k_threshold} staff, so they can&apos;t be shown
             without identifying someone.
           </div>

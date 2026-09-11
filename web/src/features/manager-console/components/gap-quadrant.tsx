@@ -154,7 +154,7 @@ export function GapQuadrant({
               className="msg-in rounded-xl border bg-muted/40 p-4"
             >
               <p className="text-sm font-semibold">
-                {dimensionShort[active.dimension]} —{" "}
+                {dimensionShort[active.dimension]},{" "}
                 <span
                   className={toneFor(quadrantMeta[active.quadrant].tone).text}
                 >
@@ -172,8 +172,8 @@ export function GapQuadrant({
               No floor observations yet for{" "}
               {gap.insufficient_evidence
                 .map((d) => observationDimensionLabels[d])
-                .join(", ")}{" "}
-              — the gap is left unscored rather than guessed.
+                .join(", ")}
+              . The gap is left unscored rather than guessed.
             </p>
           )}
         </CardContent>

@@ -467,7 +467,15 @@ def run_coaching(cur, actor, staff_id: str, trace: Trace | None = None) -> dict:
         "conversation. A question, usually. Not a description of what to say.\n"
         "suggested_action: one concrete thing, doable this week, by a named "
         "role. Never 'review the process' or 'ensure staff are trained'.\n"
-        "trap_to_avoid: the specific mistake this manager is likely to make."
+        "trap_to_avoid: the specific mistake this manager is likely to make.\n"
+
+        # Every other surface on this product is em-dash free and a
+        # recommendation card sits right beside that copy. Asking the model
+        # for a comma is cheaper than stripping dashes from the output
+        # afterwards, which could edit a quoted span and fail the cite gate
+        # for a reason that has nothing to do with the evidence.
+        "punctuation: never use an em dash. A comma, a full stop or a colon\n"
+        "instead. This applies to every field."
     )
     base_user = (
         f"STAFF: {staff['display_name']} ({staff['department']})\n"

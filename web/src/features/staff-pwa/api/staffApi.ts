@@ -79,7 +79,7 @@ export const staffApi = {
     await sleep(registration.poll_after_ms);
     const second = await http.get<Debrief>(`/debriefs/${registration.id}`);
     if (TERMINAL_STATUSES.has(second.status)) return second;
-    throw new Error("Debrief is still processing — check back in a moment.");
+    throw new Error("Debrief is still processing, check back in a moment.");
   },
 
   /** POST /debriefs → 202 { id, status, poll_after_ms }, then follow the
@@ -96,7 +96,7 @@ export const staffApi = {
       await sleep(registration.poll_after_ms);
       const secondRead = await http.get<Debrief>(`/debriefs/${registration.id}`);
       if (TERMINAL_STATUSES.has(secondRead.status)) return secondRead;
-      throw new Error("Debrief is still processing — check back in a moment.");
+      throw new Error("Debrief is still processing, check back in a moment.");
     }
     const created = (await mockDb.createDebrief(text)) as MockCreatedDebrief;
     if (created.debrief) return created.debrief;

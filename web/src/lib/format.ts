@@ -88,7 +88,7 @@ export const quadrantMeta: Record<Quadrant, QuadrantMeta> = {
     label: "Needs practice",
     headline: "Weak in both.",
     reading:
-      "Targeted practice — the only quadrant where a simulation is the right answer.",
+      "Targeted practice, the only quadrant where a simulation is the right answer.",
     tone: "amber",
   },
   blocked: {
@@ -102,7 +102,7 @@ export const quadrantMeta: Record<Quadrant, QuadrantMeta> = {
     label: "Check the standard",
     headline: "Strong floor, weak practice.",
     reading:
-      "Rubric or scenario mismatch — or they compensate with charm. A signal about our scoring, not about them.",
+      "Rubric or scenario mismatch, or they compensate with charm. A signal about our scoring, not about them.",
     tone: "violet",
   },
 };
@@ -117,7 +117,7 @@ export const classificationMeta: Record<
   },
   process: {
     label: "Process",
-    hint: "Individual coaching is suppressed — fix the workflow.",
+    hint: "Individual coaching is suppressed, fix the workflow.",
   },
   policy: {
     label: "Policy",
