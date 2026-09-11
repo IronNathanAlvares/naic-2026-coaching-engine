@@ -1,7 +1,6 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ScreenNav } from "@/components/screen-nav";
 
 /** The glass box runs the real agent, so it is the slowest page on the site by
  * design: a trace is an actual model call, not a replay. That is the whole
@@ -11,17 +10,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function GlassboxLoading() {
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6 p-6">
-      {/* Present from the first frame: during a cold start this
-          screen is all there is for up to a minute. */}
-      <div>
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ArrowLeft className="size-4" aria-hidden />
-          Back to home
-        </Link>
-      </div>
+      {/* Unlike the manager and staff loading screens, this one needs
+          its own nav: /glassbox has no shell, so while the page loads
+          there is nothing else on screen to navigate with. */}
+      <ScreenNav />
       <style>{`@keyframes ce-late-hint { to { opacity: 1 } }`}</style>
 
       <div className="space-y-2">

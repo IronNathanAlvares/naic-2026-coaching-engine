@@ -10,8 +10,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function StaffLoading() {
   return (
     <div className="space-y-5">
-      {/* Present from the first frame: during a cold start this
-          screen is all there is for up to a minute. */}
       <style>{`@keyframes ce-late-hint { to { opacity: 1 } }`}</style>
 
       <div className="space-y-2">

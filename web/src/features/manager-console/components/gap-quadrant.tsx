@@ -75,6 +75,48 @@ function overallReading(
   })[0];
 }
 
+
+/** BARS runs 1 to 5, so a level sits at (v - 1) / 4 along the track. */
+const pos = (v: number) => `${Math.max(0, Math.min(1, (v - 1) / 4)) * 100}%`;
+
+/**
+ * Practice and floor on one track, with the distance between them drawn.
+ *
+ * The length of the connecting line is the transfer gap. Nothing has to be
+ * read to see that two dots are far apart, which is the point: a manager
+ * scanning five rows finds the problem before they have read a single word.
+ */
+function GapTrack({
+  practice,
+  floor,
+}: {
+  practice: number;
+  floor: number;
+}) {
+  const lo = Math.min(practice, floor);
+  const hi = Math.max(practice, floor);
+  return (
+    <div className="relative h-6 w-full" aria-hidden>
+      {/* the 1 to 5 track */}
+      <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-border" />
+      {/* the gap */}
+      <div
+        className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-[oklch(0.76_0.07_74)]/45"
+        style={{ left: pos(lo), right: `calc(100% - ${pos(hi)})` }}
+      />
+      {/* floor first, so practice sits on top where they overlap */}
+      <span
+        className="absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background bg-[oklch(0.55_0.09_60)]"
+        style={{ left: pos(floor) }}
+      />
+      <span
+        className="absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background bg-primary"
+        style={{ left: pos(practice) }}
+      />
+    </div>
+  );
+}
+
 export function GapQuadrant({
   gap,
   staffName,
@@ -84,13 +126,9 @@ export function GapQuadrant({
 }) {
   const firstName = staffName.split(" ")[0];
   const lead = overallReading(gap.dimensions);
-  // Biggest gap first: the row a manager should act on opens at the top, and
-  // the evidence panel follows it rather than whatever the API listed first.
-  const ordered = [...gap.dimensions].sort(
-    (a, b) => Math.abs(b.gap) - Math.abs(a.gap)
-  );
-  const [selected, setSelected] = useState(ordered[0]?.dimension);
-  const active = ordered.find((d) => d.dimension === selected) ?? ordered[0];
+  const [selected, setSelected] = useState(gap.dimensions[0]?.dimension);
+  const active =
+    gap.dimensions.find((d) => d.dimension === selected) ?? gap.dimensions[0];
   const leadTone = lead ? toneFor(quadrantMeta[lead.quadrant].tone) : null;
 
   return (
@@ -116,14 +154,28 @@ export function GapQuadrant({
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Scored dimensions</CardTitle>
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <CardTitle className="text-base">Scored dimensions</CardTitle>
+            <span className="flex items-center gap-3 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <span className="size-2.5 rounded-full bg-primary" />
+                practice
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="size-2.5 rounded-full bg-[oklch(0.55_0.09_60)]" />
+                floor
+              </span>
+            </span>
+          </div>
           <p className="text-xs text-muted-foreground">
-            One row per scored dimension, biggest gap first, with the coaching
-            reading as the badge. Select a row for the evidence behind it.
+            The bar between the two dots is the gap. Longest first. Select a
+            row for the evidence behind it.
           </p>
         </CardHeader>
         <CardContent className="space-y-3">
-          {ordered.map((d) => (
+          {[...gap.dimensions]
+            .sort((a, b) => Math.abs(b.gap) - Math.abs(a.gap))
+            .map((d) => (
             <button
               key={d.dimension}
               type="button"
@@ -135,11 +187,22 @@ export function GapQuadrant({
                   : "bg-card hover:bg-muted/40"
               }`}
             >
-              <span className="min-w-0">
-                <span className="block truncate text-sm font-semibold">
-                  {dimensionShort[d.dimension]}
+              <span className="min-w-0 flex-1">
+                <span className="flex items-baseline gap-2">
+                  <span className="truncate text-sm font-semibold">
+                    {dimensionShort[d.dimension]}
+                  </span>
+                  <span className="ml-auto shrink-0 text-xs tabular-nums text-muted-foreground">
+                    {d.practice_mean?.toFixed(1)}
+                    <span className="mx-1 text-muted-foreground/50">vs</span>
+                    {d.floor_mean?.toFixed(1)}
+                  </span>
                 </span>
-                <span className="mt-0.5 block text-xs text-muted-foreground">
+                <GapTrack
+                  practice={d.practice_mean ?? 1}
+                  floor={d.floor_mean ?? 1}
+                />
+                <span className="block text-xs text-muted-foreground">
                   {quadrantLine[d.quadrant]}
                 </span>
               </span>
@@ -158,7 +221,7 @@ export function GapQuadrant({
               className="msg-in rounded-xl border bg-muted/40 p-4"
             >
               <p className="text-sm font-semibold">
-                {dimensionShort[active.dimension]} —{" "}
+                {dimensionShort[active.dimension]},{" "}
                 <span
                   className={toneFor(quadrantMeta[active.quadrant].tone).text}
                 >
@@ -176,8 +239,8 @@ export function GapQuadrant({
               No floor observations yet for{" "}
               {gap.insufficient_evidence
                 .map((d) => observationDimensionLabels[d])
-                .join(", ")}{" "}
-              — the gap is left unscored rather than guessed.
+                .join(", ")}
+              . The gap is left unscored rather than guessed.
             </p>
           )}
         </CardContent>

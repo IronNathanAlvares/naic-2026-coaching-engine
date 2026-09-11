@@ -11,7 +11,7 @@ export function LevelWord({
   level: number | null;
   prefix?: string;
 }) {
-  const word = levelWord(level) ?? "—";
+  const word = levelWord(level) ?? "–";
   const tone =
     level === null
       ? "bg-muted text-muted-foreground"

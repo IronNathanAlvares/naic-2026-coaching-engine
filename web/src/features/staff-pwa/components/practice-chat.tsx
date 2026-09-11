@@ -1,9 +1,15 @@
 "use client";
 
+// Talks to the API through http from lib/api/client, never a bare fetch to a
+// relative path. A relative "/api/v1/..." resolves against whatever host serves
+// the page, so once deployed the browser asks the WEBSITE for coaching data
+// instead of the API. This repo also serves routes under /api/v1, so it comes
+// back 500 rather than 404 and reads as a backend fault. The client also adds
+// the actor header and the idempotency key.
+
 import { Fragment, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Mic, Send, Volume2 } from "lucide-react";
-import { toast } from "sonner";
+import { Mic, Send, Square, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { staffApi } from "@/features/staff-pwa/api/staffApi";
 import { useVoiceInput } from "@/features/staff-pwa/lib/use-voice-input";
@@ -16,6 +22,59 @@ interface Message {
   mood?: string;
   turn_index: number;
   audioId?: string;
+}
+
+/** Plays one guest line.
+ *
+ * Tone is most of what makes service recovery hard, and a transcript hides
+ * exactly the thing being trained: you cannot practise staying calm with
+ * someone who is only annoyed in writing. Autoplay is deliberately not used —
+ * a staff member may be on a shift floor, or on a bus — so the line is offered
+ * and never forced. When the backend could not synthesise, audioId is absent
+ * and nothing renders at all. */
+function GuestAudio({ audioId }: { audioId?: string }) {
+  const ref = useRef<HTMLAudioElement | null>(null);
+  const [playing, setPlaying] = useState(false);
+  const [broken, setBroken] = useState(false);
+
+  if (!audioId || broken) return null;
+
+  return (
+    <>
+      <button
+        type="button"
+        aria-label={playing ? "Stop the guest" : "Hear the guest"}
+        onClick={() => {
+          const el = ref.current;
+          if (!el) return;
+          if (playing) {
+            el.pause();
+            el.currentTime = 0;
+            setPlaying(false);
+          } else {
+            void el.play().catch(() => setBroken(true));
+          }
+        }}
+        className="mt-1.5 inline-flex items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+      >
+        {playing ? (
+          <Square className="size-3" />
+        ) : (
+          <Volume2 className="size-3" />
+        )}
+        {playing ? "stop" : "hear it"}
+      </button>
+      <audio
+        ref={ref}
+        src={`${API_BASE_URL}/voice/${audioId}.mp3`}
+        preload="none"
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
+        onEnded={() => setPlaying(false)}
+        onError={() => setBroken(true)}
+      />
+    </>
+  );
 }
 
 const moodLabel: Record<string, string> = {
@@ -53,7 +112,7 @@ function shiftNote(from: string, to: string): string | null {
 }
 
 const DEMO_VOICE_LINE =
-  "I'm really sorry about the wait — let me fix this for you right away.";
+  "I'm really sorry about the wait, let me fix this for you right away.";
 
 export function PracticeChat({
   attempt,
@@ -81,7 +140,11 @@ export function PracticeChat({
   const completingRef = useRef(false);
 
   const latestTurn = attempt.turns[attempt.turns.length - 1];
-  const TOTAL_TURNS = latestTurn?.turns_remaining ?? 6;
+  // The server owns the limit (CE_MAX_PRACTICE_TURNS, 4 by default) and sends
+  // it with every turn. This fallback only fires if a turn arrives without
+  // one, and it matches the server default so the progress dots do not
+  // suddenly draw a different number of them.
+  const TOTAL_TURNS = latestTurn?.turns_remaining ?? 4;
   const [remaining, setRemaining] = useState(
     latestTurn?.turns_remaining ?? TOTAL_TURNS
   );
@@ -208,7 +271,7 @@ export function PracticeChat({
       >
         <p className="text-center text-xs text-muted-foreground">
           You are practising as yourself. Nothing is graded live and nothing
-          is shared — the notes at the end are yours alone.
+          is shared, the notes at the end are yours alone.
         </p>
         {messages.map((message, i) => (
           <Fragment key={i}>
@@ -253,7 +316,7 @@ export function PracticeChat({
         </div>
         {sendFailed && (
           <p className="text-xs text-[oklch(0.44_0.09_28)]">
-            Couldn't send that message — please try again.
+            Couldn't send that message, please try again.
           </p>
         )}
         <div className="flex gap-2">
@@ -264,9 +327,9 @@ export function PracticeChat({
             disabled={exhausted || completing || listening}
             placeholder={
               listening
-                ? "Listening — speak your reply…"
+                ? "Listening. Speak your reply…"
                 : exhausted
-                  ? "Conversation complete — finish to see your notes"
+                  ? "Conversation complete, finish to see your notes"
                   : "What would you say to the guest?"
             }
             className="flex-1 rounded-xl border bg-card px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-60"
@@ -300,7 +363,7 @@ export function PracticeChat({
         </div>
         {listening && (
           <p className="text-xs text-[oklch(0.44_0.09_28)]">
-            Listening… your words fill the box — review, then send.
+            Listening… your words fill the box. Review, then send.
           </p>
         )}
       </div>
@@ -313,48 +376,6 @@ function GuestAvatar() {
     <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[oklch(0.92_0.03_82)] text-sm font-bold text-[oklch(0.42_0.045_55)] ring-1 ring-border dark:bg-[oklch(0.72_0.08_70)]/15 dark:text-[oklch(0.89_0.05_76)] dark:ring-[oklch(0.78_0.07_72)]/30">
       G
     </div>
-  );
-}
-
-/** Plays one guest line. Autoplay is deliberately not used — a staff member
- * may be on a shift floor, or on a bus — so the line is offered, never
- * forced. When the backend could not synthesise, audioId is absent and
- * nothing renders at all. */
-function GuestAudio({ audioId }: { audioId?: string }) {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const errorNotifiedRef = useRef(false);
-
-  if (!audioId) return null;
-
-  const reportError = () => {
-    if (errorNotifiedRef.current) return;
-    errorNotifiedRef.current = true;
-    toast.error("Couldn't play the guest voice.");
-  };
-
-  return (
-    <>
-      <button
-        type="button"
-        onClick={() => {
-          const el = audioRef.current;
-          if (!el) return;
-          el.pause();
-          el.currentTime = 0;
-          void el.play().catch(reportError);
-        }}
-        className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-primary"
-      >
-        <Volume2 className="size-4" />
-        hear it
-      </button>
-      <audio
-        ref={audioRef}
-        src={`${API_BASE_URL}/voice/${audioId}.mp3`}
-        preload="none"
-        onError={reportError}
-      />
-    </>
   );
 }
 
@@ -374,9 +395,9 @@ function GuestRow({
         <div className="rounded-2xl rounded-bl-sm border bg-card px-4 py-2.5 text-sm">
           {content}
         </div>
-        <div className="mt-1 flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <p
-            className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+            className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
               moodTone[mood] ?? moodTone.neutral
             }`}
           >

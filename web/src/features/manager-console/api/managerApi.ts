@@ -19,14 +19,6 @@ import type {
 
 /** Manager Console API — mirrors LLD-B manager/ld endpoints. */
 
-// In mock mode, client components must reach the store through the route
-// handlers: importing mockDb into the browser spawns a second, disconnected
-// store whose writes the server pages and handlers never see. Server
-// components keep the in-process mockDb path (a relative fetch has no base
-// there), and real mode always goes to the gateway.
-const IN_BROWSER = typeof window !== "undefined";
-const viaHttp = (): boolean => isRealApi() || IN_BROWSER;
-
 // The mock store (db.ts, owned elsewhere) still serves the legacy
 // { computed_at, dimensions } wrapper. Both the /calibration route and this
 // client translate it to the frozen bare-array shape on the way out — keep the
@@ -103,10 +95,10 @@ export const managerApi = {
   },
 
   listObservations: (): Promise<Observation[]> =>
-    viaHttp() ? http.get("/observations") : mockDb.listObservations(),
+    isRealApi() ? http.get("/observations") : mockDb.listObservations(),
 
   logObservation: (input: ObservationInput): Promise<ObservationResponse> =>
-    viaHttp()
+    isRealApi()
       ? http.post("/observations", input)
       : mockDb.logObservation(input),
 
@@ -134,17 +126,17 @@ export const managerApi = {
       : Promise.resolve(SAMPLE_DRAFT),
 
   getGap: (staffId: string): Promise<TransferGap | undefined> =>
-    viaHttp()
+    isRealApi()
       ? http.get(`/staff/${staffId}/gap`)
       : mockDb.getGap(staffId),
 
   listRecommendations: (): Promise<Recommendation[]> =>
-    viaHttp()
+    isRealApi()
       ? http.get("/recommendations")
       : mockDb.listRecommendations(),
 
   getRecommendation: (id: string): Promise<Recommendation | undefined> =>
-    viaHttp()
+    isRealApi()
       ? http.get(`/recommendations/${id}`)
       : mockDb.getRecommendation(id),
 
@@ -152,7 +144,7 @@ export const managerApi = {
     id: string,
     input: VerifyInput
   ): Promise<VerifyResponse> =>
-    viaHttp()
+    isRealApi()
       ? http.post(`/recommendations/${id}/verify`, input)
       : mockDb.verifyRecommendation(id, input),
 
@@ -160,7 +152,9 @@ export const managerApi = {
    * The route handler is the canonical shape; in mock mode the legacy wrapper
    * from db.ts is mapped here so server pages see the frozen shape too. */
   getCalibration: (): Promise<CalibrationReading[]> =>
-    viaHttp() ? http.get("/calibration") : legacyCalibrationToReadings(),
+    isRealApi()
+      ? http.get("/calibration")
+      : legacyCalibrationToReadings(),
 
   /** GET /staff/{id}/scores?source=practice|floor — reads a staff member's
    * two evidence streams. Call from client components (or real-mode servers):
@@ -174,7 +168,7 @@ export const managerApi = {
     http.get(`/staff/${staffId}/scores?source=${source}`),
 
   getTeamInsights: (): Promise<TeamInsights> =>
-    viaHttp()
+    isRealApi()
       ? http.get("/insights/team")
       : mockDb.getTeamInsights(),
 };

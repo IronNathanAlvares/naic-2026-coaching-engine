@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Suspense } from "react";
 import {
   ArrowRight,
   ClipboardCheck,
@@ -16,8 +15,10 @@ import {
 import { RadarCaption } from "@/features/manager-console/components/radar-caption";
 import { managerApi } from "@/features/manager-console/api/managerApi";
 import { staffMembers } from "@/lib/mock/seed";
+
 import { dimensionLabels, dimensionShort } from "@/lib/format";
 import type { BarsDimension, CalibrationReading, TransferGap } from "@/lib/types";
+
 
 /** Rendered per request, never prerendered.
  *
@@ -98,75 +99,9 @@ function overallCalibration(rows: CalibrationReading[]): CalibrationSummary | nu
   };
 }
 
-export default function ManagerOverviewPage() {
-  return (
-    <div className="space-y-6">
-      <div className="msg-in flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Afternoon, Marta
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Recommendations are waiting on your read. Nothing routes anywhere
-            until you verify.
-          </p>
-        </div>
-        <Button nativeButton={false} render={<Link href="/manager/observe" />}>
-          <ClipboardCheck className="size-4" />
-          Log an observation
-        </Button>
-      </div>
-
-      {/* The data panels stream in behind a skeleton so the page shell paints
-          immediately — the live roster fan-out can take seconds on a cold
-          backend, and a blank screen reads as broken. */}
-      <Suspense fallback={<OverviewSkeleton />}>
-        <OverviewPanels />
-      </Suspense>
-
-      <p className="fade-up [animation-delay:600ms] rounded-xl border border-dashed border-primary/25 bg-primary/5 p-4 text-xs leading-relaxed text-muted-foreground">
-        <span className="font-semibold text-foreground">How it works:</span>{" "}
-        your observation and the staff member's practice scores are two
-        independent streams. The AI combines them into a transfer-gap reading,
-        drafts a recommendation where every claim cites its source, and holds
-        it here until you confirm, correct or reject it. Every verdict trains
-        the calibration number shown above — that is the loop the system
-        learns from. Simulations only prove what staff can do in practice —
-        Cornell's own AI-training research stops there. The floor is where it
-        counts.
-      </p>
-    </div>
-  );
-}
-
-function OverviewSkeleton() {
-  return (
-    <div className="grid gap-6 lg:grid-cols-3">
-      <Card className="lg:col-span-2">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Team transfer-gap radar</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-72 animate-pulse rounded-xl bg-muted/40" />
-        </CardContent>
-      </Card>
-      <div className="flex flex-col gap-4">
-        <Card>
-          <CardContent className="h-24 animate-pulse rounded-xl bg-muted/40" />
-        </Card>
-        <Card>
-          <CardContent className="h-32 animate-pulse rounded-xl bg-muted/40" />
-        </Card>
-        <Card>
-          <CardContent className="h-24 animate-pulse rounded-xl bg-muted/40" />
-        </Card>
-      </div>
-    </div>
-  );
-}
-
-async function OverviewPanels() {
-  // Roster first: everything else is per-person, so it decides the fan-out.
+export default async function ManagerOverviewPage() {
+  // Everything here is per-person, so the roster and the observations together
+  // decide the fan-out.
   const [roster, recommendations, readings, insights, observations] =
     await Promise.all([
       managerApi.listStaff(),
@@ -175,14 +110,19 @@ async function OverviewPanels() {
       managerApi.getTeamInsights(),
       managerApi.listObservations().catch(() => []),
     ]);
-  // A transfer gap only exists once the manager has observed the person, so
-  // the fan-out skips everyone without an observation — 46 staff become the
-  // handful the radar can actually speak for, and the page gets fast.
+
+  // One request per person, because a gap is computed per staff member under
+  // that viewer's permissions and there is no bulk endpoint that would not
+  // quietly bypass row level security.
+  //
+  // But it only has to ask about people who HAVE a gap, and a transfer gap
+  // cannot exist before the manager has observed someone: it is the distance
+  // between their practice score and that observation. Asking about the other
+  // forty-odd returns nothing and was most of the five seconds this page took
+  // to load. Credit to Ziyi for spotting it.
   const observedIds = new Set(observations.map((o) => o.staff_id));
   const gaps = await Promise.all(
-    roster
-      .filter((s) => observedIds.has(s.id))
-      .map((s) => managerApi.getGap(s.id))
+    roster.filter((s) => observedIds.has(s.id)).map((s) => managerApi.getGap(s.id))
   );
 
   const pending = recommendations.filter(
@@ -219,6 +159,22 @@ async function OverviewPanels() {
 
   return (
     <div className="space-y-6">
+      <div className="msg-in flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Afternoon, Marta
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {pending.length} recommendations are waiting on your read. Nothing
+            routes anywhere until you verify.
+          </p>
+        </div>
+        <Button nativeButton={false} render={<Link href="/manager/observe" />}>
+          <ClipboardCheck className="size-4" />
+          Log an observation
+        </Button>
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="surface-glow fade-up lg:col-span-2">
           <CardHeader className="pb-2">
@@ -277,7 +233,7 @@ async function OverviewPanels() {
               </p>
               <Button
                 variant="link"
-                className="mt-1 h-auto p-0"
+                className="-mx-2 mt-1 h-auto min-h-9 px-2"
                 nativeButton={false}
                 render={<Link href="/manager/verify" />}
               >
@@ -305,7 +261,7 @@ async function OverviewPanels() {
               </p>
               <Button
                 variant="link"
-                className="mt-1 h-auto p-0"
+                className="-mx-2 mt-1 h-auto min-h-9 px-2"
                 nativeButton={false}
                 render={<Link href="/manager/insights" />}
               >
@@ -343,6 +299,18 @@ async function OverviewPanels() {
           ))}
         </CardContent>
       </Card>
+
+      <p className="fade-up [animation-delay:600ms] rounded-xl border border-dashed border-primary/25 bg-primary/5 p-4 text-xs leading-relaxed text-muted-foreground">
+        <span className="font-semibold text-foreground">How it works:</span>{" "}
+        your observation and the staff member's practice scores are two
+        independent streams. The AI combines them into a transfer-gap reading,
+        drafts a recommendation where every claim cites its source, and holds
+        it here until you confirm, correct or reject it. Every verdict trains
+        the calibration number shown above, that is the loop the system
+        learns from. Simulations only prove what staff can do in practice.
+        Cornell's own AI-training research stops there. The floor is where it
+        counts.
+      </p>
     </div>
   );
 }

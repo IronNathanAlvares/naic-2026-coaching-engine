@@ -59,7 +59,7 @@ export const diegoDebrief: Debrief = {
   id: "d3b1-diego",
   status: "extracted",
   transcript:
-    "A guest arrived at three o'clock for check-in and the room wasn't ready. I apologised and called the duty manager straight away — I wasn't sure what I was allowed to offer myself.",
+    "A guest arrived at three o'clock for check-in and the room wasn't ready. I apologised and called the duty manager straight away, I wasn't sure what I was allowed to offer myself.",
   incident: {
     situation_type: "room_not_ready",
     guest_emotion: "frustrated",
@@ -69,7 +69,7 @@ export const diegoDebrief: Debrief = {
   },
   standard: {
     chunk_id: "chunk-011",
-    document: "Complaint Handling — Front Office",
+    document: "Complaint Handling, Front Office",
     section_path: "Complaint Handling > Step 6",
     step_number: 6,
     excerpt: "Uncover what resolution the guest actually expects.",
@@ -86,9 +86,9 @@ export const diegoDebrief: Debrief = {
 export const scenarios: Scenario[] = [
   {
     id: "5e9d-personal",
-    title: "Room not ready — your 29 August check-in",
+    title: "Room not ready, your 29 August check-in",
     description:
-      "Built from your debrief of 29 August. A guest arrives at 3pm after a day of travel and the room is not ready — you froze and escalated instead of recovering.",
+      "Built from your debrief of 29 August. A guest arrives at 3pm after a day of travel and the room is not ready, you froze and escalated instead of recovering.",
     kind: "personal",
     source_debrief_id: "d3b1-diego",
     dimensions: ["service_recovery", "empathy", "composure"],
@@ -108,7 +108,7 @@ export const scenarios: Scenario[] = [
     id: "s2-starter",
     title: "Noise complaint at 23:00",
     description:
-      "Starter scenario. A guest calls reception at 23:00 about noise from the room above — handled over the phone and at the door, composure first.",
+      "Starter scenario. A guest calls reception at 23:00 about noise from the room above, handled over the phone and at the door, composure first.",
     kind: "starter",
     source_debrief_id: null,
     dimensions: ["empathy", "composure"],
@@ -142,7 +142,7 @@ export const guestScripts: Record<string, GuestScript> = {
   "5e9d-personal": {
     opener: {
       content:
-        "We've been travelling since six this morning. You said the room would be ready at three — it's half past now and you're telling me it isn't. What am I supposed to do?",
+        "We've been travelling since six this morning. You said the room would be ready at three, it's half past now and you're telling me it isn't. What am I supposed to do?",
       mood: "frustrated",
     },
     replies: [
@@ -163,7 +163,7 @@ export const guestScripts: Record<string, GuestScript> = {
       },
       {
         content:
-          "And if the room isn't ready soon we've lost the evening — that has to count for something, surely?",
+          "And if the room isn't ready soon we've lost the evening, that has to count for something, surely?",
         mood: "frustrated",
       },
     ],
@@ -171,7 +171,7 @@ export const guestScripts: Record<string, GuestScript> = {
   "s1-starter": {
     opener: {
       content:
-        "Good afternoon. I was told three o'clock — it's gone half past and my room still isn't ready. This is not what I paid for.",
+        "Good afternoon. I was told three o'clock, it's gone half past and my room still isn't ready. This is not what I paid for.",
       mood: "frustrated",
     },
     replies: [
@@ -192,7 +192,7 @@ export const guestScripts: Record<string, GuestScript> = {
       },
       {
         content:
-          "Fine — but I want to know when, and I don't want to be told 'soon' a third time tonight.",
+          "Fine, but I want to know when, and I don't want to be told 'soon' a third time tonight.",
         mood: "frustrated",
       },
     ],
@@ -200,7 +200,7 @@ export const guestScripts: Record<string, GuestScript> = {
   "s2-starter": {
     opener: {
       content:
-        "It's eleven o'clock and there's a party going on in the room above mine. I need to sleep — I'm up at six.",
+        "It's eleven o'clock and there's a party going on in the room above mine. I need to sleep, I'm up at six.",
       mood: "frustrated",
     },
     replies: [
@@ -211,7 +211,7 @@ export const guestScripts: Record<string, GuestScript> = {
       },
       {
         content:
-          "I can hear every word they're saying up there — through the ceiling. This has to stop tonight.",
+          "I can hear every word they're saying up there, through the ceiling. This has to stop tonight.",
         mood: "escalating",
       },
       {
@@ -221,7 +221,7 @@ export const guestScripts: Record<string, GuestScript> = {
       },
       {
         content:
-          "Alright — but if it starts again I'm calling back, and I expect it handled properly this time.",
+          "Alright, but if it starts again I'm calling back, and I expect it handled properly this time.",
         mood: "frustrated",
       },
     ],
@@ -229,7 +229,7 @@ export const guestScripts: Record<string, GuestScript> = {
   "s3-starter": {
     opener: {
       content:
-        "We've been waiting forty minutes and now the mains are wrong — my wife asked for salmon and this is chicken. At a birthday dinner.",
+        "We've been waiting forty minutes and now the mains are wrong, my wife asked for salmon and this is chicken. At a birthday dinner.",
       mood: "frustrated",
     },
     replies: [
@@ -245,7 +245,7 @@ export const guestScripts: Record<string, GuestScript> = {
       },
       {
         content:
-          "What are you going to do about it? An apology doesn't feed anyone — and we shouldn't be paying for this.",
+          "What are you going to do about it? An apology doesn't feed anyone, and we shouldn't be paying for this.",
         mood: "frustrated",
       },
       {
@@ -274,7 +274,7 @@ export const diegoScoreResult: ScoreResult = {
     {
       dimension: "service_recovery",
       quote:
-        "I'm sorry your room isn't ready after that journey — let me find out what we can do for you right now, and I'll stay with you until it's sorted.",
+        "I'm sorry your room isn't ready after that journey, let me find out what we can do for you right now, and I'll stay with you until it's sorted.",
       turn_index: 5,
       explains:
         "Resolved + Ownership: apologises with the specific problem, commits to acting now, and adds follow-through. Stops short of an offer, which is the 5.",
@@ -282,14 +282,14 @@ export const diegoScoreResult: ScoreResult = {
     {
       dimension: "empathy",
       quote:
-        "You were told three o'clock and it's gone three now — I can hear how frustrating that is after a full day of travel.",
+        "You were told three o'clock and it's gone three now, I can hear how frustrating that is after a full day of travel.",
       turn_index: 2,
       explains:
         "Specific Validation: repeats the promise that was broken and names the feeling, without deflecting to housekeeping.",
     },
   ],
   overall_feedback:
-    "Strong recovery sequence: acknowledge first, then act. To reach a 5, add a concrete gesture — a lounge seat, a drink, a call-back — once you know what the guest expects.",
+    "Strong recovery sequence: acknowledge first, then act. To reach a 5, add a concrete gesture, a lounge seat, a drink, a call-back, once you know what the guest expects.",
 };
 
 export const completedAttempt: PracticeAttempt = {
@@ -318,14 +318,14 @@ const aug29Result: ScoreResult = {
     {
       dimension: "empathy",
       quote:
-        "You travelled all morning to be told it isn't ready — I'd be fed up too. Let me make this right.",
+        "You travelled all morning to be told it isn't ready, I'd be fed up too. Let me make this right.",
       turn_index: 3,
       explains:
         "Specific Validation: mirrors what the guest went through and owns the fix, though the concrete offer still comes late.",
     },
   ],
   overall_feedback:
-    "You picked up the frustration quickly and stayed composed. Next time, name the concrete next step — where the guest waits, who updates them — in the same breath.",
+    "You picked up the frustration quickly and stayed composed. Next time, name the concrete next step, where the guest waits, who updates them, in the same breath.",
 };
 
 export const historyAug29Attempt: PracticeAttempt = {
@@ -352,14 +352,14 @@ const aug18Result: ScoreResult = {
     {
       dimension: "composure",
       quote:
-        "I'll come straight up and sort it quietly with the room — I'd rather not discuss it over the phone.",
+        "I'll come straight up and sort it quietly with the room, I'd rather not discuss it over the phone.",
       turn_index: 4,
       explains:
         "Resolved: keeps calm and moves the conversation to a private channel instead of arguing at the door.",
     },
   ],
   overall_feedback:
-    "Your tone stayed steady and you took the conversation out of the corridor. The message to the room itself was brief — a warmer close would lift the empathy score.",
+    "Your tone stayed steady and you took the conversation out of the corridor. The message to the room itself was brief, a warmer close would lift the empathy score.",
 };
 
 export const historyAug26Attempt: PracticeAttempt = {
@@ -389,7 +389,7 @@ export const personalScoringAnchor: ScoreResult = {
     {
       dimension: "empathy",
       quote:
-        "Six hours of travel and the room isn't there — I'd be frustrated too. Let me sort this out right now.",
+        "Six hours of travel and the room isn't there, I'd be frustrated too. Let me sort this out right now.",
       turn_index: 2,
       explains:
         "Specific Validation: names what the guest went through and takes ownership of the fix.",
@@ -404,7 +404,7 @@ export const personalScoringAnchor: ScoreResult = {
     },
   ],
   overall_feedback:
-    "You named the concrete next step this time — bags, lounge, callback — instead of stopping at the apology. That is the difference from the 29th.",
+    "You named the concrete next step this time, bags, lounge, callback, instead of stopping at the apology. That is the difference from the 29th.",
 };
 
 // ── In-progress practice (what Diego opens in the demo — his personal replay)
@@ -419,7 +419,7 @@ export const inProgressAttempt: PracticeAttempt = {
       turn_index: 1,
       guest: {
         content:
-          "We've been travelling since six this morning. You said the room would be ready at three — it's half past now and you're telling me it isn't. What am I supposed to do?",
+          "We've been travelling since six this morning. You said the room would be ready at three, it's half past now and you're telling me it isn't. What am I supposed to do?",
         mood: "frustrated",
       },
       turns_remaining: 4,
@@ -469,7 +469,7 @@ export const diegoRecommendation: Recommendation = {
   classification: "policy",
   headline:
     "This is not a training gap. The front-office standard gives Diego no recovery authority to use.",
-  body: "Diego ran the acknowledge-then-offer sequence correctly in practice on both 29 and 30 August. On the floor at 3pm on 29 August he froze and escalated without attempting recovery — and the picture has not moved since. The behaviour he skipped is the one he demonstrably can perform, which points at authority rather than skill: your front-office complaint standard sets no discretionary recovery limit, while the F&B standard does.",
+  body: "Diego ran the acknowledge-then-offer sequence correctly in practice on both 29 and 30 August. On the floor at 3pm on 29 August he froze and escalated without attempting recovery, and the picture has not moved since. The behaviour he skipped is the one he demonstrably can perform, which points at authority rather than skill: your front-office complaint standard sets no discretionary recovery limit, while the F&B standard does.",
   suggested_action:
     "Set and communicate a discretionary recovery limit for front desk. Do not assign further service recovery practice.",
   calibration: {
@@ -485,7 +485,7 @@ export const diegoRecommendation: Recommendation = {
       claim: "practice looked confident on service recovery on 30 August",
       source_ref: "attempt:att-005:turn:6",
       quoted_span:
-        "I'm sorry your room isn't ready after that journey — let me find out what we can do for you right now, and I'll stay with you until it's sorted.",
+        "I'm sorry your room isn't ready after that journey, let me find out what we can do for you right now, and I'll stay with you until it's sorted.",
     },
     {
       kind: "observation",
@@ -503,7 +503,7 @@ export const diegoRecommendation: Recommendation = {
     },
     {
       kind: "metric",
-      claim: "a transfer gap on service recovery — the floor trails practice, held since 29 August",
+      claim: "a transfer gap on service recovery, the floor trails practice, held since 29 August",
       source_ref: "metric:gap:service_recovery",
     },
   ],
@@ -518,7 +518,7 @@ export const abstainedRecommendation: Recommendation = {
   staff_id: "staff-010",
   classification: "behavioural",
   headline: "Not enough evidence yet for grounded coaching.",
-  body: "Aoife&apos;s anticipation practice has looked strong, but she has no floor observation yet — a transfer-gap reading needs both streams, so this one is left unscored rather than guessed.",
+  body: "Aoife&apos;s anticipation practice has looked strong, but she has no floor observation yet, a transfer-gap reading needs both streams, so this one is left unscored rather than guessed.",
   suggested_action: "",
   calibration: {
     dimension: "anticipation",
@@ -548,7 +548,7 @@ export const chloeRecommendation: Recommendation = {
     agreement_rate: 0.786,
     sample_size: 14,
     advice:
-      "Communication has the lowest agreement — treat these readings with care.",
+      "Communication has the lowest agreement, treat these readings with care.",
   },
   citations: [
     {
@@ -556,7 +556,7 @@ export const chloeRecommendation: Recommendation = {
       claim: "practice looked confident on communication in the 20 August allergen run",
       source_ref: "attempt:att-042:turn:3",
       quoted_span:
-        "Of course — let me check the allergen sheet before I place it, and I'll bring it back to you within a minute.",
+        "Of course, let me check the allergen sheet before I place it, and I'll bring it back to you within a minute.",
     },
     {
       kind: "observation",
@@ -567,7 +567,7 @@ export const chloeRecommendation: Recommendation = {
     },
     {
       kind: "metric",
-      claim: "a transfer gap on communication — the floor trails practice",
+      claim: "a transfer gap on communication, the floor trails practice",
       source_ref: "metric:gap:communication",
     },
   ],
@@ -592,7 +592,7 @@ export const bogdanRecommendation: Recommendation = {
     agreement_rate: 0.786,
     sample_size: 14,
     advice:
-      "Communication has the lowest agreement — treat these readings with care.",
+      "Communication has the lowest agreement, treat these readings with care.",
   },
   citations: [
     {
@@ -600,7 +600,7 @@ export const bogdanRecommendation: Recommendation = {
       claim: "practice looked careful on communication in the 19 August allergen run",
       source_ref: "attempt:att-044:turn:2",
       quoted_span:
-        "I'll double-check the kitchen on that for you — give me one moment and I'll come back with the answer.",
+        "I'll double-check the kitchen on that for you, give me one moment and I'll come back with the answer.",
     },
     {
       kind: "observation",
@@ -611,7 +611,7 @@ export const bogdanRecommendation: Recommendation = {
     },
     {
       kind: "metric",
-      claim: "a transfer gap on communication — the floor trails practice",
+      claim: "a transfer gap on communication, the floor trails practice",
       source_ref: "metric:gap:communication",
     },
   ],

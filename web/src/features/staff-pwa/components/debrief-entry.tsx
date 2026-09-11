@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, BookOpen, Mic, Sparkles } from "lucide-react";
+import { ArrowRight, BookOpen, Mic, Sparkles, Square } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { staffApi } from "@/features/staff-pwa/api/staffApi";
 import { useVoiceInput } from "@/features/staff-pwa/lib/use-voice-input";
+import { useRecorder } from "@/lib/use-recorder";
+import { isRealApi } from "@/lib/api/client";
 import type { Debrief } from "@/lib/types";
 
 const DEMO_VOICE_LINE =
@@ -17,6 +19,31 @@ export function DebriefEntry() {
   const [text, setText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<Debrief | null>(null);
+
+  // Speaking it is the real path: the people this is built for are finishing a
+  // shift on their feet and will not type three paragraphs into a phone. The
+  // text box stays for anyone who would rather write, or whose browser will
+  // not give us a microphone.
+  const handleRecorded = async (blob: Blob, filename: string) => {
+    setSubmitting(true);
+    try {
+      const debrief = await staffApi.createDebriefAudio(blob, filename);
+      if (debrief.status === "failed") {
+        toast.error("That was too short to work with, try a sentence or two more.");
+        return;
+      }
+      setResult(debrief);
+      if (debrief.transcript) setText(debrief.transcript);
+      toast.success("Got it. Here's what your standard says");
+    } catch {
+      toast.error("Could not send that recording. You can type it instead.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const recorder = useRecorder({ onComplete: handleRecorded });
+  const recording = recorder.state === "recording";
 
   const { listening, toggleVoice, stop } = useVoiceInput({
     demoLine: DEMO_VOICE_LINE,
@@ -29,7 +56,7 @@ export function DebriefEntry() {
   const handleSubmit = async () => {
     if (submitting) return;
     if (!text.trim()) {
-      toast.warning("Tell us what happened first — a sentence is enough.");
+      toast.warning("Tell us what happened first, a sentence is enough.");
       return;
     }
     stop();
@@ -46,7 +73,7 @@ export function DebriefEntry() {
         return;
       }
       setResult(debrief);
-      toast.success("Got it — here's what your standard says");
+      toast.success("Got it. Here's what your standard says");
     } catch {
       toast.error("Could not save that. Please try again.");
     } finally {
@@ -63,7 +90,7 @@ export function DebriefEntry() {
               <Sparkles className="size-4 text-[oklch(0.38_0.055_152)]" />
             </div>
             <p className="text-sm font-semibold">
-              Your hotel&apos;s own standard — straight after your shift
+              Your hotel&apos;s own standard, straight after your shift
             </p>
           </div>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -99,7 +126,7 @@ export function DebriefEntry() {
                 A 3-minute replay was built from what you just said
               </p>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                Practise it now while it&apos;s fresh — it&apos;s yours, not
+                Practise it now while it&apos;s fresh, it&apos;s yours, not
                 shared.
               </p>
             </div>
@@ -119,24 +146,61 @@ export function DebriefEntry() {
         </p>
         <p className="mt-0.5 text-xs text-muted-foreground">
           30–90 seconds, in your own words. It never routes to a disciplinary
-          path — it&apos;s how you get coaching that&apos;s about your actual
+          path, it&apos;s how you get coaching that&apos;s about your actual
           day.
         </p>
         <Textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          disabled={submitting || listening}
+          disabled={submitting || listening || recording}
           placeholder={
             listening
-              ? "Listening — speak your debrief…"
-              : "A guest asked for something you weren't sure you could offer — or a moment that still feels off, in your own words…"
+              ? "Listening. Speak your debrief…"
+              : "A guest asked for something you weren't sure you could offer, or a moment that still feels off, in your own words…"
           }
           className="mt-3 min-h-28"
         />
+        {recording && (
+          <p className="mt-3 flex items-center gap-2 text-sm font-medium text-destructive">
+            <span className="inline-block size-2 animate-pulse rounded-full bg-destructive" />
+            Recording {Math.floor(recorder.seconds / 60)}:
+            {String(recorder.seconds % 60).padStart(2, "0")}
+            <span className="text-xs font-normal text-muted-foreground">
+              tap stop when you&apos;re done
+            </span>
+          </p>
+        )}
+        {recorder.state === "denied" && (
+          <p className="mt-3 text-xs text-muted-foreground">
+            No microphone access, so type it instead, same result.
+          </p>
+        )}
         <div className="mt-3 flex flex-wrap items-center gap-2">
+          {isRealApi() && (
+            <Button
+              type="button"
+              variant={recording ? "destructive" : "default"}
+              onClick={() => (recording ? recorder.stop() : void recorder.start())}
+              disabled={submitting || listening}
+              className="min-w-40 flex-1"
+            >
+              {recording ? (
+                <>
+                  <Square className="size-4" />
+                  Stop and send
+                </>
+              ) : (
+                <>
+                  <Mic className="size-4" />
+                  Speak your debrief
+                </>
+              )}
+            </Button>
+          )}
           <Button
             onClick={handleSubmit}
-            disabled={submitting}
+            disabled={submitting || recording}
+            variant={isRealApi() ? "outline" : "default"}
             className="min-w-40 flex-1"
           >
             {submitting ? "Checking against your standard…" : "Get instant feedback"}
@@ -164,11 +228,11 @@ export function DebriefEntry() {
             aria-live="polite"
             className="mt-2 text-center text-xs text-[oklch(0.44_0.09_28)]"
           >
-            Listening… your words fill the box — review, then submit.
+            Listening… your words fill the box. Review, then submit.
           </p>
         )}
         <p className="mt-2 text-center text-xs text-muted-foreground">
-          Voice is optional — audio stays on your device and is deleted once
+          Voice is optional, audio stays on your device and is deleted once
           the transcript is confirmed.
         </p>
       </div>

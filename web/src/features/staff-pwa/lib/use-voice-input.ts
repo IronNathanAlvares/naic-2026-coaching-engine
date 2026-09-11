@@ -121,7 +121,7 @@ export function useVoiceInput({
     const rec = getSpeechRecognition();
     if (!rec) {
       fillDemo(
-        `Voice input isn't available in this browser — filled a demo ${demoNoun} instead.`
+        `Voice input isn't available in this browser, filled a demo ${demoNoun} instead.`
       );
       return;
     }
@@ -132,7 +132,7 @@ export function useVoiceInput({
     } catch {
       if (session !== sessionRef.current) return;
       fillDemo(
-        `Microphone access was denied — filled a demo ${demoNoun} instead.`
+        `Microphone access was denied, filled a demo ${demoNoun} instead.`
       );
       return;
     }
@@ -173,10 +173,10 @@ export function useVoiceInput({
       micStreamRef.current = null;
       if (e.error === "network" || e.error === "service-not-allowed") {
         fillDemo(
-          `Voice recognition failed (${e.error}) — filled a demo ${demoNoun} instead.`
+          `Voice recognition failed (${e.error}), filled a demo ${demoNoun} instead.`
         );
       } else {
-        toast.error("Didn't catch that — please try again or type.");
+        toast.error("Didn't catch that, please try again or type.");
       }
     };
     recRef.current = rec;

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { History, Home, MessageCircle } from "lucide-react";
-import { ScreenNav } from "@/components/screen-nav";
 import {
   completedAttempt,
   currentManager,
@@ -12,6 +11,7 @@ import {
   staffMembers,
 } from "@/lib/mock/seed";
 import type { ScoreResult } from "@/lib/types";
+import { ScreenNav } from "@/components/screen-nav";
 
 const tabs = [
   { href: "/staff", label: "Home", icon: Home },
@@ -94,8 +94,8 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
         </header>
 
         <main className="flex flex-1 flex-col px-4 pb-24 pt-4">
-          {/* The staff app had three tabs and no exit. This is the way back
-              out to pick another role. */}
+          {/* The staff app had three tabs and no exit. This is the way
+              back out to pick another role. */}
           <ScreenNav />
           {children}
         </main>

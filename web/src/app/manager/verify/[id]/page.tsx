@@ -4,7 +4,7 @@ import { WhyExplainer } from "@/features/manager-console/components/why-explaine
 import { managerApi } from "@/features/manager-console/api/managerApi";
 import { staffMembers } from "@/lib/mock/seed";
 
-export const metadata = { title: "Verify — Manager Console" };
+export const metadata = { title: "Verify, Manager Console" };
 
 export default async function VerifyDetailPage(
   props: PageProps<"/manager/verify/[id]">
@@ -46,7 +46,9 @@ export default async function VerifyDetailPage(
         </div>
         <div>
           <h1 className="text-xl font-semibold tracking-tight">{staffName}</h1>
-          <p className="text-xs text-muted-foreground">{staffDetail}</p>
+          {staffDetail && (
+            <p className="text-xs text-muted-foreground">{staffDetail}</p>
+          )}
         </div>
       </div>
 

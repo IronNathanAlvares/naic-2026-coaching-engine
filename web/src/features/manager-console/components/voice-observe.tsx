@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { StaffPicker, type PickerStaff } from "./staff-picker";
+import { StaffPicker } from "./staff-picker";
 import { managerApi } from "@/features/manager-console/api/managerApi";
 import { dimensionShort, observationDimensionLines } from "@/lib/format";
 import { useRecorder } from "@/lib/use-recorder";
@@ -29,6 +29,7 @@ import type {
   ObservationDimension,
   ObservationDraft,
   ObservationDraftResponse,
+  StaffMember,
 } from "@/lib/types";
 
 /**
@@ -201,7 +202,7 @@ function DraftCard({
   onHoverSpan,
 }: {
   draft: WorkingDraft;
-  staff: PickerStaff[];
+  staff: StaffMember[];
   onChange: (next: WorkingDraft) => void;
   onConfirm: () => void;
   onDiscard: () => void;
@@ -506,7 +507,7 @@ function DraftCard({
 
 /* ------------------------------------------------------------ orchestration */
 
-export function VoiceObserve({ staff }: { staff: PickerStaff[] }) {
+export function VoiceObserve({ staff }: { staff: StaffMember[] }) {
   const [phase, setPhase] = useState<Phase>("idle");
   const [typed, setTyped] = useState("");
   const [transcript, setTranscript] = useState("");

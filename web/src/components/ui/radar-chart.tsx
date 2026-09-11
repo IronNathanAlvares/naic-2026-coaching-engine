@@ -22,6 +22,10 @@ interface RadarChartProps {
   showValues?: boolean;
 }
 
+// The viewBox is deliberately wider than the plot. Labels sit at R + 18 from
+// the centre and the longest ("Communication") is about 78px at 12px type, so
+// each side needs roughly 100px of margin or the words get cut off by the edge
+// of the svg. The radius is unchanged: only the breathing room around it.
 const W = 420;
 const H = 320;
 const CX = 210;
@@ -69,10 +73,8 @@ export function RadarChart({
 
   const primary = series[0];
 
-  // Which spoke the pointer, the thumb or the keyboard is on. Null is the
-  // resting state, where the chart reads exactly as it did before: a radar is
-  // good at "these two outlines differ somewhere" and bad at "by how much, on
-  // which axis", so the answer appears only on the axis being asked about.
+  // Which spoke the pointer or the keyboard is on. Null is the resting state,
+  // where the chart reads exactly as it did before.
   const [active, setActive] = useState<BarsDimension | null>(null);
 
   /** Both series on one axis, plus the distance between them. */
@@ -83,7 +85,10 @@ export function RadarChart({
         typeof r.v === "number"
       );
     if (values.length < 2) return { values, gap: null as number | null };
-    return { values, gap: Math.abs(values[0].v - values[1].v) };
+    return {
+      values,
+      gap: Math.abs(values[0].v - values[1].v),
+    };
   };
 
   return (
@@ -103,7 +108,7 @@ export function RadarChart({
           const isActive = active === axis;
           return (
             <line
-              key={axis}
+              key={i}
               x1={CX}
               y1={CY}
               x2={outer.x}
@@ -111,7 +116,7 @@ export function RadarChart({
               strokeWidth={isActive ? 2 : 1}
               stroke={
                 isActive
-                  ? "oklch(0.47 0.055 150 / 0.55)"
+                  ? "oklch(0.45 0.06 150 / 0.55)"
                   : "oklch(0.4 0.02 70 / 0.12)"
               }
             />
@@ -124,37 +129,28 @@ export function RadarChart({
             Math.abs(lp.x - CX) < 8 ? "middle" : lp.x > CX ? "start" : "end";
           const dy =
             lp.y < CY - 4 ? "-0.2em" : lp.y > CY + 4 ? "0.9em" : "0.35em";
-          const isActive = active === a;
-          const { values, gap } = isActive
-            ? readingFor(a)
-            : { values: [], gap: null };
-          const reading = values
-            .map((v) => `${v.label} ${v.v}`)
-            .join(", ");
           return (
             <g
               key={a}
               tabIndex={0}
               role="button"
-              aria-label={`${dimensionShort[a]}: ${
-                reading || "no data"
-              }`}
-              className="cursor-pointer"
+              aria-label={`${dimensionShort[a]}: ${readingFor(a)
+                .values.map((v) => `${v.label} ${v.v}`)
+                .join(", ")}`}
               onMouseEnter={() => setActive(a)}
               onMouseLeave={() => setActive(null)}
               onFocus={() => setActive(a)}
               onBlur={() => setActive(null)}
+              style={{ cursor: "pointer", outline: "none" }}
             >
               {/* An invisible target: text alone is a thin thing to hit, and
-                  on a phone it is thinner still. It lights up on the active
-                  axis so keyboard focus is visible, not just hover. */}
+                  on a phone it is thinner still. */}
               <rect
                 x={lp.x - (anchor === "end" ? 92 : anchor === "middle" ? 46 : 0)}
                 y={lp.y - 20}
                 width={92}
                 height={34}
-                rx={8}
-                fill={isActive ? "oklch(0.47 0.055 150 / 0.12)" : "transparent"}
+                fill="transparent"
               />
               <text
                 x={lp.x}
@@ -162,7 +158,7 @@ export function RadarChart({
                 textAnchor={anchor}
                 dy={dy}
                 fontSize={12}
-                fontWeight={isActive ? 600 : 400}
+                fontWeight={active === a ? 600 : 400}
                 opacity={
                   active && active !== a
                     ? 0.35
@@ -176,31 +172,36 @@ export function RadarChart({
               </text>
 
               {/* The answer, only on the axis being asked about. */}
-              {isActive && values.length > 0 && (
-                <text
-                  x={lp.x}
-                  y={lp.y}
-                  textAnchor={anchor}
-                  dy={lp.y < CY - 4 ? "-1.5em" : "2.1em"}
-                  fontSize={11}
-                >
-                  {values.map((v, k) => (
-                    <tspan
-                      key={v.label}
-                      dx={k > 0 ? 7 : 0}
-                      fill={v.color}
-                      fontWeight={600}
+              {active === a &&
+                (() => {
+                  const { values, gap } = readingFor(a);
+                  if (values.length === 0) return null;
+                  return (
+                    <text
+                      x={lp.x}
+                      y={lp.y}
+                      textAnchor={anchor}
+                      dy={lp.y < CY - 4 ? "-1.5em" : "2.1em"}
+                      fontSize={11}
                     >
-                      {v.v.toFixed(1)}
-                    </tspan>
-                  ))}
-                  {gap != null && (
-                    <tspan dx={9} fill="var(--muted-foreground)">
-                      {`gap ${gap.toFixed(1)}`}
-                    </tspan>
-                  )}
-                </text>
-              )}
+                      {values.map((v, k) => (
+                        <tspan
+                          key={v.label}
+                          dx={k > 0 ? 7 : 0}
+                          fill={v.color}
+                          fontWeight={600}
+                        >
+                          {v.v.toFixed(1)}
+                        </tspan>
+                      ))}
+                      {gap != null && (
+                        <tspan dx={9} fill="var(--muted-foreground)">
+                          {`gap ${gap.toFixed(1)}`}
+                        </tspan>
+                      )}
+                    </text>
+                  );
+                })()}
             </g>
           );
         })}
