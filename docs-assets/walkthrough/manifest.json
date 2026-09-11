@@ -1,6 +1,6 @@
 {
   "base": "http://localhost:3000",
-  "captured": "2026-09-11 09:34",
+  "captured": "2026-09-11 09:53",
   "shots": [
     {
       "n": 1,
@@ -88,17 +88,17 @@
     },
     {
       "n": 13,
-      "file": "13-staff-history.png",
-      "name": "staff-history",
-      "caption": "What the staff member sees about themselves",
-      "note": "Their own record, in words rather than numbers. A frontline worker reads 2 out of 5 as a verdict on them."
+      "file": "13-practice-result.png",
+      "name": "practice-result",
+      "caption": "The conversation is scored",
+      "note": "Scored once, over the whole exchange, not per line. Each level comes back with the exact words that earned it, and never as a number."
     },
     {
       "n": 14,
-      "file": "14-ld-insights.png",
-      "name": "ld-insights",
-      "caption": "The same page, as L&D",
-      "note": "Fiona owns the rubric. She sees cohort patterns and no individual practice scores. The database enforces that, not the interface."
+      "file": "14-staff-history.png",
+      "name": "staff-history",
+      "caption": "What the staff member sees about themselves",
+      "note": "Their own record, in words rather than numbers. A frontline worker reads 2 out of 5 as a verdict on them."
     },
     {
       "n": 15,

@@ -66,6 +66,13 @@ def main() -> int:
 
         def shot(name: str, caption: str, note: str = "",
                  full: bool = False) -> None:
+            """Viewport by default, not the whole scrollable page.
+
+            full_page captures every pixel including the empty space below the
+            content, so a short page becomes a very tall image that shrinks to
+            illegibility once it is placed in a document. The viewport is the
+            shape a reader recognises anyway, because it is what they see.
+            """
             n = len(shots) + 1
             path = OUT / f"{n:02d}-{name}.png"
             page.screenshot(path=str(path), full_page=full)
@@ -91,28 +98,28 @@ def main() -> int:
         go("/")
         shot("landing", "The front door",
              "Two ways in, one per role. Nobody logs in: this is a demo build "
-             "and identity is chosen here instead.", full=True)
+             "and identity is chosen here instead.")
 
         # ------------------------------------------------- manager, as Marta
         act_as("Marta")
         go("/manager")
         shot("manager-overview", "Manager console, as Marta",
              "The radar compares practice against the floor. The queue is what "
-             "the agent has drafted and is holding.", full=True)
+             "the agent has drafted and is holding.")
 
         go("/manager/verify")
         shot("verify-queue", "The verify queue",
              "Every card is one recommendation about one person. Abstentions "
-             "are shown too, rather than hidden.", full=True)
+             "are shown too, rather than hidden.")
 
-        # open the first pending card
+        # Expand the first card. They are accordions, not links: the header
+        # carries aria-expanded, so target that rather than guessing at text.
         try:
-            page.click("text=/Open|Review|Verify/i", timeout=8000)
+            page.click("[aria-expanded='false']", timeout=10000)
             time.sleep(3)
             shot("verify-detail", "One recommendation, opened",
                  "The claim, the evidence behind each part of it, and the three "
-                 "verdicts. Nothing routes anywhere until one is chosen.",
-                 full=True)
+                 "verdicts. Nothing routes anywhere until one is chosen.")
         except Exception:
             links = page.eval_on_selector_all(
                 "a[href*='/manager/verify/']", "els => els.map(e => e.href)")
@@ -121,35 +128,34 @@ def main() -> int:
                 time.sleep(3)
                 shot("verify-detail", "One recommendation, opened",
                      "The claim, the evidence behind each part of it, and the "
-                     "three verdicts.", full=True)
+                     "three verdicts.")
 
         go("/manager/gap")
         shot("transfer-gap", "The transfer gap, per person",
              "The product in one screen. Strong in practice and weak on the "
-             "floor is BLOCKED, and more training will not fix it.", full=True)
+             "floor is BLOCKED, and more training will not fix it.")
 
         go("/manager/insights")
         shot("team-insights", "Team patterns",
              "Only patterns shared by five or more people are shown. The count "
-             "of what was withheld is displayed rather than quietly dropped.",
-             full=True)
+             "of what was withheld is displayed rather than quietly dropped.")
 
         go("/manager/observe")
         shot("log-observation", "Logging what the manager saw",
              "This is the gate. Until this is submitted for a person, their "
-             "practice scores stay hidden from the manager.", full=True)
+             "practice scores stay hidden from the manager.")
 
         # ---------------------------------------------------- staff, as Diego
         act_as("Diego")
         go("/staff")
         shot("staff-home", "The staff app, as Diego",
              "Built for a phone at the end of a shift. No scores on this "
-             "screen, deliberately.", full=True)
+             "screen, deliberately.")
 
         go("/staff/practice")
         shot("practice-list", "Choosing a scenario",
              "Scenarios built from this property's own standards. One marked "
-             "personal comes from that staff member's own shift.", full=True)
+             "personal comes from that staff member's own shift.")
 
         # start a real attempt
         try:
@@ -160,7 +166,7 @@ def main() -> int:
                 time.sleep(6)
                 shot("practice-open", "The guest opens",
                      "A live model, not a script. The line is generated for "
-                     "this attempt and can be played aloud.", full=True)
+                     "this attempt and can be played aloud.")
 
                 # Match the placeholder rather than the tag: the control is a
                 # plain input, and "textarea, input[type=text]" missed it.
@@ -171,14 +177,14 @@ def main() -> int:
                 time.sleep(1)
                 shot("practice-typing", "The staff member replies",
                      "Typed here, or dictated with the microphone. What matters "
-                     "is what they say, not how it was entered.", full=True)
+                     "is what they say, not how it was entered.")
 
                 box.press("Enter")
                 page.wait_for_timeout(14000)
                 shot("practice-reply", "The guest reacts to what was said",
                      "Acknowledging the problem first makes the guest soften. "
                      "Leading with compensation makes them push back. That "
-                     "reaction is the thing being trained.", full=True)
+                     "reaction is the thing being trained.")
 
                 # A second turn, then finish and score the whole conversation.
                 box = page.get_by_placeholder("What would you say to the guest?")
@@ -198,7 +204,7 @@ def main() -> int:
                     shot("practice-result", "The conversation is scored",
                          "Scored once, over the whole exchange, not per line. "
                          "Each level comes back with the exact words that "
-                         "earned it, and never as a number.", full=True)
+                         "earned it, and never as a number.")
                 except Exception:
                     pass
         except Exception as exc:
@@ -207,22 +213,26 @@ def main() -> int:
         go("/staff/history")
         shot("staff-history", "What the staff member sees about themselves",
              "Their own record, in words rather than numbers. A frontline "
-             "worker reads 2 out of 5 as a verdict on them.", full=True)
+             "worker reads 2 out of 5 as a verdict on them.")
 
-        # ------------------------------------------------------- L&D, as Fiona
-        act_as("Fiona")
-        go("/manager/insights")
-        shot("ld-insights", "The same page, as L&D",
-             "Fiona owns the rubric. She sees cohort patterns and no individual "
-             "practice scores. The database enforces that, not the interface.",
-             full=True)
+        # No Fiona screenshot of /manager/insights.
+        #
+        # It would be byte-identical to Marta's, and capturing it would imply a
+        # difference that is not there. Two reasons: cohort patterns are the
+        # same for both roles by design, and more importantly currentActor()
+        # returns "Marta" whenever window is undefined, so SERVER-rendered
+        # pages ignore the localStorage override entirely.
+        #
+        # The honest demonstration of role differences is the glass box RLS
+        # panel, which asks the API as three people explicitly and shows three
+        # different answers. That is captured below.
 
         # ------------------------------------------------------- glass box
         act_as("Marta")
         go("/glassbox")
         shot("glassbox", "The glass box",
              "Three claims a judge can check rather than believe. Each button "
-             "runs production code live.", full=True)
+             "runs production code live.")
 
         try:
             page.click("text=Diego", timeout=8000)
@@ -230,7 +240,7 @@ def main() -> int:
             shot("glassbox-trace", "Every step, and who made it",
                  "Code, model or database on every line. A typical run is seven "
                  "decisions by code and one by the model, and that one was "
-                 "chosen from a list the code had already narrowed.", full=True)
+                 "chosen from a list the code had already narrowed.")
         except Exception as exc:
             print(f"  {DIM}trace panel: {type(exc).__name__}{RESET}")
 
@@ -239,8 +249,7 @@ def main() -> int:
             time.sleep(6)
             shot("glassbox-gate", "Trying to get a lie past the gate",
                  "Nine fabrications, the kind a real model failure looks like. "
-                 "None reach a manager. The honest claim still passes.",
-                 full=True)
+                 "None reach a manager. The honest claim still passes.")
         except Exception as exc:
             print(f"  {DIM}gate panel: {type(exc).__name__}{RESET}")
 
@@ -250,7 +259,7 @@ def main() -> int:
             shot("glassbox-rls", "One question, three people",
                  "Identical SQL each time. A colleague reads nothing, the "
                  "observing manager reads everything, L&D reads no individual "
-                 "practice scores.", full=True)
+                 "practice scores.")
         except Exception as exc:
             print(f"  {DIM}rls panel: {type(exc).__name__}{RESET}")
 
