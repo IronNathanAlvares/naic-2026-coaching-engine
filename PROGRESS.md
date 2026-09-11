@@ -171,7 +171,7 @@ Worth knowing because the competition scores us on this.
 | **OpenAI** | writes the coaching, scores practice |
 | **Groq** | the practice guest replies fast, and transcribes speech |
 | **ElevenLabs** | gives the guest a voice |
-| **Manus** | writes the weekly operations brief |
+| **Manus** | writes the weekly operations brief, from the **Write this up for the GM** button on Team insights |
 | **Langfuse** | records every AI run so we can see cost and failures |
 | **Neon / Render / Vercel** | the database and hosting |
 
