@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { dimensionShort } from "@/lib/format";
 import type { BarsDimension } from "@/lib/types";
 
@@ -70,6 +73,24 @@ export function RadarChart({
 
   const primary = series[0];
 
+  // Which spoke the pointer or the keyboard is on. Null is the resting state,
+  // where the chart reads exactly as it did before.
+  const [active, setActive] = useState<BarsDimension | null>(null);
+
+  /** Both series on one axis, plus the distance between them. */
+  const readingFor = (axis: BarsDimension) => {
+    const values = series
+      .map((s) => ({ label: s.label, color: s.color, v: s.values[axis] }))
+      .filter((r): r is { label: string; color: string; v: number } =>
+        typeof r.v === "number"
+      );
+    if (values.length < 2) return { values, gap: null as number | null };
+    return {
+      values,
+      gap: Math.abs(values[0].v - values[1].v),
+    };
+  };
+
   return (
     <figure role="img" aria-label={ariaLabel}>
       <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full">
@@ -82,8 +103,9 @@ export function RadarChart({
           />
         ))}
 
-        {axes.map((_, i) => {
+        {axes.map((axis, i) => {
           const outer = pointFor(i, R);
+          const isActive = active === axis;
           return (
             <line
               key={i}
@@ -91,7 +113,12 @@ export function RadarChart({
               y1={CY}
               x2={outer.x}
               y2={outer.y}
-              stroke="oklch(0.4 0.02 70 / 0.12)"
+              strokeWidth={isActive ? 2 : 1}
+              stroke={
+                isActive
+                  ? "oklch(0.45 0.06 150 / 0.55)"
+                  : "oklch(0.4 0.02 70 / 0.12)"
+              }
             />
           );
         })}
@@ -103,18 +130,79 @@ export function RadarChart({
           const dy =
             lp.y < CY - 4 ? "-0.2em" : lp.y > CY + 4 ? "0.9em" : "0.35em";
           return (
-            <text
+            <g
               key={a}
-              x={lp.x}
-              y={lp.y}
-              textAnchor={anchor}
-              dy={dy}
-              fontSize={12}
-              opacity={series.some((s) => s.values[a] != null) ? 1 : 0.72}
-              fill="var(--foreground)"
+              tabIndex={0}
+              role="button"
+              aria-label={`${dimensionShort[a]}: ${readingFor(a)
+                .values.map((v) => `${v.label} ${v.v}`)
+                .join(", ")}`}
+              onMouseEnter={() => setActive(a)}
+              onMouseLeave={() => setActive(null)}
+              onFocus={() => setActive(a)}
+              onBlur={() => setActive(null)}
+              style={{ cursor: "pointer", outline: "none" }}
             >
-              {dimensionShort[a]}
-            </text>
+              {/* An invisible target: text alone is a thin thing to hit, and
+                  on a phone it is thinner still. */}
+              <rect
+                x={lp.x - (anchor === "end" ? 92 : anchor === "middle" ? 46 : 0)}
+                y={lp.y - 20}
+                width={92}
+                height={34}
+                fill="transparent"
+              />
+              <text
+                x={lp.x}
+                y={lp.y}
+                textAnchor={anchor}
+                dy={dy}
+                fontSize={12}
+                fontWeight={active === a ? 600 : 400}
+                opacity={
+                  active && active !== a
+                    ? 0.35
+                    : series.some((s) => s.values[a] != null)
+                      ? 1
+                      : 0.72
+                }
+                fill="var(--foreground)"
+              >
+                {dimensionShort[a]}
+              </text>
+
+              {/* The answer, only on the axis being asked about. */}
+              {active === a &&
+                (() => {
+                  const { values, gap } = readingFor(a);
+                  if (values.length === 0) return null;
+                  return (
+                    <text
+                      x={lp.x}
+                      y={lp.y}
+                      textAnchor={anchor}
+                      dy={lp.y < CY - 4 ? "-1.5em" : "2.1em"}
+                      fontSize={11}
+                    >
+                      {values.map((v, k) => (
+                        <tspan
+                          key={v.label}
+                          dx={k > 0 ? 7 : 0}
+                          fill={v.color}
+                          fontWeight={600}
+                        >
+                          {v.v.toFixed(1)}
+                        </tspan>
+                      ))}
+                      {gap != null && (
+                        <tspan dx={9} fill="var(--muted-foreground)">
+                          {`gap ${gap.toFixed(1)}`}
+                        </tspan>
+                      )}
+                    </text>
+                  );
+                })()}
+            </g>
           );
         })}
 
