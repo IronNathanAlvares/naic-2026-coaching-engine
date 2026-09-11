@@ -11,9 +11,9 @@ technical, skip it. The first two parts are the ones that matter to everybody.
 
 **The product is built and running online.** You can open it right now:
 
-- Manager console: https://web-snowy-kappa-64.vercel.app/manager
-- Staff app: https://web-snowy-kappa-64.vercel.app/staff
-- Glass box: https://web-snowy-kappa-64.vercel.app/glassbox
+- Manager console: https://naic-2026-coaching-engine.vercel.app/manager
+- Staff app: https://naic-2026-coaching-engine.vercel.app/staff
+- Glass box: https://naic-2026-coaching-engine.vercel.app/glassbox
 
 It is not a mock or a slideshow. When you click something it talks to a real
 server, which reads a real database and calls real AI models.
