@@ -15,6 +15,7 @@ import {
 import { RadarCaption } from "@/features/manager-console/components/radar-caption";
 import { managerApi } from "@/features/manager-console/api/managerApi";
 import { staffMembers } from "@/lib/mock/seed";
+
 import { dimensionLabels, dimensionShort } from "@/lib/format";
 import type { BarsDimension, CalibrationReading, TransferGap } from "@/lib/types";
 

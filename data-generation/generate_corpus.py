@@ -49,7 +49,7 @@ PROPERTY = {
 }
 
 WINDOW_END = date(2026, 9, 11)             # the Friday before the pitch
-WINDOW_DAYS = 28
+WINDOW_DAYS = 28                           # overridden by --window-days
 
 # The demo narrative, fixed. Everything else is generated around it.
 DEMO = {
@@ -59,6 +59,17 @@ DEMO = {
     "cohort_situation": "room_not_ready",
     "cohort_size": 9,
     "cohort_dept": "front_office",
+    # A situation too rare to report, and the reason k-anonymity is not a
+    # slide. Three people in eight weeks, all in one department: publishing
+    # "3 staff reported guest abuse in F&B" to a team of eighteen identifies
+    # them to anyone who works the rota, whatever the interface claims. It is
+    # suppressed, and the fact of suppression is shown instead.
+    #
+    # Deliberately a welfare matter rather than a performance one, because
+    # that is where re-identification actually costs somebody something.
+    "rare_situation": "guest_abuse_toward_staff",
+    "rare_count": 3,
+    "rare_dept": "f_and_b",
 }
 
 
@@ -275,9 +286,23 @@ def build_corpus() -> list[Chunk]:
 # 2. Staff
 # ---------------------------------------------------------------------------
 
+# Order is load-bearing. Ids are positional (staff-001, staff-002, ...), the
+# demo narrative names people by id, and the frontend was built against these,
+# so NEW NAMES ARE ONLY EVER APPENDED. Reordering this list silently reassigns
+# every staff member's identity and every stored score with it.
 FRONT_OFFICE_NAMES = ["Diego", "Niamh", "Tomasz", "Rachel", "Kwame",
-                      "Lucia", "Sean", "Priya", "Andrei"]
-FNB_NAMES = ["Aoife", "Marek", "Chloe", "Bogdan"]
+                      "Lucia", "Sean", "Priya", "Andrei",
+                      # appended for --scale
+                      "Yusuf", "Katarzyna", "Emeka", "Siobhan", "Mateusz",
+                      "Adaeze", "Ciaran", "Ingrid", "Rafal", "Nuala",
+                      "Tomas", "Blessing", "Orla", "Hassan", "Petra",
+                      "Declan", "Amara", "Lukasz", "Roisin", "Farid"]
+FNB_NAMES = ["Aoife", "Marek", "Chloe", "Bogdan",
+             # appended for --scale
+             "Giulia", "Padraig", "Zofia", "Kwabena", "Eimear",
+             "Dmytro", "Sinead", "Obi", "Magda", "Fionn",
+             "Leila", "Cathal", "Anca", "Jibril", "Maeve",
+             "Piotr", "Naoise", "Chidi", "Grainne", "Elif"]
 
 PERSONAS = [
     "new starter, six weeks in, follows the script closely",
@@ -288,17 +313,25 @@ PERSONAS = [
 ]
 
 
-def build_staff(rng: random.Random) -> list[Staff]:
+def build_staff(rng: random.Random, front_office: int | None = None,
+                fnb: int | None = None) -> list[Staff]:
+    """Build the roster.
+
+    Defaults reproduce the original thirteen exactly, so an unscaled run is
+    byte-identical to what is already seeded and deployed.
+    """
+    front = FRONT_OFFICE_NAMES[:front_office] if front_office else FRONT_OFFICE_NAMES[:9]
+    food = FNB_NAMES[:fnb] if fnb else FNB_NAMES[:4]
     staff: list[Staff] = []
     i = 0
-    for name in FRONT_OFFICE_NAMES:
+    for name in front:
         i += 1
         staff.append(Staff(
             id=f"staff-{i:03d}", name=name, department="front_office", role="staff",
             persona=("strong in practice, freezes with real guests"
                      if name == DEMO["blocked_staff"] else rng.choice(PERSONAS)),
             tenure_months=rng.randint(2, 48)))
-    for name in FNB_NAMES:
+    for name in food:
         i += 1
         staff.append(Staff(
             id=f"staff-{i:03d}", name=name, department="f_and_b", role="staff",
@@ -323,6 +356,17 @@ def build_staff(rng: random.Random) -> list[Staff]:
 # Templates written in the register the SOPs imply: tired, mid-sentence, unpolished.
 # Placeholders are already in the typed-redaction form from 02E-LLD.
 INCIDENT_TEMPLATES = {
+    "guest_abuse_toward_staff": [
+        "Table by the window got very personal with me when I said the "
+        "kitchen had closed. Not about the food, about me. I finished the "
+        "shift but I did not say anything to anyone at the time.",
+        "One of the guests at the bar kept making comments. I laughed it off "
+        "because it was busy and I did not want a scene, but it stayed with "
+        "me on the way home.",
+        "A guest raised his voice at me in front of the whole section over a "
+        "bill that was correct. [MANAGER_NAME] was not on the floor and I did "
+        "not want to pull anyone away, so I just took it.",
+    ],
     "room_not_ready": [
         "Had a guest in at three, room wasn't ready, [GUEST_NAME] was not happy at all. "
         "I said sorry and offered {offer} but she just got more annoyed and in the end I "
@@ -406,6 +450,27 @@ def build_incidents(staff: list[Staff], corpus: list[Chunk],
             ["apologised", "offered_compensation", "escalated"],
             "escalated", ["service_recovery", "empathy"],
             # deliberately None: front office has NO documented authority rule
+            None)
+
+    # --- The rare one, assigned to a fixed handful ------------------------
+    #
+    # Outside the random pool on purpose. Drawn randomly across forty-eight
+    # staff it would land on a dozen of them and clear k=5, which is exactly
+    # the outcome that makes a k-anonymity demo prove nothing.
+    rare_pool = [s for s in staff
+                 if s.role == "staff" and s.department == DEMO["rare_dept"]]
+    for idx, s in enumerate(rare_pool[:DEMO["rare_count"]]):
+        tpl = INCIDENT_TEMPLATES[DEMO["rare_situation"]][idx % 3]
+        add(s, DEMO["rare_situation"], rng.randint(1, WINDOW_DAYS),
+            tpl.replace("[MANAGER_NAME]", DEMO["manager"]),
+            "upset", ["finished the shift", "did not report it at the time"],
+            "unresolved",
+            # Composure and empathy are the dimensions a reviewer would reach
+            # for, and both are the wrong frame: this is a welfare matter, not
+            # a performance one.
+            ["composure"],
+            # No standard covers it, which is the second finding here: the
+            # property documents what staff owe guests and not the reverse.
             None)
 
     # --- Everyone else, spread across the window --------------------------
@@ -711,6 +776,15 @@ def build_sql(corpus, staff, incidents, attempts, observations):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--seed", type=int, default=20260913)
+    # Scale. The defaults reproduce the original thirteen-person, four-week
+    # world exactly, so an unscaled run stays byte-identical to what is
+    # already seeded and deployed.
+    ap.add_argument("--front-office", type=int, default=9,
+                    help=f"front office staff, 1-{len(FRONT_OFFICE_NAMES)}")
+    ap.add_argument("--fnb", type=int, default=4,
+                    help=f"food and beverage staff, 1-{len(FNB_NAMES)}")
+    ap.add_argument("--window-days", type=int, default=28,
+                    help="how many days of history to generate")
     ap.add_argument("--outdir", default="output")
     args = ap.parse_args()
 
@@ -720,7 +794,24 @@ def main():
     os.makedirs(out, exist_ok=True)
 
     corpus = build_corpus()
-    staff = build_staff(rng)
+    # Applied before anything reads it: incident dates, attempt timestamps and
+    # observation windows are all drawn against WINDOW_DAYS.
+    global WINDOW_DAYS
+    WINDOW_DAYS = args.window_days
+
+    if args.front_office > len(FRONT_OFFICE_NAMES) or args.fnb > len(FNB_NAMES):
+        raise SystemExit(
+            f"Not enough names: {len(FRONT_OFFICE_NAMES)} front office and "
+            f"{len(FNB_NAMES)} f&b are defined. Add more to the lists (append "
+            f"only, never reorder: ids are positional).")
+    if args.front_office < DEMO["cohort_size"]:
+        # The cohort is the insight panel's whole reason to exist, and below
+        # k=5 it would be suppressed anyway.
+        raise SystemExit(
+            f"--front-office must be at least {DEMO['cohort_size']}, the "
+            f"engineered cohort size.")
+
+    staff = build_staff(rng, args.front_office, args.fnb)
     incidents = build_incidents(staff, corpus, rng)
     attempts = build_attempts(staff, rng)
     observations = build_observations(staff, rng)

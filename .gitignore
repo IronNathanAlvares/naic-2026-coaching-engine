@@ -24,6 +24,15 @@ Docs/SOPs/
 credentials.json
 service-account*.json
 gcp-key*.json
+# Any service account key, wherever someone happens to drop it. The named
+# patterns above only catch the filenames we thought of, and this repo is
+# public: a leaked service account is a live credential to a billed cloud
+# project, not an embarrassment to clean up later.
+**/*-sa.json
+**/sa-*.json
+credentials/
+*serviceaccount*.json
+*.iam.gserviceaccount.com.json
 secrets/
 
 # ============================================================
@@ -72,3 +81,30 @@ desktop.ini
 *.local
 .cache/
 tmp/
+
+# The warmed demo lines are the exception to the cache rule above. They must
+# ship inside the image: a deployed container has an ephemeral filesystem, and
+# the ElevenLabs free tier is 10,000 characters for the life of the account, so
+# re-synthesising them on every cold start would spend the budget on dialogue
+# we have already paid for. Eight files, about 1MB.
+!services/api/.voice-cache/
+!services/api/.voice-cache/*.mp3
+
+# Google hands you a service account key named after the PROJECT, e.g.
+# project-7ffd39d7-3c02-4599-ae9-644687ddfe43.json, which matches none of the
+# patterns above. One arrived in the repo root and was one `git add -A` from
+# being published. Any JSON at the repo root is now ignored by default: nothing
+# the project legitimately tracks lives there.
+/*.json
+!/package.json
+!/tsconfig.json
+
+# Generated crib sheet of every secret, for pasting into a host's dashboard.
+# Convenient and therefore dangerous: it is one file containing all of them.
+render-env.txt
+*-env.txt
+# Broader, because the pattern above missed render-env-vertex.txt: it ends in
+# -vertex.txt, not -env.txt. Anything whose name says "render-env" is a paste
+# sheet full of credentials, whatever comes after it.
+render-env*
+*credentials*.txt

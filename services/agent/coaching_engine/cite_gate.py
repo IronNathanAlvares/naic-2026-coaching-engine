@@ -51,7 +51,8 @@ class Failure:
     claim_text: str | None
     ref: str | None
     reason: Literal["source_not_found", "span_not_supported",
-                    "cross_staff_reference", "not_a_transfer_gap_recommendation"]
+                    "cross_staff_reference", "not_a_transfer_gap_recommendation",
+                    "standard_cited_without_quote"]
 
     def describe(self) -> str:
         return {
@@ -61,9 +62,19 @@ class Failure:
                 f"quoted text is not supported by {self.ref}",
             "cross_staff_reference":
                 f"{self.ref} is evidence about a different staff member",
+            "standard_cited_without_quote":
+                f"cited standard {self.ref} without quoting it, so there is "
+                f"nothing to check the claim against",
+            # self.ref names the stream that is missing, so the repair
+            # message tells the model what to add. Naming only the floor was
+            # wrong half the time and sent the model to fix the stream it had
+            # already cited.
             "not_a_transfer_gap_recommendation":
-                "no citation from the floor-observation stream, this is "
-                "roleplay feedback, not a transfer-gap reading",
+                (f"no citation from the {self.ref} stream, this is "
+                 "roleplay feedback, not a transfer-gap reading"
+                 if self.ref else
+                 "a transfer gap needs both streams cited, practice AND "
+                 "floor; this is roleplay feedback"),
         }[self.reason]
 
 
@@ -107,7 +118,28 @@ def span_supported(quoted: str, source_content: str,
         return False
     if q in s:
         return True
-    return SequenceMatcher(None, q, s).ratio() >= threshold
+
+    # Compare against the best-matching WINDOW, not the whole chunk.
+    #
+    # Ratio is a function of both lengths, so a sixty character quote measured
+    # against an eight hundred character SOP section scores near zero even when
+    # it is copied verbatim bar a hyphen. That made this fallback dead code for
+    # exactly the sources it exists to protect, and every near-miss quote fell
+    # through to abstention. Anchor on the longest shared run, then score the
+    # quote against the equivalent-length window around it.
+    # autojunk=False is mandatory, not a tuning choice. SequenceMatcher's
+    # default heuristic marks any element occurring in more than 1% of a
+    # sequence of 200+ as junk, and on CHARACTER sequences that is most of the
+    # alphabet, so the longest common run between a real quote and a real SOP
+    # section came back as two characters. Every long-source comparison was
+    # being scored against noise.
+    match = SequenceMatcher(None, q, s, autojunk=False).find_longest_match(
+        0, len(q), 0, len(s))
+    if not match.size:
+        return False
+    start = max(0, match.b - match.a)
+    window = s[start:start + len(q)]
+    return SequenceMatcher(None, q, window, autojunk=False).ratio() >= threshold
 
 
 def run_gate(claims: Sequence[Claim],
@@ -141,8 +173,19 @@ def run_gate(claims: Sequence[Claim],
             kinds_cited.add(source.kind)
 
             # 2. support
-            if source.kind == "sop_chunk" and claim.quoted_span:
-                if not span_supported(claim.quoted_span, source.content):
+            #
+            # A standard cited with no quote is the hole a red team found: the
+            # claim asserts what the standard says, an empty span skips
+            # verification entirely ("nothing quoted, nothing to verify"), and
+            # an invented policy ships with a real-looking reference beside it.
+            # Citing a standard is a claim ABOUT that standard, so it has to
+            # carry the words. Per-person evidence is different: "they froze"
+            # cited to an observation is supported by the observation existing.
+            if source.kind == "sop_chunk":
+                if not (claim.quoted_span or "").strip():
+                    failures.append(
+                        Failure(claim.text, ref, "standard_cited_without_quote"))
+                elif not span_supported(claim.quoted_span, source.content):
                     failures.append(
                         Failure(claim.text, ref, "span_not_supported"))
 
@@ -154,8 +197,12 @@ def run_gate(claims: Sequence[Claim],
     # 3. sufficiency, this is what makes it a transfer-gap recommendation
     # rather than roleplay feedback. A competitor's system can cite the practice
     # transcript; only ours can be required to cite a floor observation too.
-    if not {"attempt_turn", "observation"} <= kinds_cited:
-        failures.append(Failure(None, None, "not_a_transfer_gap_recommendation"))
+    STREAM_NAMES = {"attempt_turn": "practice", "observation": "floor-observation"}
+    missing = [STREAM_NAMES[k] for k in ("attempt_turn", "observation")
+               if k not in kinds_cited]
+    if missing:
+        failures.append(Failure(None, " and ".join(missing),
+                                "not_a_transfer_gap_recommendation"))
 
     if not failures:
         return GateResult(passed=True, repair_attempts=repair_attempts)

@@ -27,6 +27,7 @@ K_ANONYMITY = 5   # no cohort insight is displayed below this many staff
 class RoutingContext:
     """Everything the rules are allowed to see. All of it computed, none inferred."""
     classification: Classification
+    quadrant: str | None = None         # from the transfer gap, never inferred
     cohort_size: int = 0
     floor_mean: float | None = None
     floor_n: int = 0
@@ -74,11 +75,27 @@ COPY = {
         "L&D for support, not for disciplinary action.",
     "RC-BEHAV-DEFAULT":
         "An individual coaching conversation is the right next step.",
+    "RC-MEASUREMENT":
+        "This person scores HIGHER on the floor than in practice. The floor is "
+        "the outcome we actually care about, so the likely fault is ours: the "
+        "scenario, the rubric anchors, or the scoring. Routed to L&D to check "
+        "the instrument. No coaching action is suggested for this person.",
 }
 
 
 # First match wins. Order is the policy.
 RULES: list[tuple[str, Callable[[RoutingContext], bool], Route, int, bool]] = [
+    # First, because it is a claim about our own instrument and it outranks
+    # every claim about the person. RECALIBRATE means they did the thing on
+    # the floor and not in the simulator. The floor is the ground truth we
+    # sell, so a disagreement in that direction is evidence against the
+    # simulator, not against the staff member. Routing it at the person would
+    # be the exact failure this product exists to argue against: sending
+    # training to someone whose real-world performance is already good.
+    ("RC-MEASUREMENT",
+     lambda c: c.quadrant == "recalibrate",
+     "ld_hr", 1, True),
+
     ("RC-PROCESS-COHORT",
      lambda c: c.classification == "process" and c.cohort_size >= K_ANONYMITY,
      "operations", 2, True),

@@ -1,6 +1,7 @@
 import { http, isRealApi } from "@/lib/api/client";
 import { mockDb } from "@/lib/mock/db";
 import type {
+  TurnResponse,
   Debrief,
   DebriefRegistration,
   DebriefStatus,
@@ -69,6 +70,26 @@ export const staffApi = {
 
   getDebrief: (id: string): Promise<Debrief | undefined> =>
     viaHttp() ? http.get(`/debriefs/${id}`) : mockDb.getDebrief(id),
+
+  /** Speak the debrief instead of typing it.
+   *
+   * The audio goes to our own Whisper endpoint and is deleted the moment the
+   * transcript exists, which is the only version of this we can promise. The
+   * mock store has no audio path, so this is real-mode only and the caller
+   * falls back to the text field. */
+  createDebriefAudio: async (blob: Blob, filename: string): Promise<Debrief> => {
+    const registration = await http.upload<DebriefRegistration>(
+      "/debriefs/audio",
+      blob,
+      filename
+    );
+    const first = await http.get<Debrief>(`/debriefs/${registration.id}`);
+    if (TERMINAL_STATUSES.has(first.status)) return first;
+    await sleep(registration.poll_after_ms);
+    const second = await http.get<Debrief>(`/debriefs/${registration.id}`);
+    if (TERMINAL_STATUSES.has(second.status)) return second;
+    throw new Error("Debrief is still processing — check back in a moment.");
+  },
 
   /** POST /debriefs → 202 { id, status, poll_after_ms }, then follow the
    * registration with one GET by id (the frozen polling contract). The mock
