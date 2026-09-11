@@ -15,6 +15,7 @@ import type {
   TransferGap,
   VerifyInput,
   VerifyResponse,
+  WeeklyBriefResponse,
 } from "@/lib/types";
 
 /** Manager Console API — mirrors LLD-B manager/ld endpoints. */
@@ -166,6 +167,22 @@ export const managerApi = {
     source: ScoreSource
   ): Promise<ScoresResponse> =>
     http.get(`/staff/${staffId}/scores?source=${source}`),
+
+  /**
+   * Hand this period's cohort patterns to Manus to be written up.
+   *
+   * Only the k-anonymised aggregates already on screen leave the building:
+   * the prompt is assembled from the same team_insights() this page renders,
+   * so nothing reaches an external agent that the manager cannot already see,
+   * and no individual is named. Mock mode does not call out at all.
+   */
+  commissionWeeklyBrief: (): Promise<WeeklyBriefResponse> =>
+    isRealApi()
+      ? http.post("/reports/weekly", {})
+      : Promise.resolve({
+          status: "nothing_to_report",
+          detail: "Mock mode does not commission real briefs.",
+        }),
 
   getTeamInsights: (): Promise<TeamInsights> =>
     isRealApi()

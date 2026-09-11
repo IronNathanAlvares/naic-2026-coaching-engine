@@ -2,6 +2,7 @@ import { ArrowDownRight, ArrowUpRight, EyeOff, ShieldCheck, Users } from "lucide
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { managerApi } from "@/features/manager-console/api/managerApi";
+import { WeeklyBriefCard } from "@/features/manager-console/components/weekly-brief-card";
 import { classificationMeta, dimensionShort } from "@/lib/format";
 import type { EscalationRoute, TeamPattern } from "@/lib/types";
 
@@ -120,6 +121,8 @@ export default async function InsightsPage() {
           k-anonymity threshold: {insights.k_threshold}
         </span>
       </div>
+
+      <WeeklyBriefCard patternCount={insights.patterns.length} />
 
       <div className="space-y-3">
         {[...insights.patterns]

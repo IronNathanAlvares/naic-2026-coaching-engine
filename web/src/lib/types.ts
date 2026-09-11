@@ -191,6 +191,21 @@ export interface ObservationDraftResponse {
   detail?: string;
 }
 
+/** What comes back from commissioning the weekly brief.
+ *
+ * Manus is asynchronous by design: the work takes minutes, so the API hands
+ * back a handle rather than a document, and the finished brief lives on Manus
+ * rather than in our database. The UI has to be honest about that instead of
+ * pretending to have a result.
+ */
+export interface WeeklyBriefResponse {
+  status: "submitted" | "nothing_to_report";
+  patterns_included?: number;
+  task_id?: string;
+  task_url?: string;
+  detail?: string;
+}
+
 export interface ObservationResponse {
   id: string;
   unlocked_practice_history: boolean;
