@@ -1,3 +1,4 @@
+import { Logo } from "@/components/logo";
 import { GlassBox } from "@/features/glass-box/components/glass-box";
 import { ScreenNav } from "@/components/screen-nav";
 
@@ -18,6 +19,13 @@ export default function GlassBoxPage() {
           manager sidebar, so without this it was a dead end. */}
       <ScreenNav />
       <header className="mb-8">
+        <div className="mb-3 flex items-center gap-2">
+          <Logo className="size-7 shrink-0" />
+          <p className="text-sm font-semibold">
+            The Coaching{" "}
+            <span className="font-normal text-muted-foreground">Engine</span>
+          </p>
+        </div>
         <h1 className="font-[family-name:var(--font-heading)] text-3xl font-semibold tracking-tight">
           The glass box
         </h1>

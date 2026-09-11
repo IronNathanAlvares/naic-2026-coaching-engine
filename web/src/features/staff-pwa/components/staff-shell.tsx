@@ -1,5 +1,6 @@
 "use client";
 
+import { Logo } from "@/components/logo";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { History, Home, MessageCircle } from "lucide-react";
@@ -91,6 +92,7 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
           <div className="ml-auto flex max-w-[46%] shrink-0 items-center justify-end rounded-full bg-[oklch(0.66_0.055_152)]/15 px-2.5 py-1 text-right text-xs font-medium leading-tight text-[oklch(0.38_0.055_152)] ring-1 ring-[oklch(0.55_0.05_150)]/25">
             {growthLabel}
           </div>
+          <Logo className="size-6 shrink-0" title="The Coaching Engine" />
         </header>
 
         <main className="flex flex-1 flex-col px-4 pb-24 pt-4">

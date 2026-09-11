@@ -7,6 +7,7 @@
 // back 500 rather than 404 and reads as a backend fault. The client also adds
 // the actor header and the idempotency key.
 
+import { Logo } from "@/components/logo";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -49,11 +50,12 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-dvh">
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-60 flex-col border-r bg-sidebar md:flex">
         <div className="flex items-center gap-2.5 px-5 py-5">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground shadow-sm">
-            C
-          </div>
+          <Logo className="size-8 shrink-0" />
           <div className="leading-tight">
-            <p className="text-sm font-semibold">Coaching Engine</p>
+            <p className="text-sm font-semibold">
+              The Coaching{" "}
+              <span className="font-normal text-muted-foreground">Engine</span>
+            </p>
             <p className="text-xs text-muted-foreground">Manager Console</p>
           </div>
         </div>
@@ -95,6 +97,15 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col md:pl-60">
+        {/* The sidebar is hidden below md, so without this a phone shows a
+            console with nothing naming the product on it. */}
+        <div className="flex items-center gap-2 border-b px-4 py-3 md:hidden">
+          <Logo className="size-6 shrink-0" />
+          <p className="text-sm font-semibold">
+            The Coaching{" "}
+            <span className="font-normal text-muted-foreground">Engine</span>
+          </p>
+        </div>
         <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 md:px-8 md:py-8">
           {/* Back goes up one level, not always to the overview, and the
               role switch is the way out of the console entirely. Both live in

@@ -1,3 +1,4 @@
+import { Logo } from "@/components/logo";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -64,11 +65,12 @@ export default function LandingPage() {
 
       <header className="sticky top-0 z-30 border-b bg-background/70 backdrop-blur-md">
         <div className="mx-auto flex max-w-5xl items-center gap-2.5 px-4 py-3.5">
-          <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground">
-            C
-          </div>
+          <Logo className="size-9 shrink-0" title="The Coaching Engine" />
           <div className="leading-tight">
-            <p className="text-sm font-semibold">The Coaching Engine</p>
+            <p className="text-sm font-semibold">
+              The Coaching{" "}
+              <span className="font-normal text-muted-foreground">Engine</span>
+            </p>
             <p className="text-xs text-muted-foreground">
               Frontline coaching that closes the gap between training and the
               floor
@@ -401,7 +403,10 @@ export default function LandingPage() {
 
         <footer className="border-t">
           <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-6 text-xs text-muted-foreground">
-            <p>The Coaching Engine · TechIreland National AI Challenge 2026</p>
+            <p className="flex items-center justify-center gap-2">
+              <Logo className="size-4 shrink-0" tone="current" />
+              The Coaching Engine · TechIreland National AI Challenge 2026
+            </p>
             <p>k-anonymised insights · no disciplinary routing · every record visible to staff</p>
           </div>
         </footer>
