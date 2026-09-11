@@ -28,6 +28,37 @@ What is left is a rehearsal and a backup video.
 
 Worth reading if you looked at the site earlier and something annoyed you.
 
+**You can now say an observation instead of tapping one.** The mentors put it
+plainly: managers are on the floor, not at a workstation, and a form nobody
+stops to fill in produces no data. `/manager/observe` has two tabs now, and
+Speak it is the default.
+
+One recording can cover several people. "Diego handled that checkout dispute,
+he stayed calm but never offered her anything to fix it. Amara was excellent on
+the phone. Bogdan froze when the guest asked about the spa" comes back as three
+separate drafts, each with the right person, the right kind of moment, and
+whether you saw the whole thing or only part of it.
+
+Nothing is logged until you tap Log on each one. And every rating has to quote
+words you actually said: the quote is checked against your own transcript, and
+a rating the model cannot point at is thrown away before you ever see it. Your
+words are shown back to you with the evidence underlined in the colour of the
+dimension it scored, so "why does it say 2" is a glance rather than an act of
+faith.
+
+If it cannot work out who you meant, it asks. Two Marias is a question, never a
+guess, because a floor observation lands in somebody's record and moves their
+transfer gap.
+
+If there is no signal where you are standing, the recording waits on the phone
+and sends itself when there is. That is most of a hotel basement.
+
+We did not build tone analysis, which was also suggested. Reading emotion from
+a worker's voice at work is banned outright by the EU AI Act, Article 5(1)(f),
+and it is the same line we already refused to cross when we left live guest
+monitoring out. The audio is turned into text and dropped: no voiceprint, no
+speaker identification, nothing about how anything was said.
+
 **Buttons that looked broken.** Clicking "Open as Marta" appeared to do
 nothing for up to a minute, so people clicked again. The link was always
 right: the page was loading with no sign that anything was happening. Every

@@ -5,6 +5,7 @@ import type {
   CalibrationReading,
   CalibrationState,
   Observation,
+  ObservationDraftResponse,
   ObservationInput,
   ObservationResponse,
   Recommendation,
@@ -101,6 +102,29 @@ export const managerApi = {
       ? http.post("/observations", input)
       : mockDb.logObservation(input),
 
+  /**
+   * Say what you saw; get drafts back. Writes nothing.
+   *
+   * The audio goes to our own Whisper endpoint and is dropped the moment it
+   * becomes text: no voiceprint is stored, and nothing about HOW it was said
+   * is analysed. Mock mode has no extraction, so it returns a fixed example
+   * that is obviously an example.
+   */
+  draftFromVoice: (
+    audio: Blob,
+    filename: string,
+  ): Promise<ObservationDraftResponse> =>
+    isRealApi()
+      ? http.upload("/observations/voice", audio, filename)
+      : Promise.resolve(SAMPLE_DRAFT),
+
+  /** The same extraction from typed text. Also the stage fallback: if
+   * transcription stalls in front of judges, the note can be pasted. */
+  draftFromText: (text: string): Promise<ObservationDraftResponse> =>
+    isRealApi()
+      ? http.post("/observations/draft", { text })
+      : Promise.resolve(SAMPLE_DRAFT),
+
   getGap: (staffId: string): Promise<TransferGap | undefined> =>
     isRealApi()
       ? http.get(`/staff/${staffId}/gap`)
@@ -147,4 +171,32 @@ export const managerApi = {
     isRealApi()
       ? http.get("/insights/team")
       : mockDb.getTeamInsights(),
+};
+
+/** Mock-mode stand-in. Static on purpose: a second extractor implemented here
+ * would drift away from the real one and quietly lie about what it does. */
+const SAMPLE_DRAFT: ObservationDraftResponse = {
+  transcript:
+    "Diego just handled that checkout dispute. He stayed completely calm even " +
+    "though the guest was shouting at him, but he never actually offered her " +
+    "anything to fix it.",
+  drafts: [
+    {
+      person: { status: "matched", spoken: "Diego", staff_id: "staff-001", name: "Diego Ramos" },
+      moment: "complaint",
+      scope: "full",
+      what_happened: "He stayed calm while the guest was shouting, but offered nothing to fix it.",
+      ratings: [
+        { dimension: "composure", level: 4, quote: "stayed completely calm", span: [36, 58] },
+        {
+          dimension: "service_recovery",
+          level: 2,
+          quote: "never actually offered her anything to fix it",
+          span: [104, 148],
+        },
+      ],
+      needs_rating: false,
+    },
+  ],
+  dropped_ratings: 0,
 };

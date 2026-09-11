@@ -203,7 +203,13 @@ Run these three, in this order. About a minute together.
 cd services/agent && python -m pytest -q     # 75 tests, the reasoning
 python db/test_rls.py                        # 10 negative tests, the isolation
 python tests/test_e2e.py                     # 15 checks, the whole system
+python tests/test_voice_observation.py       # 11 checks, free, no API needed
 ```
+
+The last one needs no database, no network and no money. It proves the spoken
+observation cannot invent evidence: it drives a deliberately fabricating model
+through the gate and checks that every unsupported rating is dropped. Add
+`--base http://localhost:8001` for five more checks against a running API.
 
 And one more that costs nothing and needs no database, because a site that breaks on a phone is
 a bug like any other:

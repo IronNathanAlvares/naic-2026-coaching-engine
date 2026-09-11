@@ -149,6 +149,48 @@ export interface Observation extends ObservationInput {
   created_at: string;
 }
 
+/** A rating the extractor proposed, with the manager's own words that
+ * support it and where those words sit in the transcript. A rating whose
+ * quote is not in the transcript never reaches the browser. */
+export interface DraftRating {
+  dimension: ObservationDimension;
+  level: number;
+  quote: string;
+  /** [start, end) character offsets into the transcript, for highlighting. */
+  span: [number, number];
+}
+
+/** Who the extractor thinks the manager was talking about. Never a guess
+ * between two people: two Marias come back as "ambiguous" with both. */
+export interface DraftPerson {
+  status: "matched" | "ambiguous" | "unmatched";
+  spoken: string;
+  staff_id?: string;
+  name?: string;
+  candidates?: Array<{ staff_id: string; name: string; department?: string }>;
+}
+
+/** One proposed observation. Nothing is written until the manager confirms. */
+export interface ObservationDraft {
+  person: DraftPerson;
+  moment: "guest_question" | "complaint" | "proactive" | "routine";
+  scope: "full" | "partial";
+  what_happened: string;
+  ratings: DraftRating[];
+  /** True when the words could not be tied to any dimension. The person was
+   * still mentioned, so the draft is shown rather than silently dropped. */
+  needs_rating: boolean;
+}
+
+export interface ObservationDraftResponse {
+  transcript: string;
+  drafts: ObservationDraft[];
+  /** Ratings the model proposed and could not point at. Shown to the manager,
+   * because "I threw two of these away" is the honest version. */
+  dropped_ratings: number;
+  detail?: string;
+}
+
 export interface ObservationResponse {
   id: string;
   unlocked_practice_history: boolean;

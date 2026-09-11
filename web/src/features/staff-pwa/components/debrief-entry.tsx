@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { staffApi } from "@/features/staff-pwa/api/staffApi";
 import { useVoiceInput } from "@/features/staff-pwa/lib/use-voice-input";
-import { useRecorder } from "@/features/staff-pwa/lib/use-recorder";
+import { useRecorder } from "@/lib/use-recorder";
 import { isRealApi } from "@/lib/api/client";
 import type { Debrief } from "@/lib/types";
 

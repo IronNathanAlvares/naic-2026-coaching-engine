@@ -179,6 +179,12 @@ identically every time.
       called confusing. Browser back works. Plan a route through the product
       that never needs the ambiguous path.
 - [ ] **Manager overview shown briefly**, not walked through screen by screen.
+- [ ] **Decide whether the manager half of the demo is spoken.** Saying
+      "Diego handled the checkout dispute, he stayed calm but never offered her
+      anything to fix it" and watching the form fill itself, with the evidence
+      underlined, is a stronger 30 seconds than tapping through a wizard, and it
+      is the mentor's own "phone, voice note, transcription, resulting analysis"
+      suggestion. The tap-through path stays one tap away if the room is loud.
 
 ### 3.3 The voice question, which the two meetings answer differently
 
@@ -259,7 +265,52 @@ difference between a demo and a product.
 - [ ] Consider whether anything more is needed before Monday. Probably not.
       This is a Q&A answer, not a build.
 
-### 4.5 Explicitly roadmap, not build
+### 4.5 Spoken observations, BUILT
+
+The mentors listed this as roadmap: "Voice-recorded manager observations were
+proposed as a future feature that could reduce manual input and allow AI to
+analyse recurring pain points", plus "Voice notes and voice control were
+identified as especially valuable for recording observations during a busy
+workday" and "employees are unlikely to return to a workstation to enter
+detailed information."
+
+It is now built and tested. `/manager/observe` has two tabs: **Speak it**
+(default) and **Tap it through** (the original wizard, unchanged).
+
+What it does:
+
+- One recording covers **several people**. "Diego handled the checkout dispute,
+  he stayed calm but never offered her anything. Amara was excellent on the
+  phone. Bogdan froze when the guest asked about the spa" becomes three separate
+  draft observations. This is the part that answers "reduce manual input":
+  a walk back from the restaurant covers the section.
+- **Nothing is written until the manager taps Log** on each draft. The
+  extraction proposes; the manager decides. Confirming goes through the
+  existing POST /observations with every existing rule intact.
+- **Every rating must quote the manager's own words**, and the quote must
+  actually appear in the transcript. A rating the model cannot point at is
+  dropped before the manager ever sees it. This is the cite gate turned round
+  to face the input, and it is testable: with a deliberately fabricating model,
+  both inventions are dropped and only the supported rating survives.
+- The transcript is shown with the evidence **underlined in the dimension's
+  colour**, so "why does it say 2" is answered by looking.
+- A name it cannot resolve is a **question, not a guess**. Two Marias produce
+  "which one?"; a name nobody has asks the manager to choose.
+- **Offline**: if the upload fails, the recording is kept in IndexedDB and
+  sends itself when the signal returns. Hotel basements and service corridors
+  are exactly where a manager is when they see something worth logging.
+- **Type it instead** is one tap away, which is also the stage fallback if
+  transcription stalls in front of judges.
+
+**What was deliberately NOT built: tone analysis.** The same meeting floated it.
+Inferring emotion from a worker's voice in a workplace is prohibited outright
+by EU AI Act **Article 5(1)(f)**, not merely high risk, and it is the same line
+we already refused under Annex III 4(c). Our governance answer in the Q&A rests
+on having refused things, so this one is worth refusing out loud. The audio is
+used for transcription and then dropped: no voiceprint, no speaker ID, no
+affect scoring.
+
+### 4.6 Still explicitly roadmap, not build
 
 Say these are coming. Do not try to build them this week.
 
@@ -267,15 +318,15 @@ Say these are coming. Do not try to build them this week.
   role restrictions were considered too much to add immediately for the
   competition demo." Present as roadmap and acknowledge openly that it is not
   built. Do not imply it is.
-- Offline capture for areas with poor connectivity.
 - AI triage across accumulated voice notes, surfacing the high priority ones.
+  The pattern band in the verify queue is the first half of this.
 - Performance management, succession planning, promotions. Flagged with a
   warning: "Privacy and surveillance boundaries require careful consideration if
   the platform expands into formal performance management." That is our Annex
   III 4(c) line. If this comes up, the answer is that we refused live monitoring
   and emotion inference by design, and that refusal is in the docs.
 
-### 4.6 One thing to be careful how we say
+### 4.7 One thing to be careful how we say
 
 "The team clarified that the AI generates the feedback while relying on
 human-created frameworks and procedures; the distinction between human context

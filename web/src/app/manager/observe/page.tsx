@@ -1,4 +1,4 @@
-import { ObservationForm } from "@/features/manager-console/components/observation-form";
+import { ObserveSurface } from "@/features/manager-console/components/observe-surface";
 import { managerApi } from "@/features/manager-console/api/managerApi";
 import { staffMembers } from "@/lib/mock/seed";
 import type { StaffMember } from "@/lib/types";
@@ -28,7 +28,7 @@ export default async function ObservePage() {
   return (
     <div className="mx-auto w-full max-w-4xl">
       <div className="fade-up">
-        <ObservationForm staff={staff} />
+        <ObserveSurface staff={staff} />
       </div>
     </div>
   );

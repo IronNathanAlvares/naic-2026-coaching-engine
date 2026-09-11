@@ -36,6 +36,7 @@ from . import spend as spend_mod
 from . import tracing
 from . import practice
 from . import recommendations as recs
+from . import voice_observation as voice_obs
 from .agent import run_coaching
 import psycopg
 
@@ -251,6 +252,74 @@ def post_observation(payload: dict, x_ce_actor: str | None = Header(default=None
         "recommendation_id": rec_id,
         "recommendation_status": result["status"],
     }
+
+
+# ----------------------------------------------------- observations by voice
+
+# Roughly ninety seconds of talking. Long enough for a manager to cover a whole
+# section of the floor in one go, short enough that a phone left unlocked in a
+# pocket cannot record the rest of the shift and then fail the upload.
+MAX_OBSERVATION_AUDIO_BYTES = 8 * 1024 * 1024
+
+
+def _draft_guard(actor):
+    if actor.role not in ("manager", "ld_admin"):
+        raise HTTPException(403, {"type": "role-required", "title": "Manager only",
+                                  "detail": "Only a manager can log an observation."})
+
+
+@app.post("/api/v1/observations/draft")
+def post_observation_draft(payload: dict,
+                           x_ce_actor: str | None = Header(default=None),
+                           idempotency_key: str | None = Header(default=None)):
+    """Typed notes in, reviewable drafts out. Writes nothing.
+
+    This is the same extraction the voice route runs, reachable without a
+    microphone. It exists for two reasons: it is the only way to test the
+    extraction without recording audio, and it is the fallback on stage if the
+    transcription stalls in front of judges, because the text can be pasted.
+    """
+    actor = actor_from(x_ce_actor)
+    _draft_guard(actor)
+    text = (payload.get("text") or "").strip()
+    if not text:
+        raise HTTPException(422, {"type": "missing-field", "title": "Missing field",
+                                  "detail": "'text' is required"})
+    with session(actor) as cur:
+        roster = q.list_staff(cur)
+    return voice_obs.draft_from_text(text, roster, trace=Trace())
+
+
+@app.post("/api/v1/observations/voice")
+async def post_observation_voice(file: UploadFile = File(...),
+                                 x_ce_actor: str | None = Header(default=None),
+                                 idempotency_key: str | None = Header(default=None)):
+    """Say what you saw. Get drafts back. Nothing is written until you confirm.
+
+    The audio is transcribed and dropped in the same call. It is never written
+    to disk, never stored in a column, and never returned. No speaker
+    identification and no inference about how anything was said: the recording
+    exists to become text and then it stops existing.
+    """
+    actor = actor_from(x_ce_actor)
+    _draft_guard(actor)
+    audio = await file.read()
+    if not audio:
+        raise HTTPException(422, {"type": "empty-upload", "title": "No audio",
+                                  "detail": "The recording was empty."})
+    if len(audio) > MAX_OBSERVATION_AUDIO_BYTES:
+        raise HTTPException(413, {"type": "too-large", "title": "Recording too long",
+                                  "detail": "Keep it under about ninety seconds."})
+
+    with session(actor) as cur:
+        roster = q.list_staff(cur)
+    try:
+        return voice_obs.draft_from_audio(
+            audio, file.filename or "observation.webm", roster, trace=Trace())
+    except ProviderError as exc:
+        raise HTTPException(503, {"type": "transcription-unavailable",
+                                  "title": "Could not transcribe",
+                                  "detail": str(exc)[:200]}) from None
 
 
 # ---------------------------------------------------------------- calibration
