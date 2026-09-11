@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { VerifyPanel } from "./verify-panel";
 import { WhyExplainer } from "./why-explainer";
-import { dimensionShort } from "@/lib/format";
+import { classificationMeta, dimensionShort } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Recommendation } from "@/lib/types";
 import { primaryCalibration } from "@/lib/format";
@@ -20,6 +20,27 @@ import { primaryCalibration } from "@/lib/format";
  * /manager/verify/ exists anywhere on the page. The chevron (and the card face
  * outside the link) toggles the verification UI in place instead.
  */
+
+/** "2d" or "5h". A queue with no age has no order to work in. */
+function ageLabel(iso: string | undefined): string {
+  if (!iso) return "";
+  const ms = Date.now() - new Date(iso).getTime();
+  if (Number.isNaN(ms) || ms < 0) return "";
+  const hours = Math.floor(ms / 3_600_000);
+  if (hours < 1) return "now";
+  if (hours < 24) return `${hours}h`;
+  return `${Math.floor(hours / 24)}d`;
+}
+
+/** Muted, not loud. The classification steers what a manager does about the
+ * read, so it earns a place in the row, but eleven coloured chips down a page
+ * is noise rather than signal. */
+const TYPE_TONE: Record<string, string> = {
+  behavioural: "text-[oklch(0.45_0.07_72)]",
+  process: "text-[oklch(0.43_0.06_115)]",
+  policy: "text-[oklch(0.45_0.08_30)]",
+};
+
 export function VerifyQueueCard({
   recommendation,
   staffName,
@@ -44,6 +65,9 @@ export function VerifyQueueCard({
   const calibrationDimension = primaryCalibration(
     recommendation.calibration
   )?.dimension;
+  const typeLabel = recommendation.classification
+    ? classificationMeta[recommendation.classification]?.label
+    : null;
   const dimensionLabel = calibrationDimension
     ? dimensionShort[calibrationDimension]
     : null;
@@ -71,6 +95,10 @@ export function VerifyQueueCard({
       data-status={recommendation.status}
       className={cn(
         "fade-up transition-all duration-200",
+        // The Card contributes 16px top and bottom of its own before
+        // CardContent starts. A row holding one line does not need 32px of
+        // outer padding, so the content padding becomes the only padding.
+        "[--card-spacing:--spacing(0)]",
         pending
           ? "hover:-translate-y-0.5 hover:border-primary/40 hover:bg-muted/30 hover:shadow-sm"
           : "border-dashed",
@@ -78,44 +106,62 @@ export function VerifyQueueCard({
       )}
       style={{ animationDelay: `${index * 90}ms` }}
     >
-      <CardContent className="p-4 md:p-5">
+      <CardContent className="px-3 py-3 md:px-4">
         {pending ? (
           <>
-            <div className="flex items-start gap-3" onClick={handleHeaderClick}>
+            {/* A row, not a card: chevron, who, the reading, its type, its
+                age. Below sm the last two wrap under the reading rather than
+                squeezing four columns onto a phone. */}
+            <div
+              className="flex items-center gap-3 sm:gap-4"
+              onClick={handleHeaderClick}
+            >
               <button
                 type="button"
                 onClick={onToggle}
                 aria-expanded={expanded}
                 aria-controls={panelId}
                 aria-label="Review this recommendation in place"
-                className="mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary/40"
+                className="inline-flex size-10 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary/40"
               >
                 {chevron}
               </button>
 
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
+              <Link
+                href={`/manager/verify/${recommendation.id}`}
+                className="group/link flex min-w-0 flex-1 flex-col gap-x-4 gap-y-1 rounded-sm transition-colors focus-visible:ring-2 focus-visible:ring-primary/40 sm:flex-row sm:items-baseline"
+              >
+                <span className="flex shrink-0 items-center gap-2 sm:w-28">
                   {isNew && (
-                    <Badge className="bg-primary text-primary-foreground">
+                    <Badge className="bg-primary px-1.5 py-0 text-[10px] text-primary-foreground">
                       New
                     </Badge>
                   )}
-                  <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-                    {dimensionLabel}
-                  </span>
-                </div>
-                <Link
-                  href={`/manager/verify/${recommendation.id}`}
-                  className="group/link mt-1 block rounded-sm transition-colors focus-visible:ring-2 focus-visible:ring-primary/40"
-                >
-                  <p className="text-sm font-semibold leading-snug transition-colors group-hover/link:text-primary">
+                  <span className="truncate text-sm font-semibold transition-colors group-hover/link:text-primary">
                     {staffName}
-                  </p>
-                  <p className="mt-0.5 text-sm leading-snug text-muted-foreground">
-                    {recommendation.headline}
-                  </p>
-                </Link>
-              </div>
+                  </span>
+                </span>
+
+                <span className="min-w-0 flex-1 text-sm leading-snug text-muted-foreground">
+                  {recommendation.headline}
+                </span>
+
+                <span className="flex shrink-0 items-baseline gap-3 text-xs">
+                  {typeLabel && (
+                    <span
+                      className={`font-medium ${
+                        TYPE_TONE[recommendation.classification ?? ""] ??
+                        "text-muted-foreground"
+                      }`}
+                    >
+                      {typeLabel}
+                    </span>
+                  )}
+                  <span className="w-8 shrink-0 tabular-nums text-muted-foreground/70">
+                    {ageLabel(recommendation.created_at)}
+                  </span>
+                </span>
+              </Link>
             </div>
 
             {expanded && (

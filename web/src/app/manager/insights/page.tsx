@@ -79,8 +79,25 @@ function readTrend(pattern: TeamPattern): TrendReading | null {
   return null;
 }
 
+
+/** The situation is the tail of the generated description, after the colon:
+ * "10 staff in f and b logged the same situation this period: service delay."
+ * Falls back to the whole sentence if that shape ever changes. */
+function situationOf(description: string): string {
+  const tail = description.split(":").slice(1).join(":").trim();
+  const text = (tail || description).replace(/\.$/, "");
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 export default async function InsightsPage() {
   const insights = await managerApi.getTeamInsights();
+  // The bars are relative to the biggest pattern, not to the team size:
+  // the question a manager asks here is which of these is worst, not what
+  // share of the roster it covers.
+  const widestPattern = Math.max(
+    1,
+    ...insights.patterns.map((p) => p.staff_count)
+  );
 
   return (
     <div className="space-y-6">
@@ -104,8 +121,10 @@ export default async function InsightsPage() {
         </span>
       </div>
 
-      <div className="space-y-4">
-        {insights.patterns.map((pattern, i) => {
+      <div className="space-y-3">
+        {[...insights.patterns]
+          .sort((a, b) => b.staff_count - a.staff_count)
+          .map((pattern, i) => {
           const trend = readTrend(pattern);
           return (
             <Card
@@ -113,34 +132,54 @@ export default async function InsightsPage() {
               className="fade-up transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-sm"
               style={{ animationDelay: `${200 + i * 100}ms` }}
             >
-              <CardContent className="space-y-4 p-5">
-                {/* Action comes first, not the chart (team decision): the
-                    manager leaves with the one thing to do. */}
-                <div className="rounded-2xl border bg-card p-4">
-                  <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-primary">
-                    <span aria-hidden className="size-2 shrink-0 rounded-sm bg-primary" />
-                    Suggested action
-                  </p>
-                  <p className="mt-1.5 text-base font-semibold leading-snug">
-                    {pattern.suggested_action}
-                  </p>
+              <CardContent className="space-y-3 p-4 md:p-5">
+                {/* Headcount leads. It is what makes a pattern a pattern, what
+                    k-anonymity counts, and the only thing that separates these
+                    rows at a glance. */}
+                <div className="flex items-start gap-4">
+                  <div className="w-14 shrink-0 text-right">
+                    <p className="text-2xl font-semibold leading-none tabular-nums">
+                      {pattern.staff_count}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      staff
+                    </p>
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-baseline gap-x-2">
+                      <h2 className="text-base font-semibold leading-snug">
+                        {situationOf(pattern.description)}
+                      </h2>
+                      <span className="text-xs text-muted-foreground">
+                        {dimensionShort[pattern.dimension]} ·{" "}
+                        {classificationMeta[pattern.classification].label}
+                      </span>
+                    </div>
+
+                    {/* Relative scale, so ten against five is visible without
+                        reading either number. */}
+                    <div
+                      aria-hidden
+                      className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted"
+                    >
+                      <div
+                        className="h-full rounded-full bg-primary/60"
+                        style={{
+                          width: `${Math.round(
+                            (pattern.staff_count / widestPattern) * 100
+                          )}%`,
+                        }}
+                      />
+                    </div>
+
+                    <p className="mt-2 text-sm leading-snug text-muted-foreground">
+                      {pattern.suggested_action}
+                    </p>
+                  </div>
                 </div>
 
-                <div>
-                  <h2 className="text-sm font-semibold">
-                    {dimensionShort[pattern.dimension]} ·{" "}
-                    {classificationMeta[pattern.classification].label}
-                  </h2>
-                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                    {pattern.description}
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 text-xs">
-                  <span className="flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 font-medium text-muted-foreground">
-                    <Users className="size-3.5" />
-                    {pattern.staff_count} staff
-                  </span>
+                <div className="flex flex-wrap items-center gap-2 pl-0 text-xs sm:pl-[4.5rem]">
                   {trend && (
                     <span
                       className={`inline-flex items-center gap-1 rounded-full px-3 py-1 font-semibold ${
@@ -160,15 +199,16 @@ export default async function InsightsPage() {
                       {trend.span ? ` · ${trend.span}` : ""}
                     </span>
                   )}
-                  <Badge className="ml-auto bg-primary text-primary-foreground">
+                  {/* The routing and the reason are one thought, so they get
+                      one line rather than two rows of chrome under two rows of
+                      content. */}
+                  <span className="text-muted-foreground">
+                    {classificationMeta[pattern.classification].hint}
+                  </span>
+                  <Badge className="ml-auto shrink-0 bg-primary text-primary-foreground">
                     → {routeLabel[pattern.route]}
                   </Badge>
                 </div>
-
-                <p className="text-xs text-muted-foreground">
-                  {classificationMeta[pattern.classification].hint} Detected{" "}
-                  {pattern.detected_at.slice(0, 10)}.
-                </p>
               </CardContent>
             </Card>
           );
