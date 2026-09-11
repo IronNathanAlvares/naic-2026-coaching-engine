@@ -222,6 +222,11 @@ These came out of the internal test of the deployed prototype.
       outright, and it is currently undiagnosed.
 - [ ] Test the complete prototype end to end on the deployment that will be used
       on Monday. Not on localhost.
+- [x] **Likely cause found.** `web/.env.production` was missing, so a Vercel
+      build inlined no API base URL for browser code and every client-side call
+      went to Vercel instead of the API. Server-rendered pages looked fine,
+      which is exactly why the symptom was confusing. The file is now committed
+      (see 5.3). Re-test to confirm this was it.
 
 ### 4.2 Copy and language
 
@@ -405,20 +410,37 @@ available, but availability and usage still needed confirmation."
       block anything, but the answer matters for the deck's cost slide and for
       the "what tools did you use" scoring criterion.
 
-### 5.3 The front end merge
+### 5.3 The front end merge, RESOLVED, and one conversation still owed
 
 "One developer had deployed a version through their own Vercel link and advised
 merging the code into the main branch before deploying to Nathan's Vercel
 environment."
 
-Checked: `origin/ziyi` is **zero commits ahead of main**. So either the work is
-already merged, or it was never pushed and lives only on Ziyi's machine and
-their own Vercel.
+What happened: Ziyi pushed PR #2 on 11 Sept, which reset `web/` to their own
+build of the same screens and then re-adopted some of Nathan's frontend work.
+Nathan's call was to keep the version the demo was built and rehearsed on, so
+`main` now carries Nathan's frontend again (commit `5e89792`).
 
-- [ ] Ask Ziyi directly which it is. If it was never pushed, get it pushed
-      before Sunday. This matters because of 4.1: two deployments pointing at
-      different APIs is the best explanation for the functionality that did not
-      work during testing.
+Two things from Ziyi's branch were kept because both are genuinely right:
+
+- **`web/.env.production`**, unchanged. Fixes the build-time bug: `NEXT_PUBLIC_*`
+  is inlined at BUILD time for browser code, so a Vercel build without it ships
+  a site whose server-rendered pages work and whose browser calls go to Vercel
+  itself. This is very likely the real cause of "some messenger and
+  counting-related functionality did not work" in 4.1.
+- **The gap fan-out scoping.** The overview asked for a transfer gap for all 48
+  staff; a gap cannot exist before an observation, because it IS the distance
+  between practice and that observation. Warm `/manager` went 5.3s to 3.1s.
+
+- [x] Frontend consolidated on one version.
+- [ ] **Tell Ziyi, before Sunday, in person or in the group.** They pushed a
+      lot of work and it was reverted the same night. The reason is timing and
+      rehearsal, not quality, and two of their changes were kept and credited
+      in the commit. This is worth five minutes of conversation rather than
+      letting them find it in the log.
+- [ ] Decide together who touches `web/` between now and Monday. Two people
+      rewriting the same screens this week is the actual risk, not either
+      version of the code.
 - [ ] Whatever is presented on Monday comes from `main`, deployed to Nathan's
       Vercel, pointed at one API.
 
