@@ -14,9 +14,17 @@ WHY CLOUD RUN AND NOT RENDER
     not cost, not scale, just never watching a judge stare at a spinner.
 
 WHAT HAS TO BE TRUE FIRST
-    Two APIs must be enabled on the project, and only an Owner can do it. The
-    service account cannot enable them itself; --check will tell you plainly
-    whether they are on yet.
+    Two separate things, which fail identically to the eye and need different
+    people to fix:
+
+      1. The Cloud Run and Artifact Registry APIs are enabled on the project.
+         Only an Owner can do that, and no role granted to anybody substitutes
+         for it.
+      2. The SERVICE ACCOUNT in the key file holds the four roles. Roles
+         granted to a person do not apply to a service account: they are
+         different identities, and this catches everybody once.
+
+    --check says which of the two is in the way, and who can fix it.
 """
 from __future__ import annotations
 
@@ -46,11 +54,12 @@ def credentials():
     files = glob.glob(os.path.join(ROOT, "project-*.json"))
     if not files:
         sys.exit(f"{RED}No service-account JSON in the repo root.{RESET}")
-    project = json.load(open(files[0]))["project_id"]
+    info = json.load(open(files[0]))
+    project = info["project_id"]
     creds = service_account.Credentials.from_service_account_file(
         files[0], scopes=["https://www.googleapis.com/auth/cloud-platform"])
     creds.refresh(gr.Request())
-    return files[0], project, creds
+    return files[0], project, creds, info.get("client_email", "unknown")
 
 
 def api(creds, url, method="GET", body=None):
@@ -98,36 +107,84 @@ def env_pairs() -> list[dict]:
     return [{"name": k, "value": v} for k, v in found.items()]
 
 
-def check(creds, project) -> bool:
-    print(f"\nProject {DIM}{project}{RESET}\n")
-    ok = True
+def check(creds, project, email) -> bool:
+    """Say which of the two different blockers is in the way.
+
+    These fail identically to the eye and need opposite people to fix them:
+
+      SERVICE_DISABLED   the API is switched off for the whole project. Only
+                         an Owner can turn it on, and no role granted to
+                         anybody changes it.
+      PERMISSION_DENIED  the API is on and THIS identity is not allowed to use
+                         it. Turning the API on again does nothing.
+
+    The first version of this script assumed the first case and said so even
+    when the second was true, which sent somebody to press a button that was
+    already pressed.
+    """
+    print()
+    print(f"Project   {DIM}{project}{RESET}")
+    print(f"Acting as {DIM}{email}{RESET}")
+    print()
+
+    disabled, denied = [], []
     for label, url in [
-        ("Cloud Run API",
+        ("Cloud Run",
          f"https://run.googleapis.com/v2/projects/{project}/locations/{REGION}/services"),
-        ("Artifact Registry API",
+        ("Artifact Registry",
          f"https://artifactregistry.googleapis.com/v1/projects/{project}/locations/{REGION}/repositories"),
     ]:
         code, body = api(creds, url)
+        error = body.get("error", {}) if isinstance(body, dict) else {}
+        status = str(error.get("status", ""))
+        message = str(error.get("message", ""))
         if code == 200:
-            print(f"  {GREEN}ready{RESET}    {label}")
+            print(f"  {GREEN}ready{RESET}     {label}")
+        elif "SERVICE_DISABLED" in status or "has not been used" in message:
+            print(f"  {RED}API off{RESET}   {label}: not enabled on this project")
+            disabled.append(label)
+        elif code == 403:
+            print(f"  {YELLOW}no access{RESET} {label}: API is on, this account may not use it")
+            denied.append(label)
         else:
-            msg = body.get("error", {}).get("message", "")
-            disabled = "has not been used" in msg or "is disabled" in msg
-            print(f"  {RED}blocked{RESET}  {label}: "
-                  f"{'API is not enabled on this project' if disabled else msg[:80]}")
-            ok = False
-    if not ok:
+            print(f"  {RED}error{RESET}     {label}: HTTP {code} {message[:70]}")
+            denied.append(label)
+
+    if disabled:
         print(f"""
-{YELLOW}Someone with Owner on this project has to switch two APIs on.{RESET}
-That is Mary-Susan. It is two clicks each and costs nothing:
+{YELLOW}An Owner has to switch these on: {', '.join(disabled)}.{RESET}
+Two clicks each, costs nothing:
 
   https://console.cloud.google.com/apis/library/run.googleapis.com?project={project}
-  https://console.cloud.google.com/apis/library/artifactregistry.googleapis.com?project={project}
+  https://console.cloud.google.com/apis/library/artifactregistry.googleapis.com?project={project}""")
 
-Press ENABLE on both, then run this script again. The service account already
-holds Cloud Run Admin, Artifact Registry Writer, Service Account User and
-Storage Object Admin, so nothing else is needed.""")
-    return ok
+    if denied and not disabled:
+        print(f"""
+{YELLOW}The APIs are on. This service account is not allowed to use them.{RESET}
+
+Roles granted to a person do not apply to a service account: they are separate
+identities. The four roles have to be granted to this exact email:
+
+  {email}
+
+Someone with Owner or Project IAM Admin does it here, once:
+
+  https://console.cloud.google.com/iam-admin/iam?project={project}
+
+  GRANT ACCESS, paste that email as the principal, and add:
+      Cloud Run Admin              deploy and update the service
+      Artifact Registry Writer     push the image
+      Service Account User         let the service run as an identity
+      Storage Object Admin         the layer upload the push uses
+
+Nothing else is needed, and Secret Manager is not needed: the deploy sends the
+environment directly with the service definition.
+
+If you would rather deploy as yourself than fix the service account, install
+the gcloud SDK, run `gcloud auth login`, and this script is not the path: use
+`gcloud run deploy` instead. Granting the four roles is faster.""")
+
+    return not disabled and not denied
 
 
 def run(cmd: list[str]) -> None:
@@ -143,8 +200,8 @@ def main() -> int:
                     help="1 keeps an instance warm, which is the point of moving")
     args = ap.parse_args()
 
-    key_file, project, creds = credentials()
-    if not check(creds, project):
+    key_file, project, creds, email = credentials()
+    if not check(creds, project, email):
         return 1
     if args.check:
         print(f"\n{GREEN}Ready to deploy.{RESET} Re-run without --check.")
