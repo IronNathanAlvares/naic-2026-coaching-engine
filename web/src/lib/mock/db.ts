@@ -143,7 +143,7 @@ const UNSCRIPTED_OPENERS: GuestScriptLine[] = [
 const UNSCRIPTED_REPLIES: GuestScriptLine[] = [
   { content: "Go on.", mood: "neutral" },
   { content: "I see.", mood: "neutral" },
-  { content: "Thank you, and what happens next?", mood: "neutral" },
+  { content: "Thank you — and what happens next?", mood: "neutral" },
 ];
 
 // ── Immutable snapshots (callers never reach into the store) ────────────────
@@ -559,15 +559,15 @@ function weeklyTrendFor(
  * the coaching insight, never the raw numbers behind it. */
 function readingFor(row: TeamGapRow): string {
   if (row.quadrant === "blocked") {
-    return "Performs it in practice and loses it live, that points at authority or pressure, not skill.";
+    return "Performs it in practice and loses it live — that points at authority or pressure, not skill.";
   }
   if (row.quadrant === "skill_gap") {
-    return "Both streams are still building, targeted practice is the right next step.";
+    return "Both streams are still building — targeted practice is the right next step.";
   }
   if (row.quadrant === "recalibrate") {
-    return "The floor runs ahead of practice, check the rubric and the scenario, not the person.";
+    return "The floor runs ahead of practice — check the rubric and the scenario, not the person.";
   }
-  return "Practice and the floor align, the skill is transferring cleanly.";
+  return "Practice and the floor align — the skill is transferring cleanly.";
 }
 
 /** The full TransferGap for one roster staff member: dataset rows in
@@ -776,7 +776,7 @@ const ALOUD_STANDARD: StandardReference = {
   step_number: 1,
   excerpt: "A - Apologies. Apologise sincerely before commenting further.",
   why_shown:
-    "You described an order or service problem at a table. The A.L.O.U.D. sequence opens with the apology before any remedy, that is the step to check.",
+    "You described an order or service problem at a table. The A.L.O.U.D. sequence opens with the apology before any remedy — that is the step to check.",
 };
 
 /** Generic room-event fallback (Service Promise) when the seed carries no
@@ -1099,7 +1099,7 @@ function seededPendingRecommendations(): Recommendation[] {
       }
       citations.push({
         kind: "metric",
-        claim: `a transfer gap on ${lower}, the floor trails practice`,
+        claim: `a transfer gap on ${lower} — the floor trails practice`,
         source_ref: `metric:gap:${dimension}`,
       });
 
@@ -1112,10 +1112,10 @@ function seededPendingRecommendations(): Recommendation[] {
         classification,
         headline: blocked
           ? `${name} performs ${lower} in practice and drops it on the floor.`
-          : `${name}'s ${lower} is still building, in practice and on the floor.`,
+          : `${name}'s ${lower} is still building — in practice and on the floor.`,
         body: blocked
-          ? "The skill demonstrably exists in practice; on the floor it did not appear. That points at authority or pressure, not a training gap, more practice would miss the point."
-          : "Neither stream shows the skill yet, this is the one case where practice is the answer.",
+          ? "The skill demonstrably exists in practice; on the floor it did not appear. That points at authority or pressure, not a training gap — more practice would miss the point."
+          : "Neither stream shows the skill yet — this is the one case where practice is the answer.",
         suggested_action: blocked
           ? `Confirm what ${name} believes they are allowed to do on ${lower} and what the floor pressure was. Do not assign further practice.`
           : `Assign the starter scenario on ${lower} this week and review the evidence spans together.`,
@@ -1182,10 +1182,10 @@ function computeTeamInsights(): TeamInsights {
       staff_count: n,
       dimension,
       description: policyLead
-        ? `${n} staff keep ${lower} in practice and lose it live, the same blocked pattern across the team. That is procedure or authority, not ${n} behavioural problems.`
-        : `${n} staff sit at or under the floor bar on ${lower} in both practice and live work, the skill is still building for the cohort.`,
+        ? `${n} staff keep ${lower} in practice and lose it live — the same blocked pattern across the team. That is procedure or authority, not ${n} behavioural problems.`
+        : `${n} staff sit at or under the floor bar on ${lower} in both practice and live work — the skill is still building for the cohort.`,
       suggested_action: policyLead
-        ? `Set and communicate the ${lower} standard and the discretionary limit once, no individual practice.`
+        ? `Set and communicate the ${lower} standard and the discretionary limit once — no individual practice.`
         : `Assign targeted practice on ${lower} to the cohort, then re-observe the same staff next shift.`,
       route: policyLead ? "operations" : "manager",
       detected_at: `${window.end}T09:30:00Z`,
@@ -1277,7 +1277,7 @@ function buildRecommendationForObservation(
       staff_id: staff,
       classification: "behavioural",
       headline: "Not enough evidence yet for grounded coaching.",
-      body: `The observation is logged on ${labelled}, but there is no practice history to compare it against. A transfer-gap reading needs both streams, ask for a practice run, then observe again.`,
+      body: `The observation is logged on ${labelled}, but there is no practice history to compare it against. A transfer-gap reading needs both streams — ask for a practice run, then observe again.`,
       suggested_action: "",
       calibration: calibrationInfo,
       citations: [],
@@ -1316,30 +1316,30 @@ function buildRecommendationForObservation(
       ? {
           headline:
             "They performed this in practice and did not on the floor. That points at authority or pressure, not a training gap.",
-          body: `${dimLabel}, practice looks fine here; on the floor it did not appear. More practice would miss the point.`,
+          body: `${dimLabel} — practice looks fine here; on the floor it did not appear. More practice would miss the point.`,
           suggested_action:
             "Confirm what this person believes they are allowed to offer and what the floor pressure was. Do not assign further practice.",
         }
       : primary.quadrant === "skill_gap"
         ? {
             headline:
-              "Practice and floor both show this skill still building, targeted practice is the right next step.",
-            body: `${dimLabel}, neither stream shows the skill yet. This is the one case where practice is the answer.`,
+              "Practice and floor both show this skill still building — targeted practice is the right next step.",
+            body: `${dimLabel} — neither stream shows the skill yet. This is the one case where practice is the answer.`,
             suggested_action:
               "Assign the starter scenario for this dimension this week and review the evidence spans together.",
           }
         : primary.quadrant === "recalibrate"
           ? {
               headline:
-                "Strong on the floor but weak in practice, check the rubric and the scenario, not the person.",
-              body: `${dimLabel}, when the floor runs ahead of practice, it is usually a signal about our scoring.`,
+                "Strong on the floor but weak in practice — check the rubric and the scenario, not the person.",
+              body: `${dimLabel} — when the floor runs ahead of practice, it is usually a signal about our scoring.`,
               suggested_action:
                 "Review the rubric anchors and the practice scenario before coaching the person.",
             }
           : {
               headline:
                 "Practice is transferring to the floor on this dimension.",
-              body: `${dimLabel}, practice and the floor align. The skill is holding under real conditions.`,
+              body: `${dimLabel} — practice and the floor align. The skill is holding under real conditions.`,
               suggested_action:
                 "Stretch them: use them as a peer coach or promote the behaviour in the next briefing.",
             };
@@ -1378,10 +1378,10 @@ function buildRecommendationForObservation(
     const lowerDim = dimensionCopyLabel(primary.dimension);
     const claim =
       primary.quadrant === "competent"
-        ? `practice and the floor align on ${lowerDim}, no transfer gap`
+        ? `practice and the floor align on ${lowerDim} — no transfer gap`
         : primary.quadrant === "recalibrate"
-          ? `a transfer gap on ${lowerDim}, practice trails the floor`
-          : `a transfer gap on ${lowerDim}, the floor trails practice`;
+          ? `a transfer gap on ${lowerDim} — practice trails the floor`
+          : `a transfer gap on ${lowerDim} — the floor trails practice`;
     citations.push({
       kind: "metric",
       claim,

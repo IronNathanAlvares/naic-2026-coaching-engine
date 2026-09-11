@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Mic, PointerIcon } from "lucide-react";
 import { ObservationForm } from "./observation-form";
 import { VoiceObserve } from "./voice-observe";
-import type { StaffMember } from "@/lib/types";
+import type { PickerStaff } from "./staff-picker";
 
 /**
  * Two ways to log the same thing, and the manager picks per moment.
@@ -21,7 +21,7 @@ import type { StaffMember } from "@/lib/types";
  * record: what is recorded is what the manager confirmed, not how they typed
  * it.
  */
-export function ObserveSurface({ staff }: { staff: StaffMember[] }) {
+export function ObserveSurface({ staff }: { staff: PickerStaff[] }) {
   const [mode, setMode] = useState<"speak" | "tap">("speak");
 
   return (

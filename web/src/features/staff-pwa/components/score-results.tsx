@@ -51,7 +51,7 @@ export function ScoreResults({ result }: { result: ScoreResult }) {
                   <div key={ev.turn_index} className="rounded-xl bg-muted/40 p-3">
                     <p className="flex items-center gap-1.5 text-xs font-semibold">
                       <Quote className="size-3.5 text-primary" />
-                      What earned this, your own words
+                      What earned this — your own words
                     </p>
                     <p className="mt-1.5 text-xs italic leading-relaxed text-muted-foreground">
                       “{ev.quote}”
@@ -65,7 +65,7 @@ export function ScoreResults({ result }: { result: ScoreResult }) {
             )}
             {open && evidence.length === 0 && (
               <p className="mt-2 text-xs text-muted-foreground">
-                No words captured for this one, it stays without a label
+                No words captured for this one — it stays without a label
                 rather than guessed.
               </p>
             )}
@@ -75,7 +75,7 @@ export function ScoreResults({ result }: { result: ScoreResult }) {
 
       <div className="rounded-2xl border border-dashed p-4">
         <p className="text-xs text-muted-foreground">
-          This is your practice space, just for you. Your manager never sees
+          This is your practice space — just for you. Your manager never sees
           your individual practice scores. They only get a coaching insight,
           and only after they&apos;ve logged their own observation of you.
         </p>

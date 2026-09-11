@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { staffApi } from "@/features/staff-pwa/api/staffApi";
 import { dimensionShort } from "@/lib/format";
 
-
 /** Rendered per request, never prerendered.
  *
  * Without this Next may statically render at build time and the page freezes
@@ -25,7 +24,7 @@ export default async function PracticeListPage() {
         <h1 className="text-lg font-semibold tracking-tight">Practice</h1>
         <p className="text-xs text-muted-foreground">
           3 minutes each. When you finish, every label comes back with the
-          exact words that earned it, and it stays yours.
+          exact words that earned it — and it stays yours.
         </p>
       </div>
 
