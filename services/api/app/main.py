@@ -529,6 +529,11 @@ def add_turn(attempt_id: str, payload: dict,
                                   "detail": "content is required"})
     with session(actor) as cur:
         out = practice.add_turn(cur, actor, attempt_id, content, trace=Trace())
+    if out.get("error") == "turn_limit":
+        raise HTTPException(409, {
+            "type": "turn-limit", "title": "Conversation is over",
+            "detail": "This practice has used all of its turns. Finish it to "
+                      "see the notes."})
     if out.get("error"):
         raise HTTPException(404, {"type": "not-found", "title": "Not found",
                                   "detail": "No such attempt"})
