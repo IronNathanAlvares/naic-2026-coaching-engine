@@ -101,6 +101,19 @@ type RecordState =
 const CHIP_SELECTED = "border-primary bg-primary text-primary-foreground";
 const CHIP_IDLE = "border bg-card text-foreground hover:bg-muted/40";
 
+/** One tap instead of a sentence.
+ *
+ * Deliberately about what the manager SAW, never about the person: "froze"
+ * describes a moment, "is nervous" would be a verdict on somebody, and this
+ * text ends up quoted in a coaching recommendation. Short enough to read at a
+ * glance and specific enough to be real evidence. */
+const NOTE_STARTERS = [
+  "Handled it alone, guest left happy",
+  "Escalated to me straight away",
+  "Froze, did not offer anything",
+  "Apologised but took no action",
+];
+
 const QUESTION_LABEL = "text-xs font-medium text-muted-foreground";
 
 /** Delay between a BARS row tap and the next dimension sliding in — long
@@ -527,15 +540,34 @@ export function ObservationForm({ staff }: { staff: StaffMember[] }) {
             {step === "note" && (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <p className={QUESTION_LABEL}>Note (optional)</p>
+                  <p className={QUESTION_LABEL}>What you saw</p>
                   <Input
-                    placeholder="One line on what you saw"
+                    placeholder="One line, in your own words"
                     value={note}
                     onChange={(e) => {
                       setNote(e.target.value);
                       setLoggedName(null);
                     }}
                   />
+                  {/* Twenty seconds is the promise on this screen, and nobody
+                      types a sentence in twenty seconds walking off a shift.
+                      Tapping one fills the line and it stays editable, so the
+                      words are still the manager's own. */}
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {NOTE_STARTERS.map((phrase) => (
+                      <button
+                        key={phrase}
+                        type="button"
+                        onClick={() => {
+                          setNote(phrase);
+                          setLoggedName(null);
+                        }}
+                        className="rounded-full border bg-card px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                      >
+                        {phrase}
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center justify-center gap-2">
@@ -551,18 +583,26 @@ export function ObservationForm({ staff }: { staff: StaffMember[] }) {
                       type="button"
                       size="lg"
                       className="w-full sm:w-auto sm:min-w-64"
-                      disabled={submitting || ratedCount === 0}
+                      disabled={submitting || ratedCount === 0 || !note.trim()}
                       onClick={handleSubmit}
                     >
                       {submitting ? "Logging…" : "Log observation"}
                     </Button>
                   </div>
-                  {ratedCount === 0 && (
+                  {/* Say which requirement is missing. A disabled button with
+                      no reason is the same dead end as the error toast this
+                      replaces. */}
+                  {ratedCount === 0 ? (
                     <p className="text-center text-xs text-muted-foreground">
                       Rate at least one dimension, anything unrated is never
                       scored.
                     </p>
-                  )}
+                  ) : !note.trim() ? (
+                    <p className="text-center text-xs text-muted-foreground">
+                      One line is needed: it is the evidence the coaching read
+                      quotes back to you.
+                    </p>
+                  ) : null}
                 </div>
               </div>
             )}
