@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, BookOpen, Mic, Sparkles, Square } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpen,
+  Captions,
+  Mic,
+  Sparkles,
+  Square,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -192,7 +199,7 @@ export function DebriefEntry() {
               ) : (
                 <>
                   <Mic className="size-4" />
-                  Speak your debrief
+                  Speak and send
                 </>
               )}
             </Button>
@@ -208,21 +215,29 @@ export function DebriefEntry() {
           <Button
             type="button"
             variant="outline"
-            size="icon"
             onClick={toggleVoice}
             disabled={submitting}
-            aria-label={listening ? "Stop voice input" : "Start voice input"}
+            aria-label={
+              listening ? "Stop dictating" : "Dictate into the box instead"
+            }
             aria-pressed={listening}
-            title="Voice input"
-            className={`size-10 shrink-0 rounded-lg ${
+            title="Dictate into the box, then review before you send"
+            className={`shrink-0 rounded-lg ${
               listening
                 ? "border-[oklch(0.62_0.09_28)]/50 bg-[oklch(0.7_0.085_28)]/10 text-[oklch(0.44_0.09_28)]"
                 : ""
             }`}
           >
-            <Mic className={`size-4 ${listening ? "animate-pulse" : ""}`} />
+            <Captions className={`size-4 ${listening ? "animate-pulse" : ""}`} />
+            {listening ? "Stop" : "Dictate"}
           </Button>
         </div>
+        {isRealApi() && !recording && !listening && (
+          <p className="mt-2 text-center text-xs text-muted-foreground">
+            Speak and send writes it up for you. Dictate fills the box so you
+            can read it back first.
+          </p>
+        )}
         {listening && (
           <p
             aria-live="polite"
