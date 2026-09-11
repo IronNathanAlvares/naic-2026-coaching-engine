@@ -8,7 +8,7 @@
 
 <br>
 
-![status](https://img.shields.io/badge/status-deployed%20and%20live-2E8B57?style=for-the-badge) ![tests](https://img.shields.io/badge/tests-97%20passing-0E7C86?style=for-the-badge) ![EU AI Act](https://img.shields.io/badge/EU%20AI%20Act-Annex%20III%204(b)-5B4B8A?style=for-the-badge) ![cost per run](https://img.shields.io/badge/cost%20per%20run-%240.005-B26A00?style=for-the-badge)
+![status](https://img.shields.io/badge/status-deployed%20and%20live-2E8B57?style=for-the-badge) ![tests](https://img.shields.io/badge/tests-100%20passing-0E7C86?style=for-the-badge) ![EU AI Act](https://img.shields.io/badge/EU%20AI%20Act-Annex%20III%204(b)-5B4B8A?style=for-the-badge) ![cost per run](https://img.shields.io/badge/cost%20per%20run-%240.005-B26A00?style=for-the-badge)
 
 **[▶ Open the live system](https://naic-2026-coaching-engine.vercel.app)** &nbsp;·&nbsp; **[🔍 Verify our claims](https://naic-2026-coaching-engine.vercel.app/glassbox)** &nbsp;·&nbsp; **[📊 Progress](PROGRESS.md)** &nbsp;·&nbsp; **[🔌 API guide](API-INTEGRATION.md)** &nbsp;·&nbsp; **[📸 Screenshots](docs-assets/walkthrough)**
 
@@ -200,10 +200,21 @@ cd web && pnpm install && pnpm dev
 Run these three, in this order. About a minute together.
 
 ```bash
-cd services/agent && python -m pytest -q     # 72 tests, the reasoning
+cd services/agent && python -m pytest -q     # 75 tests, the reasoning
 python db/test_rls.py                        # 10 negative tests, the isolation
 python tests/test_e2e.py                     # 15 checks, the whole system
 ```
+
+And one more that costs nothing and needs no database, because a site that breaks on a phone is
+a bug like any other:
+
+```bash
+python scripts/responsive_audit.py                        # local build on :3100
+python scripts/responsive_audit.py https://naic-2026-coaching-engine.vercel.app
+```
+
+It drives all ten screens at 360, 768 and 1280 and fails on content wider than the viewport, tap
+targets under 36px, or any screen with no way back. It exits non-zero, so it can gate a deploy.
 
 `tests/test_e2e.py --skip-ai` skips anything that spends tokens. That is the one to run in a loop
 while you are working.
@@ -319,10 +330,11 @@ db/
   test_rls.py     Ten negative tests. They must all pass
 services/
   agent/          The tested deterministic core: transfer gap, cite gate,
-                  calibration, routing. 72 unit tests, no I/O, no model calls
+                  calibration, routing. 75 unit tests, no I/O, no model calls
   api/            FastAPI. Every endpoint, the agent graph, the providers
 web/              Next.js. Manager console, staff PWA, and /glassbox
-scripts/          bootstrap.py, deploy_db.py, walkthrough.py
+scripts/          bootstrap.py, deploy_db.py, walkthrough.py,
+                  responsive_audit.py, gen_readme_art.py
 tests/            test_e2e.py, the whole system over HTTP
 evals/            redteam attack suite, retrieval evaluation
 data-generation/  Deterministic synthetic dataset, 48 staff
