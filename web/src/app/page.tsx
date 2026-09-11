@@ -357,7 +357,7 @@ export default function LandingPage() {
                   href="https://innovationhub.ai.cornell.edu/articles/training-the-next-generation-of-hotel-staff-an-ai-powered-approach-to-hospitality-education/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-auto inline-flex items-center gap-1 pt-4 text-xs font-medium text-primary hover:underline"
+                  className="mt-auto inline-flex min-h-10 items-center gap-1 pt-4 text-xs font-medium text-primary hover:underline"
                 >
                   Read the Cornell project
                   <ArrowUpRight className="size-3.5" />

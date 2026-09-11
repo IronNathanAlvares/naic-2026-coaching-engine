@@ -44,7 +44,7 @@ export default function StaffHomePage() {
           <p className="text-sm font-semibold">Your last practice</p>
           <Link
             href="/staff/history"
-            className="flex items-center gap-1 text-xs font-medium text-primary"
+            className="-mr-2 flex min-h-9 items-center gap-1 rounded-lg px-2 text-xs font-medium text-primary"
           >
             All practice <ArrowRight className="size-3" />
           </Link>

@@ -220,7 +220,7 @@ export default async function ManagerOverviewPage() {
               </p>
               <Button
                 variant="link"
-                className="mt-1 h-auto p-0"
+                className="-mx-2 mt-1 h-auto min-h-9 px-2"
                 nativeButton={false}
                 render={<Link href="/manager/verify" />}
               >
@@ -248,7 +248,7 @@ export default async function ManagerOverviewPage() {
               </p>
               <Button
                 variant="link"
-                className="mt-1 h-auto p-0"
+                className="-mx-2 mt-1 h-auto min-h-9 px-2"
                 nativeButton={false}
                 render={<Link href="/manager/insights" />}
               >

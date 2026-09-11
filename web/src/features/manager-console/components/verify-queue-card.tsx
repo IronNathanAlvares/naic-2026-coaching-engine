@@ -88,7 +88,7 @@ export function VerifyQueueCard({
                 aria-expanded={expanded}
                 aria-controls={panelId}
                 aria-label="Review this recommendation in place"
-                className="mt-1.5 shrink-0 rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary/40"
+                className="mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary/40"
               >
                 {chevron}
               </button>

@@ -109,7 +109,7 @@ export default function HistoryPage() {
               </span>
               <Link
                 href={`/staff/results/${entry.id}`}
-                className="flex shrink-0 items-center gap-1 font-medium text-primary"
+                className="-mr-2 flex min-h-9 shrink-0 items-center gap-1 rounded-lg px-2 font-medium text-primary"
               >
                 Details <ArrowRight className="size-3" />
               </Link>

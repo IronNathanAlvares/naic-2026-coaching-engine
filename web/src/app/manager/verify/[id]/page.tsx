@@ -1,7 +1,4 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { VerifyPanel } from "@/features/manager-console/components/verify-panel";
 import { WhyExplainer } from "@/features/manager-console/components/why-explainer";
 import { managerApi } from "@/features/manager-console/api/managerApi";
@@ -43,16 +40,6 @@ export default async function VerifyDetailPage(
 
   return (
     <div className="space-y-6">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="-ml-2"
-        nativeButton={false} render={<Link href="/manager/verify" />}
-      >
-        <ArrowLeft className="size-4" />
-        Back to queue
-      </Button>
-
       <div className="msg-in flex flex-wrap items-center gap-3">
         <div className="flex size-10 items-center justify-center rounded-full bg-accent text-sm font-bold text-accent-foreground">
           {initials}

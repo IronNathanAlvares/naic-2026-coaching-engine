@@ -19,10 +19,14 @@ interface RadarChartProps {
   showValues?: boolean;
 }
 
-const W = 320;
-const H = 300;
-const CX = 160;
-const CY = 150;
+// The viewBox is deliberately wider than the plot. Labels sit at R + 18 from
+// the centre and the longest ("Communication") is about 78px at 12px type, so
+// each side needs roughly 100px of margin or the words get cut off by the edge
+// of the svg. The radius is unchanged: only the breathing room around it.
+const W = 420;
+const H = 320;
+const CX = 210;
+const CY = 158;
 const R = 96;
 const RINGS = 5;
 

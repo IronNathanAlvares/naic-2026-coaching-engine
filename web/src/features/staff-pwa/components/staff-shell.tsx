@@ -11,6 +11,7 @@ import {
   staffMembers,
 } from "@/lib/mock/seed";
 import type { ScoreResult } from "@/lib/types";
+import { ScreenNav } from "@/components/screen-nav";
 
 const tabs = [
   { href: "/staff", label: "Home", icon: Home },
@@ -92,7 +93,12 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main className="flex flex-1 flex-col px-4 pb-24 pt-4">{children}</main>
+        <main className="flex flex-1 flex-col px-4 pb-24 pt-4">
+          {/* The staff app had three tabs and no exit. This is the way
+              back out to pick another role. */}
+          <ScreenNav />
+          {children}
+        </main>
 
         <nav className="fixed bottom-0 left-1/2 z-20 flex w-full max-w-md -translate-x-1/2 border-t bg-background/95 backdrop-blur">
           {tabs.map((tab) => {

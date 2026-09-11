@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ScreenNav } from "@/components/screen-nav";
 
 /** Shown the instant a manager route is requested, while the server renders it.
  *
@@ -17,6 +18,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function ManagerLoading() {
   return (
     <div className="space-y-6">
+      {/* Present from the first frame: during a cold start this
+          screen is all there is for up to a minute. */}
+      <ScreenNav />
       <style>{`@keyframes ce-late-hint { to { opacity: 1 } }`}</style>
 
       <div className="flex flex-wrap items-center justify-between gap-4">

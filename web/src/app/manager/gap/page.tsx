@@ -61,7 +61,7 @@ export default async function GapPage(
               key={member.id}
               href={`/manager/gap?staff=${member.id}`}
               aria-current={active ? "page" : undefined}
-              className={`shrink-0 whitespace-nowrap rounded-xl border px-3 py-1.5 text-sm font-medium transition-colors ${
+              className={`inline-flex min-h-10 shrink-0 items-center whitespace-nowrap rounded-xl border px-3.5 text-sm font-medium transition-colors ${
                 active
                   ? "border-primary bg-primary text-primary-foreground"
                   : "bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground"

@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ScreenNav } from "@/components/screen-nav";
 
 /** The glass box runs the real agent, so it is the slowest page on the site by
  * design: a trace is an actual model call, not a replay. That is the whole
@@ -9,6 +10,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function GlassboxLoading() {
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6 p-6">
+      {/* Present from the first frame: during a cold start this
+          screen is all there is for up to a minute. */}
+      <ScreenNav />
       <style>{`@keyframes ce-late-hint { to { opacity: 1 } }`}</style>
 
       <div className="space-y-2">

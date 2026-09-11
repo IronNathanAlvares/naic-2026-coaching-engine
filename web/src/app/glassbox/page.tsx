@@ -1,4 +1,5 @@
 import { GlassBox } from "@/features/glass-box/components/glass-box";
+import { ScreenNav } from "@/components/screen-nav";
 
 export const metadata = {
   title: "Glass box, The Coaching Engine",
@@ -13,6 +14,9 @@ export const metadata = {
 export default function GlassBoxPage() {
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
+      {/* This page sits outside both shells and is linked from the
+          manager sidebar, so without this it was a dead end. */}
+      <ScreenNav />
       <header className="mb-8">
         <h1 className="font-[family-name:var(--font-heading)] text-3xl font-semibold tracking-tight">
           The glass box

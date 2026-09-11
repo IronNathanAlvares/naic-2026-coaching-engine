@@ -175,14 +175,14 @@ export function DebriefEntry() {
             No microphone access, so type it instead, same result.
           </p>
         )}
-        <div className="mt-3 flex items-center gap-2">
+        <div className="mt-3 flex flex-wrap items-center gap-2">
           {isRealApi() && (
             <Button
               type="button"
               variant={recording ? "destructive" : "default"}
               onClick={() => (recording ? recorder.stop() : void recorder.start())}
               disabled={submitting || listening}
-              className="flex-1"
+              className="min-w-40 flex-1"
             >
               {recording ? (
                 <>
@@ -201,7 +201,7 @@ export function DebriefEntry() {
             onClick={handleSubmit}
             disabled={submitting || recording}
             variant={isRealApi() ? "outline" : "default"}
-            className="flex-1"
+            className="min-w-40 flex-1"
           >
             {submitting ? "Checking against your standard…" : "Get instant feedback"}
           </Button>

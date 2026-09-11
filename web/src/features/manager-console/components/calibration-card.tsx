@@ -51,7 +51,7 @@ export function CalibrationCard({
           aria-expanded={open}
           aria-controls="calibration-details"
           onClick={() => setOpen((o) => !o)}
-          className="mt-3 inline-flex items-center gap-1 rounded-full border border-dashed px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+          className="mt-3 inline-flex min-h-9 items-center gap-1 rounded-full border border-dashed px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
         >
           Details
           <ChevronDown

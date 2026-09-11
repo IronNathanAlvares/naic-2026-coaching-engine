@@ -10,7 +10,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ArrowLeft, BarChart3, ClipboardCheck, Eye, ListChecks, Sparkles, Users } from "lucide-react";
+import { BarChart3, ClipboardCheck, Eye, ListChecks, Sparkles, Users } from "lucide-react";
+import { ScreenNav } from "@/components/screen-nav";
 import { Badge } from "@/components/ui/badge";
 import { currentManager } from "@/lib/mock/seed";
 import { managerApi } from "@/features/manager-console/api/managerApi";
@@ -95,19 +96,10 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
 
       <div className="flex min-w-0 flex-1 flex-col md:pl-60">
         <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 md:px-8 md:py-8">
-          {/* Every tab under the overview gets a quiet way back to /manager;
-              the overview itself is the destination, so it stays bare. */}
-          {pathname !== "/manager" && (
-            <div className="mb-6">
-              <Link
-                href="/manager"
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <ArrowLeft className="size-4" aria-hidden />
-                Back to overview
-              </Link>
-            </div>
-          )}
+          {/* Back goes up one level, not always to the overview, and the
+              role switch is the way out of the console entirely. Both live in
+              the content area so they sit in the same place on a phone. */}
+          <ScreenNav />
           {children}
         </main>
         <MobileNav pathname={pathname} pending={pending} />

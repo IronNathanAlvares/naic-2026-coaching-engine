@@ -30,7 +30,7 @@ type QueueFilter =
 
 const chipClasses = (active: boolean) =>
   cn(
-    "rounded-full px-3 py-1 text-xs font-medium transition-colors",
+    "inline-flex min-h-10 items-center rounded-full px-3.5 text-xs font-medium transition-colors",
     active
       ? "bg-primary text-primary-foreground"
       : "bg-muted text-muted-foreground hover:bg-muted/70 hover:text-foreground"
