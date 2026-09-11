@@ -12,15 +12,15 @@ import type { GateReport, RlsReport, StepActor, TraceRun } from "../types";
 const ACTOR_STYLE: Record<StepActor, { label: string; className: string }> = {
   code: {
     label: "code",
-    className: "bg-emerald-500/12 text-emerald-700 dark:text-emerald-300",
+    className: "bg-emerald-500/12 text-emerald-700",
   },
   model: {
     label: "model",
-    className: "bg-violet-500/12 text-violet-700 dark:text-violet-300",
+    className: "bg-violet-500/12 text-violet-700",
   },
   database: {
     label: "database",
-    className: "bg-sky-500/12 text-sky-700 dark:text-sky-300",
+    className: "bg-sky-500/12 text-sky-700",
   },
 };
 
@@ -35,7 +35,7 @@ function Pill({ actor }: { actor: StepActor }) {
   const s = ACTOR_STYLE[actor];
   return (
     <span
-      className={`inline-flex w-[4.5rem] shrink-0 justify-center rounded-full px-2 py-0.5 text-[11px] font-medium ${s.className}`}
+      className={`inline-flex w-[4.5rem] shrink-0 justify-center rounded-full px-2 py-0.5 text-xs font-medium ${s.className}`}
     >
       {s.label}
     </span>
@@ -274,7 +274,7 @@ export function GlassBox() {
                 </div>
               ))}
               <p className="text-xs text-muted-foreground">{gate.note} Source:{" "}
-                <code className="text-[11px]">{gate.source}</code>.
+                <code className="text-xs">{gate.source}</code>.
               </p>
             </div>
           ) : null}
@@ -308,7 +308,7 @@ export function GlassBox() {
 
           {rls ? (
             <div className="space-y-3">
-              <pre className="overflow-x-auto rounded-md bg-muted/50 p-3 text-[11px]">
+              <pre className="overflow-x-auto rounded-md bg-muted/50 p-3 text-xs">
                 {rls.query}
               </pre>
               <div className="overflow-x-auto">

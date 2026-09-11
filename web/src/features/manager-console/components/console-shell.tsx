@@ -1,20 +1,14 @@
 "use client";
 
-// Talks to the API through http from lib/api/client, never a bare fetch to a
-// relative path. A relative "/api/v1/..." resolves against whatever host serves
-// the page, so once deployed the browser asks the WEBSITE for coaching data
-// instead of the API. This repo also serves routes under /api/v1, so it comes
-// back 500 rather than 404 and reads as a backend fault. The client also adds
-// the actor header and the idempotency key.
-
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BarChart3, ClipboardCheck, Eye, ListChecks, Sparkles, Users } from "lucide-react";
 import { ScreenNav } from "@/components/screen-nav";
 import { Badge } from "@/components/ui/badge";
-import { currentManager } from "@/lib/mock/seed";
 import { managerApi } from "@/features/manager-console/api/managerApi";
+import { isRealApi } from "@/lib/api/client";
+import { currentManager } from "@/lib/mock/seed";
 
 const nav = [
   { href: "/manager", label: "Overview", icon: Sparkles },
@@ -24,8 +18,13 @@ const nav = [
   { href: "/manager/insights", label: "Team insights", icon: Users },
   // Outside /manager on purpose: it is not part of a manager's job, it is
   // for the person who wants to check our claims rather than believe them.
-  { href: "/glassbox", label: "Glass box", icon: Eye },
+  // Real mode only — the mock demo has no glass box to show.
+  { href: "/glassbox", label: "Glass box", icon: Eye, realApiOnly: true },
 ];
+
+/** Real mode shows the glass box; the mock demo keeps the familiar five. */
+const navItems = () =>
+  nav.filter((item) => !item.realApiOnly || isRealApi());
 
 export function ConsoleShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -33,6 +32,10 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
+    // Through the API module, never a bare fetch to a relative "/api/v1/...":
+    // once deployed a relative path asks the WEBSITE for coaching data instead
+    // of the API, and this repo also serves routes under /api/v1, so it comes
+    // back 500 rather than 404 and reads as a backend fault.
     managerApi
       .listRecommendations()
       .then((list) => {
@@ -58,7 +61,7 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
         <nav className="flex flex-1 flex-col gap-1 px-3">
-          {nav.map((item) => {
+          {navItems().map((item) => {
             const active =
               item.href === "/manager"
                 ? pathname === "/manager"
@@ -85,7 +88,7 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
           })}
         </nav>
         <div className="border-t px-5 py-4">
-          {/* Identity follows seed.ts's currentManager (staff-014), no copy
+          {/* Identity follows seed.ts's currentManager (staff-014) — no copy
               of the manager's name or property hardcoded in the shell. */}
           <p className="text-sm font-medium">{currentManager.name}</p>
           <p className="text-xs text-muted-foreground">
@@ -117,7 +120,7 @@ function MobileNav({
 }) {
   return (
     <nav className="fixed inset-x-0 bottom-0 z-20 flex border-t bg-background/95 backdrop-blur md:hidden">
-      {nav.map((item) => {
+      {navItems().map((item) => {
         const active =
           item.href === "/manager"
             ? pathname === "/manager"

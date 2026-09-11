@@ -107,10 +107,10 @@ function evidenceFor(row: TeamAttemptRow): EvidenceSpan[] {
     Object.entries(row.scores) as Array<[BarsDimension, number]>
   ).map(([dimension, level]) => ({
     dimension,
-    quote: `Level ${level} on "${row.scenario_title}", ${row.turns} turns, completed ${row.completed_at}.`,
+    quote: `Level ${level} on "${row.scenario_title}" — ${row.turns} turns, completed ${row.completed_at}.`,
     turn_index: 0,
     explains:
-      "The generated dataset records scores and turn counts, not transcripts, so this span is the scoring row itself, nothing is invented.",
+      "The generated dataset records scores and turn counts, not transcripts, so this span is the scoring row itself — nothing is invented.",
   }));
 }
 

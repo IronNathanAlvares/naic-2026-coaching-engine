@@ -1,8 +1,11 @@
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { GlassBox } from "@/features/glass-box/components/glass-box";
-import { ScreenNav } from "@/components/screen-nav";
+import { isRealApi } from "@/lib/api/client";
 
 export const metadata = {
-  title: "Glass box, The Coaching Engine",
+  title: "Glass box — The Coaching Engine",
   description:
     "Check the three claims instead of believing them: where the reasoning "
     + "lives, what the cite gate rejects, and who the database lets you read.",
@@ -14,9 +17,17 @@ export const metadata = {
 export default function GlassBoxPage() {
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
-      {/* This page sits outside both shells and is linked from the
-          manager sidebar, so without this it was a dead end. */}
-      <ScreenNav />
+      {/* This page sits outside both shells, so without this it would be a
+          dead end for anyone who lands on it. */}
+      <div className="mb-6">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="size-4" aria-hidden />
+          Back to home
+        </Link>
+      </div>
       <header className="mb-8">
         <h1 className="font-[family-name:var(--font-heading)] text-3xl font-semibold tracking-tight">
           The glass box
@@ -28,7 +39,17 @@ export default function GlassBoxPage() {
           the gate rejected it a moment ago.
         </p>
       </header>
-      <GlassBox />
+      {isRealApi() ? (
+        <GlassBox />
+      ) : (
+        <div className="flex justify-center py-12">
+          <Card className="w-full max-w-md border bg-card">
+            <CardContent className="px-6 py-10 text-center text-sm text-muted-foreground">
+              The glass box runs on the live API — this demo is in mock mode.
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </main>
   );
 }

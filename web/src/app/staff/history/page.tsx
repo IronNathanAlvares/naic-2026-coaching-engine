@@ -10,7 +10,6 @@ import {
 } from "@/lib/mock/seed";
 import { dimensionShort } from "@/lib/format";
 
-
 /** Rendered per request, never prerendered.
  *
  * Without this Next may statically render at build time and the page freezes
@@ -69,7 +68,7 @@ export default function HistoryPage() {
       <div>
         <h1 className="text-lg font-semibold tracking-tight">My practice</h1>
         <p className="text-xs text-muted-foreground">
-          This is your practice space, just for you. Your manager never sees
+          This is your practice space — just for you. Your manager never sees
           your individual practice scores. They only get a coaching insight,
           and only after they&apos;ve logged their own observation of you.
         </p>
@@ -96,20 +95,20 @@ export default function HistoryPage() {
                 {managerObserved ? (
                   <>
                     <Eye className="size-3.5" />
-                    Your manager logged their own observation of you, that&apos;s
+                    Your manager logged their own observation of you — that&apos;s
                     what turns your practice into a coaching insight.
                   </>
                 ) : (
                   <>
                     <Lock className="size-3.5" />
-                    Waiting on your manager&apos;s floor observation, until
+                    Waiting on your manager&apos;s floor observation — until
                     then, this practice stays just yours.
                   </>
                 )}
               </span>
               <Link
                 href={`/staff/results/${entry.id}`}
-                className="-mr-2 flex min-h-9 shrink-0 items-center gap-1 rounded-lg px-2 font-medium text-primary"
+                className="flex shrink-0 items-center gap-1 font-medium text-primary"
               >
                 Details <ArrowRight className="size-3" />
               </Link>
