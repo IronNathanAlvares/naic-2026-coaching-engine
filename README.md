@@ -86,6 +86,15 @@ documents live in the shared drive, not here: see CONTRIBUTING for why.
 
 ---
 
+## Start here
+
+- **[PROGRESS.md](PROGRESS.md)** what is done, what is left, and what is not
+  real. Written for everyone, not just developers.
+- **[API-INTEGRATION.md](API-INTEGRATION.md)** how the frontend talks to the
+  backend. For anyone working in `web/`.
+
+---
+
 ## Getting started
 
 You need **Docker Desktop running**, Python 3.11+, and pnpm.
