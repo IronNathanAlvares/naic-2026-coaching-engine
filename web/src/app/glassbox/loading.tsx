@@ -10,8 +10,9 @@ import { ScreenNav } from "@/components/screen-nav";
 export default function GlassboxLoading() {
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6 p-6">
-      {/* Present from the first frame: during a cold start this
-          screen is all there is for up to a minute. */}
+      {/* Unlike the manager and staff loading screens, this one needs
+          its own nav: /glassbox has no shell, so while the page loads
+          there is nothing else on screen to navigate with. */}
       <ScreenNav />
       <style>{`@keyframes ce-late-hint { to { opacity: 1 } }`}</style>
 

@@ -80,6 +80,9 @@ NAV_JS = """() => {
     back: /Back to /.test(t),
     switchRole: /Switch role/.test(t),
     tabs: document.querySelectorAll('nav a').length,
+    // A shell and its loading.tsx both rendering the nav puts two of them on
+    // screen. Presence alone would not catch that.
+    dupes: (t.match(/Switch role/g) || []).length,
   };
 }"""
 
@@ -125,6 +128,10 @@ def main() -> int:
                 if path != "/" and not (nav["back"] or nav["switchRole"] or nav["tabs"]):
                     flags.append("NO WAY BACK")
                     failures.append("%s %s: no navigation" % (vlabel, name))
+                if nav["dupes"] > 1:
+                    flags.append("NAV RENDERED %dx" % nav["dupes"])
+                    failures.append("%s %s: nav duplicated %dx"
+                                    % (vlabel, name, nav["dupes"]))
 
                 mark = "FAIL" if flags else "ok  "
                 print("  %s %-18s %-26s %s" % (

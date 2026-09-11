@@ -3,7 +3,12 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScoreResults } from "@/features/staff-pwa/components/score-results";
 import { staffApi } from "@/features/staff-pwa/api/staffApi";
-import { diegoScoreResult, scenarios } from "@/lib/mock/seed";
+import {
+  completedAttempt,
+  historyAug26Attempt,
+  historyAug29Attempt,
+  scenarios,
+} from "@/lib/mock/seed";
 
 const MONTH_SHORT = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -22,9 +27,23 @@ export default async function ResultsPage(
   props: PageProps<"/staff/results/[id]">
 ) {
   const { id } = await props.params;
-  const attempt = await staffApi.getAttempt(id);
-  const result =
-    attempt?.result ?? (id === "8a4e-diego" ? diegoScoreResult : null);
+
+  // The practice history is seeded, because there is no endpoint that lists a
+  // person's past attempts yet. Those rows carry readable ids the database has
+  // never held, so ask the API first and fall back to the seed rather than
+  // showing an error for a link the app itself rendered.
+  const seeded = new Map(
+    [completedAttempt, historyAug29Attempt, historyAug26Attempt].map(
+      (a) => [a.id, a] as const
+    )
+  );
+
+  // The API client throws on any non-2xx, including the 404 the API now
+  // returns for an id it has never held. A missing attempt is an ordinary
+  // outcome here, not a failure, so swallow it and let the seed answer.
+  const fetched = await staffApi.getAttempt(id).catch(() => undefined);
+  const attempt = fetched ?? seeded.get(id);
+  const result = attempt?.result ?? null;
   const scenarioId = attempt?.scenario_id ?? result?.scenario_id ?? null;
   const scenario = scenarioId
     ? scenarios.find((s) => s.id === scenarioId)

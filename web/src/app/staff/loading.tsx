@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ScreenNav } from "@/components/screen-nav";
 
 /** The staff side of the same problem. See manager/loading.tsx for why.
  *
@@ -11,9 +10,6 @@ import { ScreenNav } from "@/components/screen-nav";
 export default function StaffLoading() {
   return (
     <div className="space-y-5">
-      {/* Present from the first frame: during a cold start this
-          screen is all there is for up to a minute. */}
-      <ScreenNav />
       <style>{`@keyframes ce-late-hint { to { opacity: 1 } }`}</style>
 
       <div className="space-y-2">
