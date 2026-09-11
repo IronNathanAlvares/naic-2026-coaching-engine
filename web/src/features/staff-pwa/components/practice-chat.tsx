@@ -140,7 +140,11 @@ export function PracticeChat({
   const completingRef = useRef(false);
 
   const latestTurn = attempt.turns[attempt.turns.length - 1];
-  const TOTAL_TURNS = latestTurn?.turns_remaining ?? 6;
+  // The server owns the limit (CE_MAX_PRACTICE_TURNS, 4 by default) and sends
+  // it with every turn. This fallback only fires if a turn arrives without
+  // one, and it matches the server default so the progress dots do not
+  // suddenly draw a different number of them.
+  const TOTAL_TURNS = latestTurn?.turns_remaining ?? 4;
   const [remaining, setRemaining] = useState(
     latestTurn?.turns_remaining ?? TOTAL_TURNS
   );

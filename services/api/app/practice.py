@@ -17,6 +17,7 @@ exactly the gaming behaviour we designed against.
 from __future__ import annotations
 
 import json
+import os
 
 from .agent import score_transcript
 from .providers import (ProviderError, Trace, complete, speak, transcribe,
@@ -53,7 +54,16 @@ INCIDENT_SCHEMA = {
     },
 }
 
-MAX_TURNS = 8
+# How many turns a staff member gets before the conversation closes.
+#
+# Eight is right for real practice and too long to show: a demo needs the guest
+# to soften, the reply to land and the scoring to appear inside a minute. Four
+# does that and still gives the guest room to react to what was actually said,
+# which is the point of the scenario.
+#
+# Env-overridable because nobody pushes code on pitch day: a push restarts the
+# API for about three minutes. Changing this is a dashboard edit instead.
+MAX_TURNS = int(os.environ.get("CE_MAX_PRACTICE_TURNS", "4"))
 
 
 # ---------------------------------------------------------------- scenarios
