@@ -181,35 +181,88 @@
   },
   {
     "id": "inc-010",
-    "staff_id": "staff-001",
-    "staff_name": "Diego",
-    "occurred_at": "2026-07-22",
-    "situation_type": "billing_dispute",
-    "guest_emotion": "resigned",
+    "staff_id": "staff-029",
+    "staff_name": "Aoife",
+    "occurred_at": "2026-09-10",
+    "situation_type": "guest_abuse_toward_staff",
+    "guest_emotion": "upset",
     "staff_actions": [
-      "escalated",
-      "offered_compensation"
+      "finished the shift",
+      "did not report it at the time"
     ],
-    "outcome": "resolved",
-    "transcript": "[GUEST_NAME] checking out disputed a charge on the bill. I explained where it came from but he wasn't having it. I couldn't take it off myself so I called Marta.",
+    "outcome": "unresolved",
+    "transcript": "Table by the window got very personal with me when I said the kitchen had closed. Not about the food, about me. I finished the shift but I did not say anything to anyone at the time.",
     "dimensions_touched": [
-      "communication",
-      "anticipation"
+      "composure"
     ],
-    "grounding_chunk_id": "chunk-015"
+    "grounding_chunk_id": null
   },
   {
     "id": "inc-011",
+    "staff_id": "staff-030",
+    "staff_name": "Marek",
+    "occurred_at": "2026-09-04",
+    "situation_type": "guest_abuse_toward_staff",
+    "guest_emotion": "upset",
+    "staff_actions": [
+      "finished the shift",
+      "did not report it at the time"
+    ],
+    "outcome": "unresolved",
+    "transcript": "One of the guests at the bar kept making comments. I laughed it off because it was busy and I did not want a scene, but it stayed with me on the way home.",
+    "dimensions_touched": [
+      "composure"
+    ],
+    "grounding_chunk_id": null
+  },
+  {
+    "id": "inc-012",
+    "staff_id": "staff-031",
+    "staff_name": "Chloe",
+    "occurred_at": "2026-08-02",
+    "situation_type": "guest_abuse_toward_staff",
+    "guest_emotion": "upset",
+    "staff_actions": [
+      "finished the shift",
+      "did not report it at the time"
+    ],
+    "outcome": "unresolved",
+    "transcript": "A guest raised his voice at me in front of the whole section over a bill that was correct. Marta was not on the floor and I did not want to pull anyone away, so I just took it.",
+    "dimensions_touched": [
+      "composure"
+    ],
+    "grounding_chunk_id": null
+  },
+  {
+    "id": "inc-013",
     "staff_id": "staff-001",
     "staff_name": "Diego",
-    "occurred_at": "2026-08-04",
-    "situation_type": "system_down",
+    "occurred_at": "2026-08-07",
+    "situation_type": "noise_complaint",
     "guest_emotion": "calm",
     "staff_actions": [
-      "explained",
-      "resolved_self"
+      "resolved_self",
+      "offered_compensation"
     ],
     "outcome": "escalated",
+    "transcript": "Guest rang down about noise from the function room. I apologised and said I'd look into it. Wasn't really sure what I could offer so I just said sorry again.",
+    "dimensions_touched": [
+      "service_recovery"
+    ],
+    "grounding_chunk_id": "chunk-006"
+  },
+  {
+    "id": "inc-014",
+    "staff_id": "staff-001",
+    "staff_name": "Diego",
+    "occurred_at": "2026-08-06",
+    "situation_type": "system_down",
+    "guest_emotion": "resigned",
+    "staff_actions": [
+      "explained",
+      "escalated"
+    ],
+    "outcome": "resolved",
     "transcript": "PMS went down during a busy check-in. Explained to everyone it'd take a bit longer and did them manually. People were mostly fine about it once I told them what was happening.",
     "dimensions_touched": [
       "communication",
@@ -218,18 +271,18 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-012",
+    "id": "inc-015",
     "staff_id": "staff-001",
     "staff_name": "Diego",
     "occurred_at": "2026-07-28",
-    "situation_type": "billing_dispute",
+    "situation_type": "system_down",
     "guest_emotion": "frustrated",
     "staff_actions": [
       "offered_compensation",
       "escalated"
     ],
     "outcome": "partially_resolved",
-    "transcript": "[GUEST_NAME] checking out disputed a charge on the bill. I explained where it came from but he wasn't having it. I couldn't take it off myself so I called Marta.",
+    "transcript": "PMS went down during a busy check-in. Explained to everyone it'd take a bit longer and did them manually. People were mostly fine about it once I told them what was happening.",
     "dimensions_touched": [
       "communication",
       "anticipation"
@@ -237,7 +290,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-013",
+    "id": "inc-016",
     "staff_id": "staff-002",
     "staff_name": "Niamh",
     "occurred_at": "2026-08-14",
@@ -256,7 +309,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-014",
+    "id": "inc-017",
     "staff_id": "staff-002",
     "staff_name": "Niamh",
     "occurred_at": "2026-08-16",
@@ -274,7 +327,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-015",
+    "id": "inc-018",
     "staff_id": "staff-002",
     "staff_name": "Niamh",
     "occurred_at": "2026-08-14",
@@ -293,7 +346,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-016",
+    "id": "inc-019",
     "staff_id": "staff-002",
     "staff_name": "Niamh",
     "occurred_at": "2026-07-17",
@@ -312,7 +365,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-017",
+    "id": "inc-020",
     "staff_id": "staff-002",
     "staff_name": "Niamh",
     "occurred_at": "2026-07-25",
@@ -330,7 +383,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-018",
+    "id": "inc-021",
     "staff_id": "staff-003",
     "staff_name": "Tomasz",
     "occurred_at": "2026-07-25",
@@ -349,7 +402,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-019",
+    "id": "inc-022",
     "staff_id": "staff-003",
     "staff_name": "Tomasz",
     "occurred_at": "2026-08-03",
@@ -368,7 +421,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-020",
+    "id": "inc-023",
     "staff_id": "staff-003",
     "staff_name": "Tomasz",
     "occurred_at": "2026-08-10",
@@ -386,7 +439,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-021",
+    "id": "inc-024",
     "staff_id": "staff-004",
     "staff_name": "Rachel",
     "occurred_at": "2026-09-08",
@@ -405,7 +458,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-022",
+    "id": "inc-025",
     "staff_id": "staff-004",
     "staff_name": "Rachel",
     "occurred_at": "2026-07-30",
@@ -423,7 +476,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-023",
+    "id": "inc-026",
     "staff_id": "staff-004",
     "staff_name": "Rachel",
     "occurred_at": "2026-07-24",
@@ -442,7 +495,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-024",
+    "id": "inc-027",
     "staff_id": "staff-004",
     "staff_name": "Rachel",
     "occurred_at": "2026-08-10",
@@ -460,7 +513,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-025",
+    "id": "inc-028",
     "staff_id": "staff-005",
     "staff_name": "Kwame",
     "occurred_at": "2026-07-24",
@@ -479,7 +532,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-026",
+    "id": "inc-029",
     "staff_id": "staff-005",
     "staff_name": "Kwame",
     "occurred_at": "2026-08-21",
@@ -498,7 +551,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-027",
+    "id": "inc-030",
     "staff_id": "staff-005",
     "staff_name": "Kwame",
     "occurred_at": "2026-08-15",
@@ -517,7 +570,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-028",
+    "id": "inc-031",
     "staff_id": "staff-005",
     "staff_name": "Kwame",
     "occurred_at": "2026-08-07",
@@ -536,7 +589,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-029",
+    "id": "inc-032",
     "staff_id": "staff-005",
     "staff_name": "Kwame",
     "occurred_at": "2026-08-13",
@@ -555,7 +608,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-030",
+    "id": "inc-033",
     "staff_id": "staff-006",
     "staff_name": "Lucia",
     "occurred_at": "2026-07-19",
@@ -574,7 +627,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-031",
+    "id": "inc-034",
     "staff_id": "staff-006",
     "staff_name": "Lucia",
     "occurred_at": "2026-09-08",
@@ -593,7 +646,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-032",
+    "id": "inc-035",
     "staff_id": "staff-006",
     "staff_name": "Lucia",
     "occurred_at": "2026-08-24",
@@ -612,7 +665,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-033",
+    "id": "inc-036",
     "staff_id": "staff-006",
     "staff_name": "Lucia",
     "occurred_at": "2026-07-24",
@@ -630,7 +683,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-034",
+    "id": "inc-037",
     "staff_id": "staff-006",
     "staff_name": "Lucia",
     "occurred_at": "2026-09-02",
@@ -649,7 +702,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-035",
+    "id": "inc-038",
     "staff_id": "staff-007",
     "staff_name": "Sean",
     "occurred_at": "2026-08-29",
@@ -668,7 +721,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-036",
+    "id": "inc-039",
     "staff_id": "staff-007",
     "staff_name": "Sean",
     "occurred_at": "2026-08-05",
@@ -686,7 +739,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-037",
+    "id": "inc-040",
     "staff_id": "staff-007",
     "staff_name": "Sean",
     "occurred_at": "2026-08-26",
@@ -704,7 +757,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-038",
+    "id": "inc-041",
     "staff_id": "staff-008",
     "staff_name": "Priya",
     "occurred_at": "2026-08-04",
@@ -723,7 +776,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-039",
+    "id": "inc-042",
     "staff_id": "staff-008",
     "staff_name": "Priya",
     "occurred_at": "2026-07-23",
@@ -742,7 +795,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-040",
+    "id": "inc-043",
     "staff_id": "staff-008",
     "staff_name": "Priya",
     "occurred_at": "2026-07-31",
@@ -761,7 +814,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-041",
+    "id": "inc-044",
     "staff_id": "staff-009",
     "staff_name": "Andrei",
     "occurred_at": "2026-09-01",
@@ -780,7 +833,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-042",
+    "id": "inc-045",
     "staff_id": "staff-009",
     "staff_name": "Andrei",
     "occurred_at": "2026-08-01",
@@ -799,7 +852,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-043",
+    "id": "inc-046",
     "staff_id": "staff-009",
     "staff_name": "Andrei",
     "occurred_at": "2026-08-23",
@@ -818,7 +871,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-044",
+    "id": "inc-047",
     "staff_id": "staff-010",
     "staff_name": "Yusuf",
     "occurred_at": "2026-09-08",
@@ -837,7 +890,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-045",
+    "id": "inc-048",
     "staff_id": "staff-010",
     "staff_name": "Yusuf",
     "occurred_at": "2026-08-09",
@@ -856,7 +909,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-046",
+    "id": "inc-049",
     "staff_id": "staff-010",
     "staff_name": "Yusuf",
     "occurred_at": "2026-09-06",
@@ -875,7 +928,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-047",
+    "id": "inc-050",
     "staff_id": "staff-011",
     "staff_name": "Katarzyna",
     "occurred_at": "2026-09-06",
@@ -894,7 +947,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-048",
+    "id": "inc-051",
     "staff_id": "staff-011",
     "staff_name": "Katarzyna",
     "occurred_at": "2026-07-18",
@@ -912,7 +965,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-049",
+    "id": "inc-052",
     "staff_id": "staff-011",
     "staff_name": "Katarzyna",
     "occurred_at": "2026-08-19",
@@ -931,7 +984,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-050",
+    "id": "inc-053",
     "staff_id": "staff-011",
     "staff_name": "Katarzyna",
     "occurred_at": "2026-07-24",
@@ -950,7 +1003,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-051",
+    "id": "inc-054",
     "staff_id": "staff-012",
     "staff_name": "Emeka",
     "occurred_at": "2026-09-03",
@@ -969,7 +1022,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-052",
+    "id": "inc-055",
     "staff_id": "staff-012",
     "staff_name": "Emeka",
     "occurred_at": "2026-09-02",
@@ -987,7 +1040,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-053",
+    "id": "inc-056",
     "staff_id": "staff-012",
     "staff_name": "Emeka",
     "occurred_at": "2026-07-18",
@@ -1005,7 +1058,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-054",
+    "id": "inc-057",
     "staff_id": "staff-012",
     "staff_name": "Emeka",
     "occurred_at": "2026-09-04",
@@ -1023,7 +1076,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-055",
+    "id": "inc-058",
     "staff_id": "staff-012",
     "staff_name": "Emeka",
     "occurred_at": "2026-08-08",
@@ -1042,7 +1095,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-056",
+    "id": "inc-059",
     "staff_id": "staff-013",
     "staff_name": "Siobhan",
     "occurred_at": "2026-08-04",
@@ -1061,7 +1114,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-057",
+    "id": "inc-060",
     "staff_id": "staff-013",
     "staff_name": "Siobhan",
     "occurred_at": "2026-08-01",
@@ -1080,7 +1133,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-058",
+    "id": "inc-061",
     "staff_id": "staff-013",
     "staff_name": "Siobhan",
     "occurred_at": "2026-07-31",
@@ -1099,7 +1152,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-059",
+    "id": "inc-062",
     "staff_id": "staff-013",
     "staff_name": "Siobhan",
     "occurred_at": "2026-07-20",
@@ -1118,7 +1171,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-060",
+    "id": "inc-063",
     "staff_id": "staff-014",
     "staff_name": "Mateusz",
     "occurred_at": "2026-07-19",
@@ -1137,7 +1190,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-061",
+    "id": "inc-064",
     "staff_id": "staff-014",
     "staff_name": "Mateusz",
     "occurred_at": "2026-08-29",
@@ -1156,7 +1209,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-062",
+    "id": "inc-065",
     "staff_id": "staff-014",
     "staff_name": "Mateusz",
     "occurred_at": "2026-08-05",
@@ -1175,7 +1228,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-063",
+    "id": "inc-066",
     "staff_id": "staff-014",
     "staff_name": "Mateusz",
     "occurred_at": "2026-09-02",
@@ -1194,7 +1247,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-064",
+    "id": "inc-067",
     "staff_id": "staff-014",
     "staff_name": "Mateusz",
     "occurred_at": "2026-08-15",
@@ -1213,7 +1266,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-065",
+    "id": "inc-068",
     "staff_id": "staff-015",
     "staff_name": "Adaeze",
     "occurred_at": "2026-08-16",
@@ -1232,7 +1285,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-066",
+    "id": "inc-069",
     "staff_id": "staff-015",
     "staff_name": "Adaeze",
     "occurred_at": "2026-08-13",
@@ -1251,7 +1304,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-067",
+    "id": "inc-070",
     "staff_id": "staff-015",
     "staff_name": "Adaeze",
     "occurred_at": "2026-08-25",
@@ -1270,7 +1323,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-068",
+    "id": "inc-071",
     "staff_id": "staff-015",
     "staff_name": "Adaeze",
     "occurred_at": "2026-08-26",
@@ -1289,7 +1342,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-069",
+    "id": "inc-072",
     "staff_id": "staff-015",
     "staff_name": "Adaeze",
     "occurred_at": "2026-08-24",
@@ -1308,7 +1361,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-070",
+    "id": "inc-073",
     "staff_id": "staff-016",
     "staff_name": "Ciaran",
     "occurred_at": "2026-08-29",
@@ -1327,7 +1380,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-071",
+    "id": "inc-074",
     "staff_id": "staff-016",
     "staff_name": "Ciaran",
     "occurred_at": "2026-08-24",
@@ -1346,7 +1399,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-072",
+    "id": "inc-075",
     "staff_id": "staff-016",
     "staff_name": "Ciaran",
     "occurred_at": "2026-08-07",
@@ -1364,7 +1417,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-073",
+    "id": "inc-076",
     "staff_id": "staff-016",
     "staff_name": "Ciaran",
     "occurred_at": "2026-08-01",
@@ -1383,7 +1436,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-074",
+    "id": "inc-077",
     "staff_id": "staff-016",
     "staff_name": "Ciaran",
     "occurred_at": "2026-08-06",
@@ -1401,7 +1454,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-075",
+    "id": "inc-078",
     "staff_id": "staff-017",
     "staff_name": "Ingrid",
     "occurred_at": "2026-08-29",
@@ -1420,7 +1473,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-076",
+    "id": "inc-079",
     "staff_id": "staff-017",
     "staff_name": "Ingrid",
     "occurred_at": "2026-07-17",
@@ -1439,7 +1492,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-077",
+    "id": "inc-080",
     "staff_id": "staff-017",
     "staff_name": "Ingrid",
     "occurred_at": "2026-08-23",
@@ -1458,7 +1511,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-078",
+    "id": "inc-081",
     "staff_id": "staff-018",
     "staff_name": "Rafal",
     "occurred_at": "2026-08-08",
@@ -1476,7 +1529,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-079",
+    "id": "inc-082",
     "staff_id": "staff-018",
     "staff_name": "Rafal",
     "occurred_at": "2026-08-11",
@@ -1495,7 +1548,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-080",
+    "id": "inc-083",
     "staff_id": "staff-018",
     "staff_name": "Rafal",
     "occurred_at": "2026-09-02",
@@ -1513,7 +1566,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-081",
+    "id": "inc-084",
     "staff_id": "staff-018",
     "staff_name": "Rafal",
     "occurred_at": "2026-09-03",
@@ -1531,7 +1584,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-082",
+    "id": "inc-085",
     "staff_id": "staff-018",
     "staff_name": "Rafal",
     "occurred_at": "2026-07-24",
@@ -1550,7 +1603,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-083",
+    "id": "inc-086",
     "staff_id": "staff-019",
     "staff_name": "Nuala",
     "occurred_at": "2026-07-26",
@@ -1568,7 +1621,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-084",
+    "id": "inc-087",
     "staff_id": "staff-019",
     "staff_name": "Nuala",
     "occurred_at": "2026-08-15",
@@ -1586,7 +1639,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-085",
+    "id": "inc-088",
     "staff_id": "staff-019",
     "staff_name": "Nuala",
     "occurred_at": "2026-08-02",
@@ -1605,7 +1658,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-086",
+    "id": "inc-089",
     "staff_id": "staff-020",
     "staff_name": "Tomas",
     "occurred_at": "2026-09-06",
@@ -1623,7 +1676,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-087",
+    "id": "inc-090",
     "staff_id": "staff-020",
     "staff_name": "Tomas",
     "occurred_at": "2026-08-07",
@@ -1642,7 +1695,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-088",
+    "id": "inc-091",
     "staff_id": "staff-020",
     "staff_name": "Tomas",
     "occurred_at": "2026-07-26",
@@ -1661,7 +1714,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-089",
+    "id": "inc-092",
     "staff_id": "staff-021",
     "staff_name": "Blessing",
     "occurred_at": "2026-07-23",
@@ -1680,7 +1733,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-090",
+    "id": "inc-093",
     "staff_id": "staff-021",
     "staff_name": "Blessing",
     "occurred_at": "2026-09-03",
@@ -1698,7 +1751,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-091",
+    "id": "inc-094",
     "staff_id": "staff-021",
     "staff_name": "Blessing",
     "occurred_at": "2026-08-07",
@@ -1716,7 +1769,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-092",
+    "id": "inc-095",
     "staff_id": "staff-021",
     "staff_name": "Blessing",
     "occurred_at": "2026-07-29",
@@ -1734,7 +1787,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-093",
+    "id": "inc-096",
     "staff_id": "staff-021",
     "staff_name": "Blessing",
     "occurred_at": "2026-09-06",
@@ -1752,7 +1805,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-094",
+    "id": "inc-097",
     "staff_id": "staff-022",
     "staff_name": "Orla",
     "occurred_at": "2026-07-24",
@@ -1770,7 +1823,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-095",
+    "id": "inc-098",
     "staff_id": "staff-022",
     "staff_name": "Orla",
     "occurred_at": "2026-08-13",
@@ -1788,7 +1841,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-096",
+    "id": "inc-099",
     "staff_id": "staff-022",
     "staff_name": "Orla",
     "occurred_at": "2026-09-08",
@@ -1806,7 +1859,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-097",
+    "id": "inc-100",
     "staff_id": "staff-022",
     "staff_name": "Orla",
     "occurred_at": "2026-07-17",
@@ -1825,7 +1878,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-098",
+    "id": "inc-101",
     "staff_id": "staff-023",
     "staff_name": "Hassan",
     "occurred_at": "2026-07-27",
@@ -1843,7 +1896,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-099",
+    "id": "inc-102",
     "staff_id": "staff-023",
     "staff_name": "Hassan",
     "occurred_at": "2026-08-12",
@@ -1862,7 +1915,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-100",
+    "id": "inc-103",
     "staff_id": "staff-023",
     "staff_name": "Hassan",
     "occurred_at": "2026-07-22",
@@ -1880,7 +1933,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-101",
+    "id": "inc-104",
     "staff_id": "staff-023",
     "staff_name": "Hassan",
     "occurred_at": "2026-08-03",
@@ -1899,7 +1952,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-102",
+    "id": "inc-105",
     "staff_id": "staff-024",
     "staff_name": "Petra",
     "occurred_at": "2026-07-20",
@@ -1918,7 +1971,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-103",
+    "id": "inc-106",
     "staff_id": "staff-024",
     "staff_name": "Petra",
     "occurred_at": "2026-08-09",
@@ -1937,7 +1990,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-104",
+    "id": "inc-107",
     "staff_id": "staff-024",
     "staff_name": "Petra",
     "occurred_at": "2026-07-23",
@@ -1956,7 +2009,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-105",
+    "id": "inc-108",
     "staff_id": "staff-024",
     "staff_name": "Petra",
     "occurred_at": "2026-08-01",
@@ -1974,7 +2027,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-106",
+    "id": "inc-109",
     "staff_id": "staff-025",
     "staff_name": "Declan",
     "occurred_at": "2026-08-01",
@@ -1992,7 +2045,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-107",
+    "id": "inc-110",
     "staff_id": "staff-025",
     "staff_name": "Declan",
     "occurred_at": "2026-08-21",
@@ -2010,7 +2063,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-108",
+    "id": "inc-111",
     "staff_id": "staff-025",
     "staff_name": "Declan",
     "occurred_at": "2026-09-04",
@@ -2029,7 +2082,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-109",
+    "id": "inc-112",
     "staff_id": "staff-025",
     "staff_name": "Declan",
     "occurred_at": "2026-09-10",
@@ -2048,7 +2101,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-110",
+    "id": "inc-113",
     "staff_id": "staff-026",
     "staff_name": "Amara",
     "occurred_at": "2026-08-13",
@@ -2066,7 +2119,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-111",
+    "id": "inc-114",
     "staff_id": "staff-026",
     "staff_name": "Amara",
     "occurred_at": "2026-07-30",
@@ -2085,7 +2138,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-112",
+    "id": "inc-115",
     "staff_id": "staff-026",
     "staff_name": "Amara",
     "occurred_at": "2026-09-09",
@@ -2104,7 +2157,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-113",
+    "id": "inc-116",
     "staff_id": "staff-026",
     "staff_name": "Amara",
     "occurred_at": "2026-08-28",
@@ -2123,7 +2176,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-114",
+    "id": "inc-117",
     "staff_id": "staff-027",
     "staff_name": "Lukasz",
     "occurred_at": "2026-08-12",
@@ -2142,7 +2195,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-115",
+    "id": "inc-118",
     "staff_id": "staff-027",
     "staff_name": "Lukasz",
     "occurred_at": "2026-08-14",
@@ -2160,7 +2213,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-116",
+    "id": "inc-119",
     "staff_id": "staff-027",
     "staff_name": "Lukasz",
     "occurred_at": "2026-08-02",
@@ -2178,7 +2231,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-117",
+    "id": "inc-120",
     "staff_id": "staff-028",
     "staff_name": "Roisin",
     "occurred_at": "2026-07-29",
@@ -2196,7 +2249,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-118",
+    "id": "inc-121",
     "staff_id": "staff-028",
     "staff_name": "Roisin",
     "occurred_at": "2026-08-29",
@@ -2215,7 +2268,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-119",
+    "id": "inc-122",
     "staff_id": "staff-028",
     "staff_name": "Roisin",
     "occurred_at": "2026-08-09",
@@ -2233,7 +2286,7 @@
     "grounding_chunk_id": "chunk-006"
   },
   {
-    "id": "inc-120",
+    "id": "inc-123",
     "staff_id": "staff-028",
     "staff_name": "Roisin",
     "occurred_at": "2026-07-26",
@@ -2252,7 +2305,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-121",
+    "id": "inc-124",
     "staff_id": "staff-029",
     "staff_name": "Aoife",
     "occurred_at": "2026-08-14",
@@ -2271,7 +2324,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-122",
+    "id": "inc-125",
     "staff_id": "staff-029",
     "staff_name": "Aoife",
     "occurred_at": "2026-08-21",
@@ -2290,7 +2343,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-123",
+    "id": "inc-126",
     "staff_id": "staff-029",
     "staff_name": "Aoife",
     "occurred_at": "2026-09-09",
@@ -2308,7 +2361,7 @@
     "grounding_chunk_id": "chunk-001"
   },
   {
-    "id": "inc-124",
+    "id": "inc-127",
     "staff_id": "staff-029",
     "staff_name": "Aoife",
     "occurred_at": "2026-08-16",
@@ -2327,7 +2380,7 @@
     "grounding_chunk_id": null
   },
   {
-    "id": "inc-125",
+    "id": "inc-128",
     "staff_id": "staff-029",
     "staff_name": "Aoife",
     "occurred_at": "2026-08-21",
@@ -2346,7 +2399,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-126",
+    "id": "inc-129",
     "staff_id": "staff-030",
     "staff_name": "Marek",
     "occurred_at": "2026-07-23",
@@ -2365,7 +2418,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-127",
+    "id": "inc-130",
     "staff_id": "staff-030",
     "staff_name": "Marek",
     "occurred_at": "2026-07-20",
@@ -2384,7 +2437,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-128",
+    "id": "inc-131",
     "staff_id": "staff-030",
     "staff_name": "Marek",
     "occurred_at": "2026-08-28",
@@ -2403,7 +2456,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-129",
+    "id": "inc-132",
     "staff_id": "staff-030",
     "staff_name": "Marek",
     "occurred_at": "2026-08-07",
@@ -2422,7 +2475,7 @@
     "grounding_chunk_id": null
   },
   {
-    "id": "inc-130",
+    "id": "inc-133",
     "staff_id": "staff-030",
     "staff_name": "Marek",
     "occurred_at": "2026-09-02",
@@ -2441,7 +2494,7 @@
     "grounding_chunk_id": null
   },
   {
-    "id": "inc-131",
+    "id": "inc-134",
     "staff_id": "staff-031",
     "staff_name": "Chloe",
     "occurred_at": "2026-08-31",
@@ -2460,7 +2513,7 @@
     "grounding_chunk_id": null
   },
   {
-    "id": "inc-132",
+    "id": "inc-135",
     "staff_id": "staff-031",
     "staff_name": "Chloe",
     "occurred_at": "2026-08-15",
@@ -2479,7 +2532,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-133",
+    "id": "inc-136",
     "staff_id": "staff-031",
     "staff_name": "Chloe",
     "occurred_at": "2026-08-16",
@@ -2498,7 +2551,7 @@
     "grounding_chunk_id": null
   },
   {
-    "id": "inc-134",
+    "id": "inc-137",
     "staff_id": "staff-031",
     "staff_name": "Chloe",
     "occurred_at": "2026-08-25",
@@ -2517,7 +2570,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-135",
+    "id": "inc-138",
     "staff_id": "staff-032",
     "staff_name": "Bogdan",
     "occurred_at": "2026-09-08",
@@ -2536,7 +2589,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-136",
+    "id": "inc-139",
     "staff_id": "staff-032",
     "staff_name": "Bogdan",
     "occurred_at": "2026-07-27",
@@ -2554,7 +2607,7 @@
     "grounding_chunk_id": "chunk-001"
   },
   {
-    "id": "inc-137",
+    "id": "inc-140",
     "staff_id": "staff-032",
     "staff_name": "Bogdan",
     "occurred_at": "2026-08-01",
@@ -2573,7 +2626,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-138",
+    "id": "inc-141",
     "staff_id": "staff-033",
     "staff_name": "Giulia",
     "occurred_at": "2026-07-29",
@@ -2592,7 +2645,7 @@
     "grounding_chunk_id": null
   },
   {
-    "id": "inc-139",
+    "id": "inc-142",
     "staff_id": "staff-033",
     "staff_name": "Giulia",
     "occurred_at": "2026-07-17",
@@ -2611,7 +2664,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-140",
+    "id": "inc-143",
     "staff_id": "staff-033",
     "staff_name": "Giulia",
     "occurred_at": "2026-08-16",
@@ -2630,7 +2683,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-141",
+    "id": "inc-144",
     "staff_id": "staff-033",
     "staff_name": "Giulia",
     "occurred_at": "2026-07-21",
@@ -2649,7 +2702,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-142",
+    "id": "inc-145",
     "staff_id": "staff-033",
     "staff_name": "Giulia",
     "occurred_at": "2026-07-30",
@@ -2667,7 +2720,7 @@
     "grounding_chunk_id": "chunk-001"
   },
   {
-    "id": "inc-143",
+    "id": "inc-146",
     "staff_id": "staff-034",
     "staff_name": "Padraig",
     "occurred_at": "2026-08-11",
@@ -2686,7 +2739,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-144",
+    "id": "inc-147",
     "staff_id": "staff-034",
     "staff_name": "Padraig",
     "occurred_at": "2026-08-04",
@@ -2705,7 +2758,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-145",
+    "id": "inc-148",
     "staff_id": "staff-034",
     "staff_name": "Padraig",
     "occurred_at": "2026-07-19",
@@ -2723,7 +2776,7 @@
     "grounding_chunk_id": "chunk-001"
   },
   {
-    "id": "inc-146",
+    "id": "inc-149",
     "staff_id": "staff-035",
     "staff_name": "Zofia",
     "occurred_at": "2026-09-05",
@@ -2742,7 +2795,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-147",
+    "id": "inc-150",
     "staff_id": "staff-035",
     "staff_name": "Zofia",
     "occurred_at": "2026-08-22",
@@ -2761,7 +2814,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-148",
+    "id": "inc-151",
     "staff_id": "staff-035",
     "staff_name": "Zofia",
     "occurred_at": "2026-08-27",
@@ -2780,7 +2833,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-149",
+    "id": "inc-152",
     "staff_id": "staff-035",
     "staff_name": "Zofia",
     "occurred_at": "2026-07-28",
@@ -2798,7 +2851,7 @@
     "grounding_chunk_id": "chunk-001"
   },
   {
-    "id": "inc-150",
+    "id": "inc-153",
     "staff_id": "staff-036",
     "staff_name": "Kwabena",
     "occurred_at": "2026-08-18",
@@ -2817,7 +2870,7 @@
     "grounding_chunk_id": null
   },
   {
-    "id": "inc-151",
+    "id": "inc-154",
     "staff_id": "staff-036",
     "staff_name": "Kwabena",
     "occurred_at": "2026-08-06",
@@ -2835,7 +2888,7 @@
     "grounding_chunk_id": "chunk-001"
   },
   {
-    "id": "inc-152",
+    "id": "inc-155",
     "staff_id": "staff-036",
     "staff_name": "Kwabena",
     "occurred_at": "2026-08-14",
@@ -2854,7 +2907,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-153",
+    "id": "inc-156",
     "staff_id": "staff-036",
     "staff_name": "Kwabena",
     "occurred_at": "2026-08-12",
@@ -2873,7 +2926,7 @@
     "grounding_chunk_id": null
   },
   {
-    "id": "inc-154",
+    "id": "inc-157",
     "staff_id": "staff-036",
     "staff_name": "Kwabena",
     "occurred_at": "2026-09-03",
@@ -2892,7 +2945,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-155",
+    "id": "inc-158",
     "staff_id": "staff-037",
     "staff_name": "Eimear",
     "occurred_at": "2026-07-17",
@@ -2911,7 +2964,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-156",
+    "id": "inc-159",
     "staff_id": "staff-037",
     "staff_name": "Eimear",
     "occurred_at": "2026-08-20",
@@ -2930,7 +2983,7 @@
     "grounding_chunk_id": null
   },
   {
-    "id": "inc-157",
+    "id": "inc-160",
     "staff_id": "staff-037",
     "staff_name": "Eimear",
     "occurred_at": "2026-07-20",
@@ -2948,7 +3001,7 @@
     "grounding_chunk_id": "chunk-001"
   },
   {
-    "id": "inc-158",
+    "id": "inc-161",
     "staff_id": "staff-038",
     "staff_name": "Dmytro",
     "occurred_at": "2026-07-23",
@@ -2967,7 +3020,7 @@
     "grounding_chunk_id": null
   },
   {
-    "id": "inc-159",
+    "id": "inc-162",
     "staff_id": "staff-038",
     "staff_name": "Dmytro",
     "occurred_at": "2026-08-17",
@@ -2986,7 +3039,7 @@
     "grounding_chunk_id": null
   },
   {
-    "id": "inc-160",
+    "id": "inc-163",
     "staff_id": "staff-038",
     "staff_name": "Dmytro",
     "occurred_at": "2026-09-03",
@@ -3005,7 +3058,7 @@
     "grounding_chunk_id": null
   },
   {
-    "id": "inc-161",
+    "id": "inc-164",
     "staff_id": "staff-039",
     "staff_name": "Sinead",
     "occurred_at": "2026-08-10",
@@ -3024,7 +3077,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-162",
+    "id": "inc-165",
     "staff_id": "staff-039",
     "staff_name": "Sinead",
     "occurred_at": "2026-07-25",
@@ -3042,7 +3095,7 @@
     "grounding_chunk_id": "chunk-001"
   },
   {
-    "id": "inc-163",
+    "id": "inc-166",
     "staff_id": "staff-039",
     "staff_name": "Sinead",
     "occurred_at": "2026-08-04",
@@ -3061,7 +3114,7 @@
     "grounding_chunk_id": null
   },
   {
-    "id": "inc-164",
+    "id": "inc-167",
     "staff_id": "staff-039",
     "staff_name": "Sinead",
     "occurred_at": "2026-08-25",
@@ -3080,7 +3133,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-165",
+    "id": "inc-168",
     "staff_id": "staff-039",
     "staff_name": "Sinead",
     "occurred_at": "2026-07-24",
@@ -3099,7 +3152,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-166",
+    "id": "inc-169",
     "staff_id": "staff-040",
     "staff_name": "Obi",
     "occurred_at": "2026-08-20",
@@ -3118,7 +3171,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-167",
+    "id": "inc-170",
     "staff_id": "staff-040",
     "staff_name": "Obi",
     "occurred_at": "2026-09-02",
@@ -3136,7 +3189,7 @@
     "grounding_chunk_id": "chunk-001"
   },
   {
-    "id": "inc-168",
+    "id": "inc-171",
     "staff_id": "staff-040",
     "staff_name": "Obi",
     "occurred_at": "2026-09-08",
@@ -3155,7 +3208,7 @@
     "grounding_chunk_id": null
   },
   {
-    "id": "inc-169",
+    "id": "inc-172",
     "staff_id": "staff-040",
     "staff_name": "Obi",
     "occurred_at": "2026-07-29",
@@ -3174,7 +3227,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-170",
+    "id": "inc-173",
     "staff_id": "staff-041",
     "staff_name": "Magda",
     "occurred_at": "2026-08-07",
@@ -3193,7 +3246,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-171",
+    "id": "inc-174",
     "staff_id": "staff-041",
     "staff_name": "Magda",
     "occurred_at": "2026-07-19",
@@ -3211,7 +3264,7 @@
     "grounding_chunk_id": "chunk-001"
   },
   {
-    "id": "inc-172",
+    "id": "inc-175",
     "staff_id": "staff-041",
     "staff_name": "Magda",
     "occurred_at": "2026-08-30",
@@ -3229,7 +3282,7 @@
     "grounding_chunk_id": "chunk-001"
   },
   {
-    "id": "inc-173",
+    "id": "inc-176",
     "staff_id": "staff-041",
     "staff_name": "Magda",
     "occurred_at": "2026-08-24",
@@ -3247,7 +3300,7 @@
     "grounding_chunk_id": "chunk-001"
   },
   {
-    "id": "inc-174",
+    "id": "inc-177",
     "staff_id": "staff-041",
     "staff_name": "Magda",
     "occurred_at": "2026-08-30",
@@ -3266,7 +3319,7 @@
     "grounding_chunk_id": null
   },
   {
-    "id": "inc-175",
+    "id": "inc-178",
     "staff_id": "staff-042",
     "staff_name": "Fionn",
     "occurred_at": "2026-08-23",
@@ -3285,7 +3338,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-176",
+    "id": "inc-179",
     "staff_id": "staff-042",
     "staff_name": "Fionn",
     "occurred_at": "2026-07-19",
@@ -3304,7 +3357,7 @@
     "grounding_chunk_id": null
   },
   {
-    "id": "inc-177",
+    "id": "inc-180",
     "staff_id": "staff-042",
     "staff_name": "Fionn",
     "occurred_at": "2026-08-31",
@@ -3323,7 +3376,7 @@
     "grounding_chunk_id": null
   },
   {
-    "id": "inc-178",
+    "id": "inc-181",
     "staff_id": "staff-043",
     "staff_name": "Leila",
     "occurred_at": "2026-08-01",
@@ -3341,7 +3394,7 @@
     "grounding_chunk_id": "chunk-001"
   },
   {
-    "id": "inc-179",
+    "id": "inc-182",
     "staff_id": "staff-043",
     "staff_name": "Leila",
     "occurred_at": "2026-09-04",
@@ -3360,7 +3413,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-180",
+    "id": "inc-183",
     "staff_id": "staff-043",
     "staff_name": "Leila",
     "occurred_at": "2026-08-23",
@@ -3379,7 +3432,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-181",
+    "id": "inc-184",
     "staff_id": "staff-044",
     "staff_name": "Cathal",
     "occurred_at": "2026-09-05",
@@ -3397,7 +3450,7 @@
     "grounding_chunk_id": "chunk-001"
   },
   {
-    "id": "inc-182",
+    "id": "inc-185",
     "staff_id": "staff-044",
     "staff_name": "Cathal",
     "occurred_at": "2026-08-12",
@@ -3416,7 +3469,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-183",
+    "id": "inc-186",
     "staff_id": "staff-044",
     "staff_name": "Cathal",
     "occurred_at": "2026-08-28",
@@ -3435,7 +3488,7 @@
     "grounding_chunk_id": null
   },
   {
-    "id": "inc-184",
+    "id": "inc-187",
     "staff_id": "staff-045",
     "staff_name": "Anca",
     "occurred_at": "2026-08-04",
@@ -3454,7 +3507,7 @@
     "grounding_chunk_id": null
   },
   {
-    "id": "inc-185",
+    "id": "inc-188",
     "staff_id": "staff-045",
     "staff_name": "Anca",
     "occurred_at": "2026-09-04",
@@ -3472,7 +3525,7 @@
     "grounding_chunk_id": "chunk-001"
   },
   {
-    "id": "inc-186",
+    "id": "inc-189",
     "staff_id": "staff-045",
     "staff_name": "Anca",
     "occurred_at": "2026-08-22",
@@ -3491,7 +3544,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-187",
+    "id": "inc-190",
     "staff_id": "staff-045",
     "staff_name": "Anca",
     "occurred_at": "2026-08-16",
@@ -3509,7 +3562,7 @@
     "grounding_chunk_id": "chunk-001"
   },
   {
-    "id": "inc-188",
+    "id": "inc-191",
     "staff_id": "staff-045",
     "staff_name": "Anca",
     "occurred_at": "2026-09-08",
@@ -3527,7 +3580,7 @@
     "grounding_chunk_id": "chunk-001"
   },
   {
-    "id": "inc-189",
+    "id": "inc-192",
     "staff_id": "staff-046",
     "staff_name": "Jibril",
     "occurred_at": "2026-08-08",
@@ -3545,7 +3598,7 @@
     "grounding_chunk_id": "chunk-001"
   },
   {
-    "id": "inc-190",
+    "id": "inc-193",
     "staff_id": "staff-046",
     "staff_name": "Jibril",
     "occurred_at": "2026-08-05",
@@ -3564,7 +3617,7 @@
     "grounding_chunk_id": null
   },
   {
-    "id": "inc-191",
+    "id": "inc-194",
     "staff_id": "staff-046",
     "staff_name": "Jibril",
     "occurred_at": "2026-09-02",
@@ -3583,7 +3636,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-192",
+    "id": "inc-195",
     "staff_id": "staff-046",
     "staff_name": "Jibril",
     "occurred_at": "2026-08-07",
@@ -3602,7 +3655,7 @@
     "grounding_chunk_id": "chunk-015"
   },
   {
-    "id": "inc-193",
+    "id": "inc-196",
     "staff_id": "staff-046",
     "staff_name": "Jibril",
     "occurred_at": "2026-08-25",

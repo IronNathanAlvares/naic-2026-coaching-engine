@@ -306,6 +306,25 @@ def check_vertex() -> tuple[str, str]:
     return FAIL, f"HTTP {code}: {' '.join(body.split())[:140]}"
 
 
+def check_langfuse() -> tuple[str, str]:
+    """Tracing is deliberately silent in production, so check it explicitly.
+
+    export_run() swallows every exception, because a tracing outage must not
+    cost a manager their recommendation. The first version of it called a 2.x
+    API that does not exist in 4.x and the swallow hid that completely: the
+    product was fine and tracing never once worked. This is the only thing
+    that would have caught it.
+    """
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from app import tracing                                   # noqa: PLC0415
+    if not tracing.enabled():
+        return SKIP, "no keys set; tracing is off and the API is unaffected"
+    result = tracing.selftest()
+    if result.get("ok"):
+        return OK, f"trace accepted by {result['host']}"
+    return FAIL, f"configured but not working: {result.get('reason')}"
+
+
 def check_ollama() -> tuple[str, str]:
     host = os.environ.get("OLLAMA_HOST", "http://127.0.0.1:11434")
     code, body = _get(f"{host}/api/tags", {"User-Agent": UA})
@@ -336,6 +355,7 @@ CHECKS = [
     ("Manus           agent tasks", check_manus),
     ("Google          gemini API", check_google),
     ("Google          Vertex AI", check_vertex),
+    ("Langfuse        tracing", check_langfuse),
     ("Ollama          local fallback", check_ollama),
 ]
 

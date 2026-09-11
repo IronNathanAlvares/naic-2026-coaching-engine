@@ -59,6 +59,17 @@ DEMO = {
     "cohort_situation": "room_not_ready",
     "cohort_size": 9,
     "cohort_dept": "front_office",
+    # A situation too rare to report, and the reason k-anonymity is not a
+    # slide. Three people in eight weeks, all in one department: publishing
+    # "3 staff reported guest abuse in F&B" to a team of eighteen identifies
+    # them to anyone who works the rota, whatever the interface claims. It is
+    # suppressed, and the fact of suppression is shown instead.
+    #
+    # Deliberately a welfare matter rather than a performance one, because
+    # that is where re-identification actually costs somebody something.
+    "rare_situation": "guest_abuse_toward_staff",
+    "rare_count": 3,
+    "rare_dept": "f_and_b",
 }
 
 
@@ -345,6 +356,17 @@ def build_staff(rng: random.Random, front_office: int | None = None,
 # Templates written in the register the SOPs imply: tired, mid-sentence, unpolished.
 # Placeholders are already in the typed-redaction form from 02E-LLD.
 INCIDENT_TEMPLATES = {
+    "guest_abuse_toward_staff": [
+        "Table by the window got very personal with me when I said the "
+        "kitchen had closed. Not about the food, about me. I finished the "
+        "shift but I did not say anything to anyone at the time.",
+        "One of the guests at the bar kept making comments. I laughed it off "
+        "because it was busy and I did not want a scene, but it stayed with "
+        "me on the way home.",
+        "A guest raised his voice at me in front of the whole section over a "
+        "bill that was correct. [MANAGER_NAME] was not on the floor and I did "
+        "not want to pull anyone away, so I just took it.",
+    ],
     "room_not_ready": [
         "Had a guest in at three, room wasn't ready, [GUEST_NAME] was not happy at all. "
         "I said sorry and offered {offer} but she just got more annoyed and in the end I "
@@ -428,6 +450,27 @@ def build_incidents(staff: list[Staff], corpus: list[Chunk],
             ["apologised", "offered_compensation", "escalated"],
             "escalated", ["service_recovery", "empathy"],
             # deliberately None: front office has NO documented authority rule
+            None)
+
+    # --- The rare one, assigned to a fixed handful ------------------------
+    #
+    # Outside the random pool on purpose. Drawn randomly across forty-eight
+    # staff it would land on a dozen of them and clear k=5, which is exactly
+    # the outcome that makes a k-anonymity demo prove nothing.
+    rare_pool = [s for s in staff
+                 if s.role == "staff" and s.department == DEMO["rare_dept"]]
+    for idx, s in enumerate(rare_pool[:DEMO["rare_count"]]):
+        tpl = INCIDENT_TEMPLATES[DEMO["rare_situation"]][idx % 3]
+        add(s, DEMO["rare_situation"], rng.randint(1, WINDOW_DAYS),
+            tpl.replace("[MANAGER_NAME]", DEMO["manager"]),
+            "upset", ["finished the shift", "did not report it at the time"],
+            "unresolved",
+            # Composure and empathy are the dimensions a reviewer would reach
+            # for, and both are the wrong frame: this is a welfare matter, not
+            # a performance one.
+            ["composure"],
+            # No standard covers it, which is the second finding here: the
+            # property documents what staff owe guests and not the reverse.
             None)
 
     # --- Everyone else, spread across the window --------------------------
