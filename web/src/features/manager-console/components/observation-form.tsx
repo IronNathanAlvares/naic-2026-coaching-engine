@@ -1,12 +1,5 @@
 "use client";
 
-// Talks to the API through http from lib/api/client, never a bare fetch to a
-// relative path. A relative "/api/v1/..." resolves against whatever host serves
-// the page, so once deployed the browser asks the WEBSITE for coaching data
-// instead of the API. This repo also serves routes under /api/v1, so it comes
-// back 500 rather than 404 and reads as a backend fault. The client also adds
-// the actor header and the idempotency key.
-
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Lock, LockOpen, Timer } from "lucide-react";
 import { toast } from "sonner";
@@ -17,7 +10,6 @@ import { managerApi } from "@/features/manager-console/api/managerApi";
 import { dimensionShort, observationDimensionLines } from "@/lib/format";
 import type {
   ObservationDimension,
-  StaffMember,
   StaffScoreRow,
 } from "@/lib/types";
 
@@ -109,7 +101,16 @@ const ADVANCE_MS = 220;
 
 type RatingsState = Partial<Record<ObservationDimension, number>>;
 
-export function ObservationForm({ staff }: { staff: StaffMember[] }) {
+export function ObservationForm({
+  staff,
+}: {
+  staff: Array<{
+    id: string;
+    name: string;
+    role?: string;
+    department?: string;
+  }>;
+}) {
   const [staffId, setStaffId] = useState(staff[0]?.id ?? "");
   const [step, setStep] = useState<StepId>("who");
   const [scope, setScope] = useState<ScopeKind | null>(null);
@@ -366,7 +367,7 @@ export function ObservationForm({ staff }: { staff: StaffMember[] }) {
                   </span>
                   {member && (
                     <span className="block text-xs leading-tight text-primary-foreground/85">
-                      {member.role}
+                      {member.role ?? "Frontline"}
                     </span>
                   )}
                 </span>
@@ -412,7 +413,7 @@ export function ObservationForm({ staff }: { staff: StaffMember[] }) {
                               : "text-muted-foreground"
                           }`}
                         >
-                          {s.role} · {s.department}
+                          {s.role ?? "Frontline"} · {s.department ?? ""}
                         </span>
                       </button>
                     );

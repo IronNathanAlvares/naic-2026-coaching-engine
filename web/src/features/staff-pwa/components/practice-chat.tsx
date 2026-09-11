@@ -1,12 +1,5 @@
 "use client";
 
-// Talks to the API through http from lib/api/client, never a bare fetch to a
-// relative path. A relative "/api/v1/..." resolves against whatever host serves
-// the page, so once deployed the browser asks the WEBSITE for coaching data
-// instead of the API. This repo also serves routes under /api/v1, so it comes
-// back 500 rather than 404 and reads as a backend fault. The client also adds
-// the actor header and the idempotency key.
-
 import { Fragment, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Mic, Send, Volume2 } from "lucide-react";
