@@ -1,15 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import {
-  BookOpen,
-  ChevronDown,
-  ClipboardList,
-  MessageSquareQuote,
-  Radar,
-  Target,
-} from "lucide-react";
+import { BookOpen, ChevronDown, MessageSquareQuote, Radar, ClipboardList, Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   citationKindLabel,
@@ -38,66 +32,12 @@ const classificationTone: Record<string, string> = {
   policy: "bg-[oklch(0.66_0.09_30)]/12 text-[oklch(0.45_0.08_30)] border-[oklch(0.66_0.09_30)]/30",
 };
 
-interface MergedClaim {
-  claim: string;
-  kinds: Citation["kind"][];
-  sources: Citation[];
-}
-
-/**
- * One row per claim, not one row per source.
- *
- * The agent emits a claim once per citation, so a claim supported by two
- * practice turns arrived as two identical sentences. Twelve of the sixteen
- * recommendations in the live queue read that way, which is the single biggest
- * reason this card looked long: a quarter of it was the same sentence twice.
- *
- * Merging is presentation only. Every source is kept and still opens.
- */
-function mergeClaims(citations: Citation[]): MergedClaim[] {
-  const byClaim = new Map<string, MergedClaim>();
-  for (const c of citations) {
-    const key = (c.claim || "").trim();
-    const found = byClaim.get(key);
-    if (found) {
-      found.sources.push(c);
-      if (!found.kinds.includes(c.kind)) found.kinds.push(c.kind);
-    } else {
-      byClaim.set(key, { claim: key, kinds: [c.kind], sources: [c] });
-    }
-  }
-  return [...byClaim.values()];
-}
-
-function kindLabel(kind: Citation["kind"]): string {
-  return (
-    citationKindLabel[kind] ??
-    citationKindFallback[kind] ??
-    kind.replace("_", " ")
-  );
-}
-
 export function RecommendationCard({
   recommendation,
 }: {
   recommendation: Recommendation;
 }) {
-  // Shut by default. A manager deciding confirm or reject does not read the
-  // evidence every time; they read it when something looks wrong. Leaving it
-  // open put the longest block on the screen above the decision.
-  const [showWhy, setShowWhy] = useState(false);
-  const [showSay, setShowSay] = useState(false);
-  const [openSource, setOpenSource] = useState<string | null>(null);
-
-  // Both of these are absent on real data in ways the type did not admit: an
-  // abstained recommendation has no classification, and calibration arrives as
-  // an array. Resolve them once, here, instead of at four call sites.
-  const meta = recommendation.classification
-    ? classificationMeta[recommendation.classification]
-    : null;
-  const calibration = primaryCalibration(recommendation.calibration);
-  const citations = recommendation.citations ?? [];
-  const claims = mergeClaims(citations);
+  const [openCitation, setOpenCitation] = useState<string | null>(null);
 
   // Both of these are absent on real data in ways the type did not admit: an
   // abstained recommendation has no classification, and calibration arrives as
@@ -110,8 +50,7 @@ export function RecommendationCard({
 
   return (
     <Card>
-      <CardContent className="space-y-4 p-5 md:p-6">
-        {/* ---------------------------------------------------- the verdict */}
+      <CardContent className="space-y-5 p-5 md:p-6">
         <div className="flex flex-wrap items-center gap-2">
           <Badge
             variant="outline"
@@ -128,28 +67,31 @@ export function RecommendationCard({
               {citations.length} cited claims
             </span>
           )}
-          <span className="ml-auto text-xs tabular-nums text-muted-foreground/70">
-            {recommendation.trace_id?.slice(0, 8)}
+          <span className="ml-auto text-xs tabular-nums text-muted-foreground">
+            {recommendation.trace_id}
           </span>
         </div>
 
-        <h2 className="text-lg font-semibold leading-snug md:text-xl">
-          {recommendation.headline}
-        </h2>
+        <div>
+          <h2 className="text-lg font-semibold leading-snug md:text-xl">
+            {recommendation.headline}
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            {recommendation.body}
+          </p>
+        </div>
 
-        {/* ------------------------------------------------------ the action */}
         {recommendation.suggested_action && (
           <div className="rounded-xl border border-primary/25 bg-accent/30 p-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-primary">
-              Do this
+              Suggested action
             </p>
-            <p className="mt-1 text-sm font-medium leading-relaxed">
+            <p className="mt-1 text-sm font-medium">
               {recommendation.suggested_action}
             </p>
           </div>
         )}
 
-        {/* ------------------------------------- everything else, one tap away */}
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Evidence — every claim, checkable in one tap
@@ -195,10 +137,10 @@ export function RecommendationCard({
                       {citation.source_ref}
                     </p>
                   </div>
-                ))}
+                )}
               </div>
-            </Disclosure>
-          )}
+            );
+          })}
         </div>
 
         {calibration && (
@@ -221,45 +163,5 @@ export function RecommendationCard({
         )}
       </CardContent>
     </Card>
-  );
-}
-
-/** A labelled row that opens. Same shape for both sections so the card has one
- * disclosure pattern rather than two that look almost alike. */
-function Disclosure({
-  open,
-  onToggle,
-  label,
-  note,
-  children,
-}: {
-  open: boolean;
-  onToggle: () => void;
-  label: string;
-  note?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className={`rounded-xl border ${open ? "bg-muted/20" : "bg-card"}`}>
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={open}
-        className="flex min-h-11 w-full items-center gap-2 px-3 text-left text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ChevronDown
-          className={`size-4 shrink-0 transition-transform ${
-            open ? "rotate-180" : ""
-          }`}
-        />
-        {label}
-        {note && (
-          <span className="ml-auto text-xs font-normal text-muted-foreground/70">
-            {note}
-          </span>
-        )}
-      </button>
-      {open && children}
-    </div>
   );
 }

@@ -5,7 +5,7 @@ import { GlassBox } from "@/features/glass-box/components/glass-box";
 import { isRealApi } from "@/lib/api/client";
 
 export const metadata = {
-  title: "Glass box, The Coaching Engine",
+  title: "Glass box — The Coaching Engine",
   description:
     "Check the three claims instead of believing them: where the reasoning "
     + "lives, what the cite gate rejects, and who the database lets you read.",

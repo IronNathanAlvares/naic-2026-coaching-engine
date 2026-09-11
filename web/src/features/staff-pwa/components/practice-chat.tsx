@@ -53,7 +53,7 @@ function shiftNote(from: string, to: string): string | null {
 }
 
 const DEMO_VOICE_LINE =
-  "I'm really sorry about the wait, let me fix this for you right away.";
+  "I'm really sorry about the wait — let me fix this for you right away.";
 
 export function PracticeChat({
   attempt,
@@ -81,11 +81,7 @@ export function PracticeChat({
   const completingRef = useRef(false);
 
   const latestTurn = attempt.turns[attempt.turns.length - 1];
-  // The server owns the limit (CE_MAX_PRACTICE_TURNS, 4 by default) and sends
-  // it with every turn. This fallback only fires if a turn arrives without
-  // one, and it matches the server default so the progress dots do not
-  // suddenly draw a different number of them.
-  const TOTAL_TURNS = latestTurn?.turns_remaining ?? 4;
+  const TOTAL_TURNS = latestTurn?.turns_remaining ?? 6;
   const [remaining, setRemaining] = useState(
     latestTurn?.turns_remaining ?? TOTAL_TURNS
   );
@@ -212,7 +208,7 @@ export function PracticeChat({
       >
         <p className="text-center text-xs text-muted-foreground">
           You are practising as yourself. Nothing is graded live and nothing
-          is shared, the notes at the end are yours alone.
+          is shared — the notes at the end are yours alone.
         </p>
         {messages.map((message, i) => (
           <Fragment key={i}>
@@ -257,7 +253,7 @@ export function PracticeChat({
         </div>
         {sendFailed && (
           <p className="text-xs text-[oklch(0.44_0.09_28)]">
-            Couldn't send that message, please try again.
+            Couldn't send that message — please try again.
           </p>
         )}
         <div className="flex gap-2">
@@ -268,9 +264,9 @@ export function PracticeChat({
             disabled={exhausted || completing || listening}
             placeholder={
               listening
-                ? "Listening. Speak your reply…"
+                ? "Listening — speak your reply…"
                 : exhausted
-                  ? "Conversation complete, finish to see your notes"
+                  ? "Conversation complete — finish to see your notes"
                   : "What would you say to the guest?"
             }
             className="flex-1 rounded-xl border bg-card px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-60"
@@ -304,7 +300,7 @@ export function PracticeChat({
         </div>
         {listening && (
           <p className="text-xs text-[oklch(0.44_0.09_28)]">
-            Listening… your words fill the box. Review, then send.
+            Listening… your words fill the box — review, then send.
           </p>
         )}
       </div>

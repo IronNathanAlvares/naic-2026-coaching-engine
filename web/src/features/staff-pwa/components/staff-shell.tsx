@@ -12,7 +12,6 @@ import {
   staffMembers,
 } from "@/lib/mock/seed";
 import type { ScoreResult } from "@/lib/types";
-import { ScreenNav } from "@/components/screen-nav";
 
 const tabs = [
   { href: "/staff", label: "Home", icon: Home },

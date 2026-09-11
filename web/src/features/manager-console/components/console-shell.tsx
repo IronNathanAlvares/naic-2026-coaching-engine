@@ -88,7 +88,7 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
           })}
         </nav>
         <div className="border-t px-5 py-4">
-          {/* Identity follows seed.ts's currentManager (staff-014), no copy
+          {/* Identity follows seed.ts's currentManager (staff-014) — no copy
               of the manager's name or property hardcoded in the shell. */}
           <p className="text-sm font-medium">{currentManager.name}</p>
           <p className="text-xs text-muted-foreground">

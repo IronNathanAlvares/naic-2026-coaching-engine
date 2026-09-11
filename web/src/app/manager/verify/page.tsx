@@ -11,7 +11,7 @@ import type { Recommendation } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Verify queue, Manager Console" };
+export const metadata = { title: "Verify queue — Manager Console" };
 
 /** Sync shell: the header copy is static, so it paints immediately; only
  * the queue itself waits on the recommendation fetch. */

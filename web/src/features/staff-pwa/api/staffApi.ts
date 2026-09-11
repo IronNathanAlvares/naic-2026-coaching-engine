@@ -110,6 +110,6 @@ export const staffApi = {
     await sleep(registration.poll_after_ms);
     const second = await http.get<Debrief>(`/debriefs/${registration.id}`);
     if (TERMINAL_STATUSES.has(second.status)) return second;
-    throw new Error("Debrief is still processing, check back in a moment.");
+    throw new Error("Debrief is still processing — check back in a moment.");
   },
 };

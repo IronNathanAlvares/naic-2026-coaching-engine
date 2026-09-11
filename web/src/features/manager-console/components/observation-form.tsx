@@ -5,7 +5,6 @@ import { Lock, LockOpen, Timer } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { StaffPicker } from "./staff-picker";
 import { BarsLevelPicker } from "@/features/manager-console/components/bars-level-picker";
 import { managerApi } from "@/features/manager-console/api/managerApi";
 import { dimensionShort, observationDimensionLines } from "@/lib/format";
@@ -93,19 +92,6 @@ type RecordState =
 
 const CHIP_SELECTED = "border-primary bg-primary text-primary-foreground";
 const CHIP_IDLE = "border bg-card text-foreground hover:bg-muted/40";
-
-/** One tap instead of a sentence.
- *
- * Deliberately about what the manager SAW, never about the person: "froze"
- * describes a moment, "is nervous" would be a verdict on somebody, and this
- * text ends up quoted in a coaching recommendation. Short enough to read at a
- * glance and specific enough to be real evidence. */
-const NOTE_STARTERS = [
-  "Handled it alone, guest left happy",
-  "Escalated to me straight away",
-  "Froze, did not offer anything",
-  "Apologised but took no action",
-];
 
 const QUESTION_LABEL = "text-xs font-medium text-muted-foreground";
 
@@ -455,7 +441,7 @@ export function ObservationForm({
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Partial rates only the dimensions this kind of moment usually
-                  suggests, anything you did not witness stays unrated and is
+                  suggests — anything you did not witness stays unrated and is
                   never scored.
                 </p>
               </div>
@@ -483,7 +469,7 @@ export function ObservationForm({
                   })}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Suggested dimensions are rated first, and are the only ones
+                  Suggested dimensions are rated first — and are the only ones
                   asked when the sighting was partial.
                 </p>
                 <p className="flex justify-end">
@@ -533,7 +519,7 @@ export function ObservationForm({
                     size="sm"
                     onClick={skipDimension}
                   >
-                    Skip, doesn&apos;t apply
+                    Skip — doesn&apos;t apply
                   </Button>
                 </div>
               </div>
@@ -542,34 +528,15 @@ export function ObservationForm({
             {step === "note" && (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <p className={QUESTION_LABEL}>What you saw</p>
+                  <p className={QUESTION_LABEL}>Note (optional)</p>
                   <Input
-                    placeholder="One line, in your own words"
+                    placeholder="One line on what you saw"
                     value={note}
                     onChange={(e) => {
                       setNote(e.target.value);
                       setLoggedName(null);
                     }}
                   />
-                  {/* Twenty seconds is the promise on this screen, and nobody
-                      types a sentence in twenty seconds walking off a shift.
-                      Tapping one fills the line and it stays editable, so the
-                      words are still the manager's own. */}
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {NOTE_STARTERS.map((phrase) => (
-                      <button
-                        key={phrase}
-                        type="button"
-                        onClick={() => {
-                          setNote(phrase);
-                          setLoggedName(null);
-                        }}
-                        className="rounded-full border bg-card px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
-                      >
-                        {phrase}
-                      </button>
-                    ))}
-                  </div>
                 </div>
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center justify-center gap-2">
@@ -585,26 +552,18 @@ export function ObservationForm({
                       type="button"
                       size="lg"
                       className="w-full sm:w-auto sm:min-w-64"
-                      disabled={submitting || ratedCount === 0 || !note.trim()}
+                      disabled={submitting || ratedCount === 0}
                       onClick={handleSubmit}
                     >
                       {submitting ? "Logging…" : "Log observation"}
                     </Button>
                   </div>
-                  {/* Say which requirement is missing. A disabled button with
-                      no reason is the same dead end as the error toast this
-                      replaces. */}
-                  {ratedCount === 0 ? (
+                  {ratedCount === 0 && (
                     <p className="text-center text-xs text-muted-foreground">
-                      Rate at least one dimension, anything unrated is never
+                      Rate at least one dimension — anything unrated is never
                       scored.
                     </p>
-                  ) : !note.trim() ? (
-                    <p className="text-center text-xs text-muted-foreground">
-                      One line is needed: it is the evidence the coaching read
-                      quotes back to you.
-                    </p>
-                  ) : null}
+                  )}
                 </div>
               </div>
             )}
@@ -618,14 +577,14 @@ export function ObservationForm({
               >
                 <LockOpen className="mt-0.5 size-4 shrink-0 text-primary" />
                 <p className="text-sm text-primary">
-                  Logged, the transfer-gap read on {loggedName} now lands in
+                  Logged — the transfer-gap read on {loggedName} now lands in
                   the queue. Practice history stays private.
                 </p>
               </div>
             ) : (
               <p className="flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
                 <Lock className="size-3 shrink-0" />
-                Your observation comes first, practice history stays private
+                Your observation comes first — practice history stays private
                 and the coaching read follows your judgement.
               </p>
             )}
@@ -660,7 +619,7 @@ function ScopeButton({
       }`}
     >
       <span className="text-sm font-semibold leading-tight">
-        {title}, {body}
+        {title} — {body}
       </span>
       {selected && (
         <span className="text-xs text-primary-foreground/85">
@@ -708,13 +667,13 @@ function RecordAnchors({
 
       {record.kind === "error" && (
         <p className="mt-3 rounded-lg border border-dashed p-3 text-xs text-muted-foreground">
-          Could not read the record right now, refresh to retry.
+          Could not read the record right now — refresh to retry.
         </p>
       )}
 
       {record.kind === "ready" && record.rows.length === 0 && (
         <p className="mt-3 rounded-lg border border-dashed p-3 text-xs text-muted-foreground">
-          Nothing on the record for {name} yet, your first capture lands here.
+          Nothing on the record for {name} yet — your first capture lands here.
         </p>
       )}
 
@@ -740,7 +699,7 @@ function RecordAnchors({
                     : FLOOR_PILL
                 }`}
               >
-                {row.level ?? "–"}
+                {row.level ?? "—"}
               </span>
             </li>
           ))}

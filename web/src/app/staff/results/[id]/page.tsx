@@ -3,12 +3,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScoreResults } from "@/features/staff-pwa/components/score-results";
 import { staffApi } from "@/features/staff-pwa/api/staffApi";
-import {
-  completedAttempt,
-  historyAug26Attempt,
-  historyAug29Attempt,
-  scenarios,
-} from "@/lib/mock/seed";
+import { diegoScoreResult, scenarios } from "@/lib/mock/seed";
 
 const MONTH_SHORT = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -56,7 +51,7 @@ export default async function ResultsPage(
         <div>
           <p className="text-sm font-semibold">Your practice notes</p>
           <p className="text-xs text-muted-foreground">
-            One read of the whole conversation, every label points back to
+            One read of the whole conversation — every label points back to
             your own words.
           </p>
           {result && (
@@ -72,7 +67,7 @@ export default async function ResultsPage(
         <ScoreResults result={result} />
       ) : (
         <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
-          This practice is still in progress, finish the conversation to see
+          This practice is still in progress — finish the conversation to see
           your notes.
         </p>
       )}
