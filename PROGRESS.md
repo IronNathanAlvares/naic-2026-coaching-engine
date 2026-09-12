@@ -28,6 +28,27 @@ What is left is a rehearsal and a backup video.
 
 Worth reading if you looked at the site earlier and something annoyed you.
 
+**You can give your debrief in your own Spanish.** Not just Spanish: the kind
+of Spanish you actually speak. `guagua` is a bus in Cuba and a baby in Peru,
+`parce` is how a Colombian says mate, and a translator that does not know the
+difference will produce something that reads fine and is wrong.
+
+This matters because a debrief is not a chat message. It gets scored, it
+becomes half of your transfer gap, and it can send you on training. Getting it
+wrong means being judged on a sentence you did not say, and that would only
+ever happen to the people not working in their first language.
+
+Two things were broken and both are fixed. We were telling the transcriber that
+every debrief was English, so Spanish came back as nonsense. And the
+translation now gets the regional words looked up and handed to it before it
+starts, which is Nathan's MSc research: it raises how often a regional term
+survives translation from 31% to 47%, and to 70% on the replication.
+
+You see both. Your own sentence, the English your manager reads, and every
+regional word we looked up, with a warning on the ones that mean something else
+somewhere else. If we read a word wrong, say so, because it changes what you
+get coached on.
+
 **You can now say an observation instead of tapping one.** The mentors put it
 plainly: managers are on the floor, not at a workstation, and a form nobody
 stops to fill in produces no data. `/manager/observe` has two tabs now, and
@@ -169,7 +190,7 @@ Worth knowing because the competition scores us on this.
 |---|---|
 | **Google Cloud (Vertex AI)** | works out why a gap exists |
 | **OpenAI** | writes the coaching, scores practice |
-| **Groq** | the practice guest replies fast, and transcribes speech |
+| **Groq** | the practice guest replies fast, transcribes speech, and translates a Spanish debrief |
 | **ElevenLabs** | gives the guest a voice |
 | **Manus** | writes the weekly operations brief, from the **Write this up for the GM** button on Team insights |
 | **Langfuse** | records every AI run so we can see cost and failures |

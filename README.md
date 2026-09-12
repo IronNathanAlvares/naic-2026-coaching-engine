@@ -248,7 +248,8 @@ does. Run it before a demo: *"the key is set"* has never meant *"the call works"
 | Task | Provider | Why this one |
 |---|---|---|
 | Guest turn in practice | Groq `qwen3.8-27b` | ~700ms vs ~1400ms. The only task a human waits on live |
-| Debrief transcription | Groq `whisper-large-v3-turbo` | Audio is transcribed then deleted |
+| Debrief transcription | Groq `whisper-large-v3-turbo` | Audio is transcribed then deleted. Language is detected, not assumed |
+| Spanish debrief, understood | Groq `llama-3.3-70b-versatile` | Regional glosses retrieved into the prompt before translating. See [Regional Spanish](#regional-spanish) |
 | Guest voice | ElevenLabs | Cached on disk. Free tier is 10,000 characters for the life of the account |
 | Coaching, scoring, embeddings | OpenAI | Latency buys nothing behind a spinner |
 | Classification | Vertex AI `gemini-2.5-flash-lite` | Google credits, and the trace records `served_by` |
@@ -351,6 +352,55 @@ Each directory has its own README explaining what belongs there. The LaTeX docum
 shared drive, not here: see [CONTRIBUTING.md](CONTRIBUTING.md) for why.
 
 </details>
+
+---
+
+## Regional Spanish
+
+A hotel floor in Ireland is not an English-speaking floor. A large share of it
+speaks Spanish first, and not one Spanish.
+
+That is a scoring problem here rather than a convenience problem, because a
+debrief is evidence: it is scored against the rubric, it becomes half of a
+transfer gap, and it can send somebody on training. Misreading one means
+assessing a person on a sentence they did not say, and it would only ever
+happen to the people not working in their first language.
+
+Two failures, both closed:
+
+1. **We assumed English.** Transcription pinned `language="en"`, so Spanish
+   speech was force-decoded and came back as confident nonsense which was then
+   scored. Whisper now detects the language. (It reports `"spanish"`, not
+   `"es"`, which is worth knowing if you ever touch that check.)
+
+2. **One Spanish is not enough.** `guagua` is a bus in the Caribbean and a baby
+   in the Andes; `vaina` is an all-purpose noun in Venezuela; `parce` is how a
+   Colombian addresses a friend. A general model guesses, and a plausible wrong
+   answer is worse than a refusal because nothing downstream can tell.
+
+The fix is retrieval, not a bigger model. The regional terms actually present
+in the utterance are looked up in a curated lexicon and their glosses go into
+the translation prompt. Measured:
+
+| | term survives translation |
+|---|---|
+| without retrieval | 31.2% |
+| with retrieval | **46.5%** |
+
+n=157, exact McNemar, p=8.05e-07. Replicated at 40.5% to **70.3%** (n=121,
+p=2.91e-11).
+
+From **Glorvox**, "Context-Aware Real-Time Speech Translation Using LLMs"
+(N. Alvares, MSc Artificial Intelligence, National College of Ireland, 2026),
+by the same author. `services/api/app/dialect/` carries the lexicon (116
+entries, 21 countries) and the retrieval, ported unchanged. There is no extra
+service and no model to host, because the entire claim is that the knowledge
+goes in the prompt.
+
+The staff member sees their own sentence, the English their manager will read,
+and every term that was looked up, with the ambiguous ones marked. This product
+does not let a manager act on evidence they cannot inspect; the person being
+scored gets the same right.
 
 ---
 
