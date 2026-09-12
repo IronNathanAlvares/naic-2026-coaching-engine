@@ -51,7 +51,7 @@ between separate instances makes judges suspect the parts are not one product.
 
 | | |
 |---|---|
-| Diego, service recovery | practice **4.79**, floor **1.62**, gap **3.17**, BLOCKED |
+| Diego, service recovery | practice **4.79**, floor **1.62**, gap **3.17**, BLOCKED (floor drops to about 1.4 once you log in act two, which is correct) |
 | Marta's verify queue | **11** waiting |
 | Team patterns | **7**, k-anonymity threshold 5 |
 
@@ -171,8 +171,14 @@ you can show it in questions in about fifteen seconds.
 **[1:32] The result lands. Go to "Transfer gap".**
 
 > "Two independent streams. In practice, Diego scores four point eight on
-> service recovery. On the floor, one point six. That is a three point two
-> gap."
+> service recovery. On the floor, about one and a half. That is a gap of more
+> than three points on a five point scale."
+
+**Read the floor number off the screen rather than memorising it.** Before you
+log, it sits at 1.6. The observation you just logged is real evidence and it
+pulls the mean down, so immediately afterwards it reads about 1.4. Both are
+right; saying "about one and a half" is right either way, and a judge who sees
+you read your own screen trusts the number more than one you recite.
 
 **[1:45] The closing lines. Slow down. This is the whole pitch.**
 
