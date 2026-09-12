@@ -354,5 +354,8 @@ def draft_from_text(transcript: str, roster: list[dict],
 def draft_from_audio(audio: bytes, filename: str, roster: list[dict],
                      trace: Trace | None = None) -> dict:
     """Transcribe, then draft. The audio is never stored and never returned."""
-    transcript = transcribe(audio, filename=filename, trace=trace)
+    # English by default here: a manager walking a floor in Ireland is dictating
+    # names from the roster, and letting Whisper detect would let one Spanish
+    # sentence flip the decoder for the whole note.
+    transcript, _language = transcribe(audio, filename=filename, trace=trace)
     return draft_from_text(transcript, roster, trace=trace)

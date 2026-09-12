@@ -22,6 +22,7 @@ import os
 from .agent import score_transcript
 from .providers import (ProviderError, Trace, complete, speak, transcribe,
                         voice_key)
+from .dialect.understand import understand
 from .retrieval import search
 
 GUEST_SCHEMA = {
@@ -356,11 +357,26 @@ def create_debrief(cur, actor, staff_id: str, text: str | None = None,
     removes voice biometrics from the system entirely.
     """
     transcript = text or ""
+    spoken_language = "en"
     if audio:
         # The filename carries the container format, and Whisper uses it to
         # pick a decoder. A browser MediaRecorder gives us webm on Chrome and
         # mp4 on Safari; passing the wrong extension fails on one of them.
-        transcript = transcribe(audio, filename=filename, trace=trace)
+        #
+        # language=None so Whisper detects rather than assumes. This used to
+        # pin English, which meant a staff member debriefing in their own
+        # language got back nonsense and was then scored on it.
+        transcript, spoken_language = transcribe(
+            audio, filename=filename, trace=trace, language=None)
+
+    # Understood, not just transcribed. A Spanish debrief is translated with
+    # the speaker's regional vocabulary retrieved into the prompt, because
+    # everything downstream treats this text as evidence: it is scored against
+    # the rubric and it becomes half of a transfer gap. Mistranslating it means
+    # assessing somebody on a sentence they did not say, and it would only ever
+    # happen to the people not working in their first language.
+    reading = understand(transcript, spoken_language, trace=trace)
+    transcript = reading["english"]
 
     if len(transcript.split()) < 5:
         # Still a row. The client polls by id, so a failure with no id is a
@@ -414,5 +430,18 @@ def create_debrief(cur, actor, staff_id: str, text: str | None = None,
     debrief_id = cur.fetchone()["id"]
     cur.connection.commit()
 
-    return {"id": debrief_id, "status": "extracted", "transcript": transcript,
-            "incident": incident}
+    # "heard" travels back only when the debrief was not given in English. The
+    # staff member gets to see their own sentence beside the English the system
+    # worked from, and which regional terms it looked up. This product refuses
+    # to let a manager act on evidence they cannot inspect; holding the staff
+    # member to a lower standard about their own words would be strange.
+    response = {"id": debrief_id, "status": "extracted", "transcript": transcript,
+                "incident": incident}
+    if reading["translated"]:
+        response["heard"] = {
+            "original": reading["original"],
+            "language": reading["language"],
+            "country": reading["country"],
+            "terms": reading["terms"],
+        }
+    return response

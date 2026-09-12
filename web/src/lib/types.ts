@@ -52,6 +52,26 @@ export type DebriefStatus =
   | "extracted"
   | "failed";
 
+/** What the system understood, when the debrief was not given in English.
+ *
+ * Present only on a translated debrief. It carries the speaker's own sentence
+ * and the regional terms that were looked up to translate it, so the person
+ * can check that what was understood is what they meant. Not persisted yet:
+ * the client holds it for the session, so it shows once rather than in the
+ * staff member's history.
+ */
+export interface HeardReading {
+  original: string;
+  language: string;
+  country: string | null;
+  terms: Array<{
+    term: string;
+    gloss: string;
+    countries: string[];
+    ambiguous: boolean;
+  }>;
+}
+
 export interface Debrief {
   id: string;
   status: DebriefStatus;
@@ -60,6 +80,8 @@ export interface Debrief {
   standard: StandardReference | null;
   /** Legacy demo field — the real API returns it from the agent graph, not the debrief row. */
   generated_scenario_id: string | null;
+  /** Attached by the client from the create response; never read from the row. */
+  heard?: HeardReading;
 }
 
 /** POST /debriefs request body. Contract requires upload_key/duration_ms/recorded_at
@@ -76,6 +98,7 @@ export interface DebriefRegistration {
   id: string;
   status: DebriefStatus;
   poll_after_ms: number;
+  heard?: HeardReading;
 }
 
 // ── Practice (Master Doc steps 4–5) ─────────────────────────────────────────

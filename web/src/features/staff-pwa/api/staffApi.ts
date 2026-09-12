@@ -74,11 +74,16 @@ export const staffApi = {
       blob,
       filename
     );
+    // The polled read comes from the database, which has no column for the
+    // speaker's original sentence, so what the create response understood is
+    // carried across here rather than being lost on the way back.
+    const withHeard = (d: Debrief): Debrief =>
+      registration.heard ? { ...d, heard: registration.heard } : d;
     const first = await http.get<Debrief>(`/debriefs/${registration.id}`);
-    if (TERMINAL_STATUSES.has(first.status)) return first;
+    if (TERMINAL_STATUSES.has(first.status)) return withHeard(first);
     await sleep(registration.poll_after_ms);
     const second = await http.get<Debrief>(`/debriefs/${registration.id}`);
-    if (TERMINAL_STATUSES.has(second.status)) return second;
+    if (TERMINAL_STATUSES.has(second.status)) return withHeard(second);
     throw new Error("Debrief is still processing, check back in a moment.");
   },
 
@@ -91,11 +96,15 @@ export const staffApi = {
       const registration = await http.post<DebriefRegistration>("/debriefs", {
         text,
       });
+      // Same carry-across as the audio path: the polled read comes from the
+      // database, which has no column for the speaker's original sentence.
+      const withHeard = (d: Debrief): Debrief =>
+        registration.heard ? { ...d, heard: registration.heard } : d;
       const firstRead = await http.get<Debrief>(`/debriefs/${registration.id}`);
-      if (TERMINAL_STATUSES.has(firstRead.status)) return firstRead;
+      if (TERMINAL_STATUSES.has(firstRead.status)) return withHeard(firstRead);
       await sleep(registration.poll_after_ms);
       const secondRead = await http.get<Debrief>(`/debriefs/${registration.id}`);
-      if (TERMINAL_STATUSES.has(secondRead.status)) return secondRead;
+      if (TERMINAL_STATUSES.has(secondRead.status)) return withHeard(secondRead);
       throw new Error("Debrief is still processing, check back in a moment.");
     }
     const created = (await mockDb.createDebrief(text)) as MockCreatedDebrief;

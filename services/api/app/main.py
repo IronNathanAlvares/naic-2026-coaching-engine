@@ -471,7 +471,8 @@ async def post_debrief_audio(file: UploadFile = File(...),
                                   "title": "Could not transcribe",
                                   "detail": str(exc)[:200]}) from None
 
-    return {"id": out["id"], "status": out["status"], "poll_after_ms": 400}
+    return {"id": out["id"], "status": out["status"], "poll_after_ms": 400,
+            **({"heard": out["heard"]} if out.get("heard") else {})}
 
 
 # ---------------------------------------------------------------- reports
@@ -670,7 +671,15 @@ def post_debrief(payload: dict, x_ce_actor: str | None = Header(default=None),
     # 202 with a registration, not the finished object. The pipeline is
     # synchronous today, but the client polls by id either way, so the contract
     # already holds when transcription moves off the request thread.
-    return {"id": out["id"], "status": out["status"], "poll_after_ms": 400}
+    # "heard" rides back on this response rather than being stored. The client
+    # polls the finished debrief by id from the database, and the database has
+    # no column for the speaker's original sentence yet, so persisting it is a
+    # migration and this is the night before a submission. The client holds it
+    # for the session, which is enough to show somebody what was understood
+    # from what they just said. Storing it is the next step, and it is the
+    # difference between showing it once and showing it in their history.
+    return {"id": out["id"], "status": out["status"], "poll_after_ms": 400,
+            **({"heard": out["heard"]} if out.get("heard") else {})}
 
 
 @app.get("/api/v1/debriefs/{debrief_id}")

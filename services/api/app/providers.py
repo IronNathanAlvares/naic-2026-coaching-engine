@@ -159,6 +159,11 @@ ROUTES: dict[str, tuple[str, str]] = {
     # other task runs behind a spinner or a shift, where latency buys nothing.
     "guest_turn":              ("groq",   "qwen/qwen3.8-27b"),
     "extract_incident":        ("openai", "gpt-4o-mini"),
+    # Spanish to English for a staff debrief, with regional glosses retrieved
+    # into the prompt. Llama 70B on Groq is what the Glorvox thesis deployed
+    # after comparing fourteen models across seven providers: joint-best on
+    # conveying regionally marked terms (64.3%) and 1,186 ms.
+    "translate":               ("groq",   "llama-3.3-70b-versatile"),
     "embed":                   ("openai", "text-embedding-3-small"),
     "transcribe":              ("groq",   "whisper-large-v3-turbo"),
 }
@@ -179,6 +184,9 @@ FALLBACKS: dict[str, tuple[str, str]] = {
     "coach":      ("openai", "gpt-4o-mini"),
     "score":      ("openai", "gpt-4o"),
     "classify":   ("openai", "gpt-4o-mini"),
+    # A debrief that cannot be translated is a staff member reading their own
+    # words back with no English beside them, so this one needs a second path.
+    "translate":  ("openai", "gpt-4o-mini"),
 }
 
 # Matches the vector(768) column in db/schema.sql. OpenAI supports shortening
@@ -584,9 +592,21 @@ def embed(texts: list[str], trace: Trace | None = None) -> list[list[float]]:
 # --------------------------------------------------------------------------
 
 def transcribe(audio: bytes, filename: str = "debrief.webm",
-               trace: Trace | None = None) -> str:
-    """Groq Whisper. Batch, not streaming: post-shift capture has no latency
-    requirement and streaming would add a failure mode for nothing."""
+               trace: Trace | None = None,
+               language: str | None = "en") -> tuple[str, str]:
+    """Groq Whisper. Returns (text, detected_language).
+
+    Batch, not streaming: post-shift capture has no latency requirement and
+    streaming would add a failure mode for nothing.
+
+    language=None lets Whisper detect it. That matters more than it sounds:
+    this used to pin language="en" unconditionally, so a room attendant giving
+    their debrief in Spanish had it force-decoded as English and got back
+    plausible nonsense, which then went on to be scored as if it were what they
+    said. Pinning English is still right for a scenario known to be in English,
+    like a practice transcript, so it stays the default and the caller opts in
+    to detection.
+    """
     provider, model = ROUTES["transcribe"]
     if provider != "groq":
         raise ProviderError(f"transcription not wired for '{provider}'")
@@ -608,8 +628,11 @@ def transcribe(audio: bytes, filename: str = "debrief.webm",
     parts.append(audio)
     parts.append(b"\r\n")
     field("model", model)
-    field("response_format", "json")
-    field("language", "en")
+    # verbose_json so the detected language comes back with the text; plain
+    # json omits it and there is no second call that would tell us.
+    field("response_format", "verbose_json")
+    if language:
+        field("language", language)
     parts.append(f"--{boundary}--\r\n".encode())
     body = b"".join(parts)
 
@@ -629,7 +652,8 @@ def transcribe(audio: bytes, filename: str = "debrief.webm",
     if trace is not None:
         trace.calls.append(ModelCall("transcribe", provider, model,
                                      int((time.time() - started) * 1000)))
-    return data.get("text", "").strip()
+    return (data.get("text", "").strip(),
+            (data.get("language") or language or "en").lower())
 
 
 # --------------------------------------------------------------------------

@@ -6,6 +6,7 @@ import {
   ArrowRight,
   BookOpen,
   Captions,
+  Languages,
   Mic,
   Sparkles,
   Square,
@@ -21,6 +22,16 @@ import type { Debrief } from "@/lib/types";
 
 const DEMO_VOICE_LINE =
   "A guest asked for a late checkout and I wasn't sure if I could say yes, so I checked the duty manager's guidance.";
+
+
+/** "dominican_republic" is a database key. People are from the Dominican
+ * Republic. */
+function prettyCountry(value: string): string {
+  return value
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
 
 export function DebriefEntry() {
   const [text, setText] = useState("");
@@ -104,6 +115,54 @@ export function DebriefEntry() {
             {result.transcript}
           </p>
         </div>
+
+        {/* Shown only when the debrief was not given in English. The rest of
+            this product refuses to let a manager act on evidence they cannot
+            inspect; the person whose words are being scored gets the same
+            right, in their own language, with the terms that were looked up
+            named so they can tell us if we read one wrong. */}
+        {result.heard && (
+          <div className="rounded-2xl border bg-card p-4">
+            <div className="flex items-center gap-2">
+              <Languages className="size-4 text-primary" />
+              <p className="text-sm font-semibold">
+                You said it in your own words
+              </p>
+            </div>
+            <p className="mt-2 text-sm italic text-muted-foreground">
+              &ldquo;{result.heard.original}&rdquo;
+            </p>
+            {result.heard.terms.length > 0 && (
+              <>
+                <p className="mt-3 text-xs font-medium text-muted-foreground">
+                  Regional words we looked up
+                  {result.heard.country
+                    ? `, reading you as ${prettyCountry(result.heard.country)}`
+                    : ""}
+                </p>
+                <ul className="mt-1.5 space-y-1">
+                  {result.heard.terms.map((t) => (
+                    <li key={t.term} className="text-xs text-muted-foreground">
+                      <span className="font-semibold text-foreground">
+                        {t.term}
+                      </span>{" "}
+                      = {t.gloss}
+                      {t.ambiguous && (
+                        <span className="ml-1 text-[oklch(0.45_0.08_70)]">
+                          (means something else elsewhere)
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+            <p className="mt-3 border-t pt-2 text-xs text-muted-foreground">
+              Your manager sees the English above. If we read a word wrong,
+              say so, it changes what you get coached on.
+            </p>
+          </div>
+        )}
 
         <div className="rounded-2xl border border-primary/25 bg-accent/25 p-4">
           <div className="flex items-center gap-2">
