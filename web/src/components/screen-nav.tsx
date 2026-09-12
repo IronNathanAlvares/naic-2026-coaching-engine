@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowLeft, Repeat2 } from "lucide-react";
-import { parentOf } from "@/lib/nav";
+import { parentOf, type BackTarget } from "@/lib/nav";
 
 /**
  * The one navigation row, at the top of every screen inside a shell.
@@ -26,13 +26,18 @@ import { parentOf } from "@/lib/nav";
 export function ScreenNav({
   className = "",
   showSwitch = true,
+  back: backOverride,
 }: {
   className?: string;
   /** The landing page is where roles are chosen, so it does not offer to. */
   showSwitch?: boolean;
+  /** Override the destination. Only the glass box needs this: it is reachable
+   * from two places that want different exits, and the page resolves which on
+   * the server rather than reading the query string in the browser. */
+  back?: BackTarget | null;
 }) {
   const pathname = usePathname();
-  const back = parentOf(pathname);
+  const back = backOverride !== undefined ? backOverride : parentOf(pathname);
 
   // Nothing to render at all would collapse the spacing the pages below expect.
   if (!back && !showSwitch) return null;

@@ -539,6 +539,43 @@ def post_weekly_report(x_ce_actor: str | None = Header(default=None)):
             **task}
 
 
+@app.get("/api/v1/reports/weekly/latest")
+def get_latest_weekly_report(x_ce_actor: str | None = Header(default=None)):
+    """The brief this property last commissioned, so it survives navigation.
+
+    Without this the document lived only in one component's state: clicking
+    Transfer gap and back lost it, and the only way to see it again was to
+    commission another one, which is a fresh Manus task for a document that
+    already exists.
+
+    Returns {"status": "none"} when nothing has been commissioned yet, which is
+    an answer rather than a 404, because "no brief yet" is the ordinary state of
+    a new property and not an error worth a red line in anybody's console.
+    """
+    actor = actor_from(x_ce_actor)
+    if actor.role not in ("manager", "ld_admin"):
+        raise HTTPException(403, {"type": "role-required", "title": "Manager only",
+                                  "detail": "Only a manager or L&D can read this."})
+    with session(actor) as cur:
+        row = q.latest_weekly_report(cur)
+    if not row:
+        return {"status": "none"}
+
+    payload = row.get("payload") or {}
+    try:
+        brief = manus_brief(row["task_id"])
+    except ProviderError:
+        # The id is real and the document is momentarily unreachable. Say so
+        # rather than pretending nothing was ever written.
+        return {"status": "unreachable", "task_id": row["task_id"],
+                "commissioned_at": row["occurred_at"].isoformat()}
+
+    brief["task_id"] = row["task_id"]
+    brief["commissioned_at"] = row["occurred_at"].isoformat()
+    brief["patterns_included"] = payload.get("patterns")
+    return brief
+
+
 @app.get("/api/v1/reports/weekly/{task_id}")
 def get_weekly_report(task_id: str,
                       x_ce_actor: str | None = Header(default=None)):

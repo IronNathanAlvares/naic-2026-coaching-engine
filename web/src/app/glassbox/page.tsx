@@ -1,6 +1,7 @@
 import { Logo } from "@/components/logo";
 import { GlassBox } from "@/features/glass-box/components/glass-box";
 import { ScreenNav } from "@/components/screen-nav";
+import { parentOf } from "@/lib/nav";
 
 export const metadata = {
   title: "Glass box, The Coaching Engine",
@@ -12,12 +13,23 @@ export const metadata = {
 /** The page exists for one audience: someone who has just been told this is a
  * wrapper around a language model and wants to see for themselves. Every panel
  * below runs production code on demand. Nothing is recorded or replayed. */
-export default function GlassBoxPage() {
+export default async function GlassBoxPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ from?: string }>;
+}) {
+  // Resolved here rather than in the browser: the exit depends on where the
+  // visitor came from, and reading the query string client-side would need a
+  // Suspense boundary on a page that is otherwise static.
+  const { from } = await searchParams;
+
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
-      {/* This page sits outside both shells and is linked from the
-          manager sidebar, so without this it was a dead end. */}
-      <ScreenNav />
+      {/* This page sits outside both shells and is linked from two places that
+          want different exits: a judge from the landing page belongs back
+          there, a manager from the console sidebar belongs back in the
+          console. */}
+      <ScreenNav back={parentOf("/glassbox", from)} />
       <header className="mb-8">
         <div className="mb-3 flex items-center gap-2">
           <Logo className="size-7 shrink-0" />

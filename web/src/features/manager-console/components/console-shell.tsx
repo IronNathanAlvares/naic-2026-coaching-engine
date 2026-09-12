@@ -68,7 +68,7 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
             return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={item.href === "/glassbox" ? "/glassbox?from=manager" : item.href}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                   active
                     ? "bg-sidebar-accent text-sidebar-accent-foreground"
@@ -136,7 +136,7 @@ function MobileNav({
         return (
           <Link
             key={item.href}
-            href={item.href}
+            href={item.href === "/glassbox" ? "/glassbox?from=manager" : item.href}
             className={`relative flex flex-1 flex-col items-center gap-0.5 py-2.5 text-xs font-medium ${
               active ? "text-primary" : "text-muted-foreground"
             }`}

@@ -227,7 +227,13 @@ export interface ObservationDraftResponse {
  * console asks repeatedly until there is a document.
  */
 export interface WeeklyBrief {
-  status: "running" | "ready" | "empty";
+  /** "none" when the property has never commissioned one; "unreachable" when
+   * the task id is on record but Manus did not answer just now. */
+  status: "running" | "ready" | "empty" | "none" | "unreachable";
+  task_id?: string;
+  /** When it was commissioned, from the audit trail. */
+  commissioned_at?: string;
+  patterns_included?: number;
   /** The agent's closing note. Present before the document sometimes is. */
   summary?: string;
   /** The brief, as markdown. Only on "ready". */

@@ -315,6 +315,28 @@ def audit(cur, actor, event_type: str, subject_ref: str | None = None,
           subject_ref, json.dumps(payload or {})))
 
 
+def latest_weekly_report(cur):
+    """The most recent brief this property commissioned, or None.
+
+    No new table. Commissioning already writes an audit row carrying the Manus
+    task id in subject_ref, and the brief itself is re-fetchable from that id
+    for as long as the task exists, so the audit trail doubles as the record of
+    what was last written. Reading it back is what stops the document vanishing
+    the moment somebody clicks another tab.
+
+    Scoped by row level security to the reader's own property, like everything
+    else here.
+    """
+    cur.execute("""
+        SELECT subject_ref AS task_id, occurred_at, payload
+        FROM audit_event
+        WHERE event_type = 'report.commissioned' AND subject_ref IS NOT NULL
+        ORDER BY occurred_at DESC
+        LIMIT 1
+    """)
+    return cur.fetchone()
+
+
 # ---------------------------------------------------------------- insights
 
 K_ANON = 5

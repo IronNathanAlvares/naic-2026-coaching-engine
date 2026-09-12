@@ -185,6 +185,16 @@ export const managerApi = {
           detail: "Mock mode does not commission real briefs.",
         }),
 
+  /** The brief this property last commissioned, so it survives navigation.
+   *
+   * Reads the Manus task id back out of the audit trail, which already records
+   * every commission, and re-fetches the document. Without it the brief lived
+   * in one component's state and clicking any other tab threw it away. */
+  getLatestWeeklyBrief: (): Promise<WeeklyBrief> =>
+    isRealApi()
+      ? http.get("/reports/weekly/latest")
+      : Promise.resolve({ status: "none" as const }),
+
   /** What Manus wrote, so the manager never leaves the console to read a
    * document the console commissioned. Returns "running" until it is done. */
   getWeeklyBrief: (taskId: string): Promise<WeeklyBrief> =>

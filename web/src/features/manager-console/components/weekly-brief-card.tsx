@@ -1,9 +1,24 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Check, FileText, Loader2, RotateCcw, ShieldCheck } from "lucide-react";
+import {
+  Check,
+  Copy,
+  Download,
+  FileText,
+  Loader2,
+  Printer,
+  RotateCcw,
+  ShieldCheck,
+} from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { BriefMarkdown } from "@/components/brief-markdown";
+import {
+  copyBrief,
+  downloadBrief,
+  printBrief,
+} from "@/lib/brief-export";
 import { managerApi } from "@/features/manager-console/api/managerApi";
 import type { WeeklyBrief } from "@/lib/types";
 
@@ -55,6 +70,7 @@ export function WeeklyBriefCard({ patternCount }: { patternCount: number }) {
   const [patternsUsed, setPatternsUsed] = useState<number | null>(null);
   const [seconds, setSeconds] = useState(0);
   const [note, setNote] = useState<string | null>(null);
+  const [writtenAt, setWrittenAt] = useState<string | undefined>();
   const taskRef = useRef<string | null>(null);
   const timers = useRef<Array<ReturnType<typeof setInterval>>>([]);
 
@@ -65,6 +81,33 @@ export function WeeklyBriefCard({ patternCount }: { patternCount: number }) {
 
   // A tab closed mid-write must not leave intervals running.
   useEffect(() => clearTimers, [clearTimers]);
+
+  // Bring back the last brief this property commissioned.
+  //
+  // It used to live only in this component's state, so clicking Transfer gap
+  // and coming back lost it, and the only way to read it again was to
+  // commission another one: a fresh Manus task for a document that already
+  // existed. The task id is in the audit trail, so the document is still
+  // reachable.
+  useEffect(() => {
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        const last = await managerApi.getLatestWeeklyBrief();
+        if (cancelled || last.status !== "ready" || !last.markdown) return;
+        setBrief(last);
+        setWrittenAt(last.commissioned_at);
+        setPatternsUsed(last.patterns_included ?? null);
+        setPhase("ready");
+      } catch {
+        // No stored brief is the ordinary state, not an error to show.
+      }
+    }, 0);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, []);
 
   const poll = useCallback(
     (taskId: string) => {
@@ -82,6 +125,7 @@ export function WeeklyBriefCard({ patternCount }: { patternCount: number }) {
           if (next.status === "ready") {
             clearTimers();
             setBrief(next);
+            setWrittenAt(new Date().toISOString());
             setPhase("ready");
           } else if (next.status === "empty") {
             clearTimers();
@@ -229,12 +273,62 @@ export function WeeklyBriefCard({ patternCount }: { patternCount: number }) {
 
       {phase === "ready" && brief?.markdown && (
         <div className="mt-3 rounded-xl border bg-background p-4 md:p-5">
+          {/* Three exports and no more, because there are only three things a
+              duty manager does with this: paste it into an email, attach it,
+              or print it. */}
+          <div className="mb-4 flex flex-wrap items-center gap-1.5 border-b pb-3">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => downloadBrief(brief.markdown as string, writtenAt)}
+            >
+              <Download className="size-3.5" />
+              Download
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={async () => {
+                const ok = await copyBrief(brief.markdown as string);
+                toast[ok ? "success" : "error"](
+                  ok
+                    ? "Copied. Paste it straight into an email."
+                    : "Could not reach the clipboard. Use Download instead.",
+                );
+              }}
+            >
+              <Copy className="size-3.5" />
+              Copy
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => printBrief(brief.markdown as string, writtenAt)}
+            >
+              <Printer className="size-3.5" />
+              Print or PDF
+            </Button>
+            <span className="ml-auto text-xs text-muted-foreground">
+              Downloads as a document that opens anywhere
+            </span>
+          </div>
+
           <BriefMarkdown source={brief.markdown} />
+
           <p className="mt-4 flex items-start gap-2 border-t pt-3 text-xs text-muted-foreground">
             <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-primary" />
             <span>
               Written by Manus from {patternsUsed ?? patternCount} k-anonymised
               patterns. No individual was named in what was sent.
+              {writtenAt && (
+                <> Commissioned {new Date(writtenAt).toLocaleString("en-IE", {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })}.</>
+              )}
             </span>
           </p>
         </div>
