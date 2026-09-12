@@ -85,13 +85,17 @@ def env_pairs() -> list[dict]:
     over TLS as part of the service definition, which is the same trust model
     as pasting them into the Render dashboard.
     """
+    # These names are the ones providers.py actually reads. The first version of
+    # this list invented VERTEX_PROJECT_ID and VERTEX_LOCATION, which exist
+    # nowhere in the codebase, so Vertex would have been silently absent in
+    # production while /health still reported the service as up.
     wanted = [
         "DATABASE_URL", "OPENAI_API_KEY", "OPENAI_API_KEY_FALLBACK",
         "GROQ_API_KEY", "ELEVENLABS_API_KEY", "MANUS_API_KEY",
-        "GOOGLE_CREDENTIALS_JSON", "VERTEX_PROJECT_ID", "VERTEX_LOCATION",
+        "GEMINI_API_KEY", "GCP_PROJECT_ID", "GCP_REGION",
         "LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY", "LANGFUSE_HOST",
         "CE_ALLOWED_ORIGINS", "CE_DAILY_USD_LIMIT", "CE_VOICE_RESERVE",
-        "CE_MAX_PRACTICE_TURNS", "CE_DEFAULT_ACTOR",
+        "CE_MAX_PRACTICE_TURNS", "CE_DEFAULT_ACTOR", "CE_ENV",
     ]
     found: dict[str, str] = {}
     path = os.path.join(ROOT, ".env")
@@ -104,6 +108,19 @@ def env_pairs() -> list[dict]:
             k, v = k.strip(), v.strip().strip('"').strip("'")
             if k in wanted and v:
                 found[k] = v            # later wins, matching dotenv
+    # Vertex needs the service account as a DOCUMENT, not a path. Locally
+    # GOOGLE_APPLICATION_CREDENTIALS points at a file on this machine, which
+    # means nothing inside a container, so the file is read and shipped as
+    # GOOGLE_CREDENTIALS_JSON, which is what providers.py materialises back to
+    # a temp file at startup. Same thing Render is given.
+    if "GOOGLE_CREDENTIALS_JSON" not in found:
+        key_files = glob.glob(os.path.join(ROOT, "project-*.json"))
+        path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "")
+        source = path if os.path.isfile(path) else (key_files[0] if key_files else "")
+        if source:
+            with open(source, encoding="utf-8") as fh:
+                found["GOOGLE_CREDENTIALS_JSON"] = fh.read()
+
     return [{"name": k, "value": v} for k, v in found.items()]
 
 
@@ -210,13 +227,46 @@ def main() -> int:
     host = f"{REGION}-docker.pkg.dev"
     image = f"{host}/{project}/{REPO}/api:{int(time.time())}"
 
-    # 1. a place to put the image
-    code, _ = api(creds,
-                  f"https://artifactregistry.googleapis.com/v1/projects/{project}"
-                  f"/locations/{REGION}/repositories?repositoryId={REPO}",
-                  "POST", {"format": "DOCKER",
-                           "description": "The Coaching Engine API"})
-    print(f"  repository: {'created' if code < 400 else 'already there'}")
+    # 1. a place to put the image.
+    #
+    # This used to print "already there" for any failure, so a 403 read as
+    # success and the run carried on to a docker push that died with
+    # "Repository not found" a full image build later. A create that fails for
+    # a reason other than "it exists" now stops here and says which reason.
+    repo_url = (f"https://artifactregistry.googleapis.com/v1/projects/{project}"
+                f"/locations/{REGION}/repositories")
+    code, body = api(creds, f"{repo_url}?repositoryId={REPO}", "POST",
+                     {"format": "DOCKER", "description": "The Coaching Engine API"})
+    if code < 400:
+        print(f"  {GREEN}repository{RESET} created")
+    elif code == 409:
+        print(f"  {GREEN}repository{RESET} already there")
+    elif code == 403:
+        print(f"""
+{YELLOW}This account can push images but cannot create the repository.{RESET}
+
+Artifact Registry Writer allows uploading to a repository that exists. Making
+one needs artifactregistry.repositories.create, which comes with Artifact
+Registry Administrator. Everything else is already in place: Cloud Run accepts
+a deploy from this account, and the image builds.
+
+Someone with Owner or Artifact Registry Administrator does this once:
+
+  https://console.cloud.google.com/artifacts?project={project}
+
+  CREATE REPOSITORY
+    Name    {REPO}
+    Format  Docker
+    Mode    Standard
+    Region  {REGION}
+
+Then run this again. No new role is needed afterwards, because pushing into it
+is what Writer already allows.""")
+        return 1
+    else:
+        print(f"{RED}Could not create the repository: "
+              f"{json.dumps(body)[:300]}{RESET}")
+        return 1
 
     # 2. build and push. Docker authenticates as the service account using the
     #    key directly, which avoids needing gcloud just for a credential helper.
