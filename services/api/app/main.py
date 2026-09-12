@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import os
 from contextlib import asynccontextmanager
+from datetime import datetime, timedelta, timezone
 
 from fastapi import (FastAPI, File, Form, Header, HTTPException, Request,
                      UploadFile)
@@ -226,6 +227,33 @@ def post_observation(payload: dict, x_ce_actor: str | None = Header(default=None
         if not payload.get(field):
             raise HTTPException(422, {"type": "missing-field", "title": "Missing field",
                                       "detail": f"'{field}' is required"})
+
+    # Refuse a future observation at the door.
+    #
+    # The recency weighting in the transfer gap raises ValueError on a score
+    # dated after today, which is correct: you cannot weight the age of
+    # something that has not happened. But the observation is written and
+    # committed BEFORE the agent runs, deliberately, because the manager's
+    # judgement is theirs whether or not the coaching draft succeeds. Those two
+    # correct decisions combine badly: one future-dated observation commits,
+    # the agent then fails, and every later run for that staff member fails the
+    # same way until somebody deletes the row by hand. The interface always
+    # sends now, so this is unreachable through the product and trivial to hit
+    # with a script, which is exactly the kind of thing that gets hit.
+    try:
+        when = datetime.fromisoformat(
+            str(payload["observed_at"]).replace("Z", "+00:00"))
+    except ValueError:
+        raise HTTPException(422, {"type": "bad-timestamp", "title": "Bad timestamp",
+                                  "detail": "'observed_at' is not a valid "
+                                            "ISO 8601 timestamp."}) from None
+    if when.tzinfo is None:
+        when = when.replace(tzinfo=timezone.utc)
+    if when > datetime.now(timezone.utc) + timedelta(minutes=5):
+        raise HTTPException(422, {
+            "type": "future-observation", "title": "Observation is in the future",
+            "detail": "'observed_at' is in the future. An observation records "
+                      "something that already happened."})
 
     with session(actor) as cur:
         payload["staff_id"] = (q.resolve_staff_ref(cur, payload["staff_id"])
