@@ -28,6 +28,15 @@ What is left is a rehearsal and a backup video.
 
 Worth reading if you looked at the site earlier and something annoyed you.
 
+**The site no longer makes you wait fifteen seconds.** The API used to sleep
+after fifteen quiet minutes, and the first person to click anything after that
+sat watching nothing happen while it woke up. Measured this morning, that first
+call took **14.8 seconds**. It is now on Google Cloud Run, which keeps one
+instance awake, and the same call takes **0.4 seconds**.
+
+Nothing else changed. Same database, same data, same screens. If it ever needs
+undoing it is one setting in Vercel and the old host is still running.
+
 **You can give your debrief in your own Spanish.** Not just Spanish: the kind
 of Spanish you actually speak. `guagua` is a bus in Cuba and a baby in Peru,
 `parce` is how a Colombian says mate, and a translator that does not know the
@@ -194,7 +203,7 @@ Worth knowing because the competition scores us on this.
 | **ElevenLabs** | gives the guest a voice |
 | **Manus** | writes the weekly operations brief, from the **Write this up for the GM** button on Team insights |
 | **Langfuse** | records every AI run so we can see cost and failures |
-| **Neon / Render / Vercel** | the database and hosting |
+| **Neon / Google Cloud Run / Vercel** | the database, the API, and the site |
 
 All of them are connected and checked automatically before a demo.
 

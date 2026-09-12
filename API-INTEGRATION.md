@@ -14,7 +14,7 @@ In Vercel, or in `web/.env.local` when you are working locally:
 
 ```
 NEXT_PUBLIC_USE_REAL_API=true
-NEXT_PUBLIC_API_BASE_URL=https://coaching-engine-api.onrender.com/api/v1
+NEXT_PUBLIC_API_BASE_URL=https://coaching-engine-api-w5wg47f7gq-ew.a.run.app/api/v1
 ```
 
 Locally, point it at `http://127.0.0.1:8000/api/v1` instead.
@@ -176,7 +176,7 @@ client already carries them, so show `detail` rather than a generic message.
 ## If something looks wrong
 
 ```
-https://coaching-engine-api.onrender.com/health
+https://coaching-engine-api-w5wg47f7gq-ew.a.run.app/health
 ```
 
 That tells you whether the database is up, which AI providers are working, and

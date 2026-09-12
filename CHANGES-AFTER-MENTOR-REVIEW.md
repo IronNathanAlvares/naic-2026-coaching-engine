@@ -345,60 +345,70 @@ member. If that line blurs in the pitch, the governance story blurs with it.
 
 ## 5. Deployment
 
-### 5.1 GCP instead of Render: status, blocked, one person can unblock it
+### 5.1 GCP instead of Render: DONE, 12 Sept
 
-Reason for moving: Render's free tier sleeps after about 15 idle minutes and
-takes 25 to 50 seconds to wake. A judge staring at a spinner is the whole risk.
-Cloud Run can hold one warm instance and that removes the cold start.
+Live at **https://coaching-engine-api-w5wg47f7gq-ew.a.run.app**, and the
+deployed site talks to it. Render is still running as a rollback and should
+stay up until after the pitch.
 
-**What is ready:**
+Why it was worth doing, measured rather than argued. Three consecutive calls to
+the same endpoint, taken while testing:
 
-- `services/api/Dockerfile` is already Cloud Run compatible. It sets
-  `ENV PORT=8000` and uses a shell form CMD so `${PORT}` expands at runtime, and
-  its own comment says "Render, Cloud Run and Fly all inject the port". No
-  change needed.
-- `scripts/deploy_cloudrun.py` is written and working. It builds, pushes to
-  Artifact Registry, creates or updates the Cloud Run service with
-  `--min-instances 1`, opens it to the public and waits for the revision. It
-  needs no gcloud SDK, which is good, because gcloud is not installed on this
-  machine and Docker 29.7.2 is.
-- The service account
-  `vertexairunner@project-7ffd39d7-3c02-4599-ae9.iam.gserviceaccount.com`
-  already holds the four roles Mary-Susan granted: Cloud Run Admin, Service
-  Account User, Artifact Registry Writer, Storage Object Admin. Secret Manager
-  Secret Accessor is not needed, because the deploy sends environment variables
-  directly with the service definition, the same trust model as pasting them
-  into the Render dashboard.
+| | first call | then | then |
+|---|---|---|---|
+| Cloud Run | 0.40s | 0.44s | 0.45s |
+| Render | **14.81s** | 0.53s | 0.53s |
 
-**What is blocking:**
+That first Render number is the free tier waking from sleep. It is what a judge
+would have watched before anything appeared on screen.
 
-Two APIs are not enabled on the project, and the service account cannot enable
-them. Every attempt returns `403 Permission denied to enable service`. Only a
-project Owner can do it. That is Mary-Susan.
+**What it took, in order, because each step looked like the previous one:**
 
-```
-https://console.cloud.google.com/apis/library/run.googleapis.com?project=project-7ffd39d7-3c02-4599-ae9
-https://console.cloud.google.com/apis/library/artifactregistry.googleapis.com?project=project-7ffd39d7-3c02-4599-ae9
-```
+1. Mary-Susan enabled `run.googleapis.com` and `artifactregistry.googleapis.com`.
+   Only a project Owner can; no role granted to anybody substitutes.
+2. Mary-Susan granted the four roles **to the service account**, not to Nathan.
+   The roles she had granted first went to Nathan's Google account, and GCP
+   treats a person and a service account as different identities. This is the
+   step that catches everybody once.
+3. Mary-Susan created the Artifact Registry repository `coaching-engine`.
+   Artifact Registry Writer can push into a repository and cannot make one.
+4. Deploy.
 
-Press ENABLE on both. It costs nothing and takes about a minute. Then:
+**Three bugs this found, all in `scripts/deploy_cloudrun.py`, all only visible
+when run against the real thing:**
 
-```bash
-python scripts/deploy_cloudrun.py --check
-```
+- The environment list named `VERTEX_PROJECT_ID` and `VERTEX_LOCATION`, which
+  exist nowhere in this codebase. `providers.py` reads `GCP_PROJECT_ID` and
+  `GCP_REGION`. Vertex would have been silently absent in production while
+  `/health` still said the service was fine.
+- `DATABASE_URL` was read from `.env`, which on a developer machine points at
+  the Docker Postgres on `localhost:5433`. Cloud Run took it, started cleanly,
+  and reported the database unreachable after a 30 second timeout. `.env.neon`
+  is now read second so the hosted database wins, and a localhost DSN aborts
+  the deploy.
+- The Artifact Registry step treated every non-2xx as "already there", so a 403
+  read as success and the run continued to a push that failed a whole image
+  build later. It now looks for the repository before trying to create one,
+  because GCP checks permission before existence and returns 403 either way.
 
-If both lines read `ready`, run it without `--check` and it deploys.
+**One gotcha on the Vercel side.** `NEXT_PUBLIC_API_BASE_URL` had been saved as
+a **Secret**, which fights the `NEXT_PUBLIC_` prefix: that prefix means "inline
+this into the browser bundle", so there is nothing to keep secret and Vercel
+warns about it. It has to be type **Config**, and a variable already saved as a
+Secret cannot be converted, so it has to be deleted and recreated. The redeploy
+must also be done **without the build cache**, because `NEXT_PUBLIC_*` is baked
+in at build time and a cached build ships the old URL.
 
-- [ ] Ask Mary-Susan to enable those two APIs.
-- [ ] Run the deploy.
-- [ ] Check `/health` reports the database up and every provider true.
-- [ ] Only then point `NEXT_PUBLIC_API_BASE_URL` in Vercel at the new URL.
-- [ ] **Leave Render running until the day after the pitch.** Two working APIs
-      beats one new one. Switching back is one environment variable.
-
-**Judgement call:** if the APIs are not enabled by Saturday evening, stop and
-stay on Render. Warm it with a request a few minutes before the pitch and the
-cold start never happens. Do not be mid-migration on Sunday.
+- [x] APIs enabled, roles granted to the service account, repository created.
+- [x] Deployed, and `/health` reports database up with all six providers.
+- [x] Verified from the live site: 48 staff through row level security, CORS
+      accepted from the Vercel origin, the observation draft, the cite gate and
+      the Spanish debrief path all working against Cloud Run.
+- [x] Vercel repointed and redeployed without cache. `onrender.com` no longer
+      appears anywhere in the deployed bundle.
+- [ ] **Leave Render running until the day after the pitch.** Rolling back is
+      putting `https://coaching-engine-api.onrender.com/api/v1` back in that one
+      Vercel variable and redeploying. Turn Render off after Monday, not before.
 
 ### 5.2 The credits
 
@@ -475,6 +485,6 @@ Two things from Ziyi's branch were kept because both are genuinely right:
 | 1 minute demo | 2 minute scripted demo, checkout dispute |
 | Hotels only market story | Hotels as beachhead, cross-industry vision |
 | 12 slides | Same spine, plus competitors, plus why-not-ChatGPT, plus route to market |
-| Render backend | Cloud Run, blocked on two API switches |
+| Render backend | **Done.** Cloud Run, live, 14.8s cold start gone |
 | Turnover stats stated | Turnover stats sourced, or cut |
 | Challenge-centric copy | Product-centric copy |

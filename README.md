@@ -115,7 +115,7 @@ flowchart LR
         G["🔍 Glass box<br/><i>verify our claims</i>"]
     end
 
-    subgraph api ["FastAPI · Render · EU"]
+    subgraph api ["FastAPI · Cloud Run · europe-west1"]
         direction TB
         EP["Endpoints"]
         AG["Agent graph"]
@@ -191,7 +191,7 @@ cd web && pnpm install && pnpm dev
 | Manager console | <http://localhost:3000/manager> | [naic-2026-coaching-engine.vercel.app/manager](https://naic-2026-coaching-engine.vercel.app/manager) |
 | Staff app | <http://localhost:3000/staff> | [/staff](https://naic-2026-coaching-engine.vercel.app/staff) |
 | **Glass box** | <http://localhost:3000/glassbox> | [/glassbox](https://naic-2026-coaching-engine.vercel.app/glassbox) |
-| API health | <http://localhost:8000/health> | [/health](https://coaching-engine-api.onrender.com/health) |
+| API health | <http://localhost:8000/health> | [/health](https://coaching-engine-api-w5wg47f7gq-ew.a.run.app/health) |
 
 ---
 
