@@ -28,6 +28,27 @@ What is left is a rehearsal and a backup video.
 
 Worth reading if you looked at the site earlier and something annoyed you.
 
+**There is a pitch pack now.** Four things, all in the repo:
+
+- `DEMO-SCRIPT.md`, the two minute demo word for word, timed against the live
+  site rather than guessed. Diego first, then Marta.
+- `TECHNICAL-REFERENCE.md`, the whole system in one place: what was built, why,
+  and where it lives.
+- `QA-PREP.md`, about a hundred questions with answers, including the hostile
+  ones, and a list of the things we cannot answer with the words to use instead.
+- `demo-video/coaching-engine-demo.mp4`, a 74 second silent recording of the
+  real site, for if the wifi dies. You narrate over it.
+
+**The demo needs no ElevenLabs credits.** We have about four words of voice
+budget left, and the practice guest's opening line is generated fresh every
+time so it can never be cached. The demo is built on the parts that do not need
+it, and it is a better demo for it.
+
+**One real bug found while timing the demo.** An observation dated in the
+future was written, then broke the coaching run, and kept breaking every later
+run for that person until the row was deleted by hand. The interface never
+does this; a script can. It is now refused before anything is written.
+
 **The site no longer makes you wait fifteen seconds.** The API used to sleep
 after fifteen quiet minutes, and the first person to click anything after that
 sat watching nothing happen while it woke up. Measured this morning, that first

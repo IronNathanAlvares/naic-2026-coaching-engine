@@ -163,7 +163,7 @@ identically every time.
   the resulting queue.
 - Practice flow itself runs roughly 45 to 50 seconds for one scenario.
 
-- [ ] Write the demo as a word for word script, the same way the pitch is.
+- [x] Demo written word for word and timed: `DEMO-SCRIPT.md`.
 - [ ] Rehearse it until it takes 2:00 and not 2:40.
 
 ### 3.2 Decisions inside the demo
@@ -466,7 +466,11 @@ Two things from Ziyi's branch were kept because both are genuinely right:
 - [ ] **Sunday meeting**, BrewDog Grand Canal around 16:00, to be confirmed in
       the group chat. Check no event is on that would make it unworkable.
       Fallbacks discussed: a central cafe or a hotel lobby.
-- [ ] **Backup demo video**, recorded Saturday. If the network fails on Monday
+- [x] **Backup demo video** recorded: `demo-video/coaching-engine-demo.mp4`,
+      74 seconds, silent, narrate over it. Re-record with
+      `python scripts/record_demo.py`.
+- [ ] Copy it onto the laptop you will present from. A backup in the cloud
+      is not a backup for a wifi failure. If the network fails on Monday
       this is the whole demo. Record it against the deployment that will be live.
 - [ ] **Golden set labels**, Mary-Susan. 45 items, every `ground_truth_scores`
       still null, only 2 distinct SOP chunks referenced and both are wrong (a

@@ -355,6 +355,17 @@ shared drive, not here: see [CONTRIBUTING.md](CONTRIBUTING.md) for why.
 
 ---
 
+## For the pitch
+
+| Document | What it is |
+|---|---|
+| [DEMO-SCRIPT.md](DEMO-SCRIPT.md) | the two minute demo, word for word, timed against the live site |
+| [TECHNICAL-REFERENCE.md](TECHNICAL-REFERENCE.md) | the whole system in one place |
+| [QA-PREP.md](QA-PREP.md) | about a hundred questions, technical, commercial and hostile |
+| [demo-video/](demo-video/) | 74 second silent backup recording, narrate over it |
+
+---
+
 ## Regional Spanish
 
 A hotel floor in Ireland is not an English-speaking floor. A large share of it
