@@ -41,7 +41,8 @@ from .agent import run_coaching
 import psycopg
 
 from .db import Actor, pool, resolve_actor, session
-from .providers import (ProviderError, Trace, available, manus_task,
+from .providers import (ProviderError, Trace, available, manus_brief,
+                        manus_task,
                         voice_budget, voice_file)
 
 DEFAULT_ACTOR = os.environ.get("CE_DEFAULT_ACTOR", "Marta")
@@ -535,6 +536,31 @@ def post_weekly_report(x_ce_actor: str | None = Header(default=None)):
 
     return {"status": "submitted", "patterns_included": len(insights["patterns"]),
             **task}
+
+
+@app.get("/api/v1/reports/weekly/{task_id}")
+def get_weekly_report(task_id: str,
+                      x_ce_actor: str | None = Header(default=None)):
+    """What Manus wrote, returned as markdown so the console can render it.
+
+    The point of this route is that a manager never has to leave the product to
+    read a document the product commissioned. Sending them to a third party
+    site mid-shift, to a page with somebody else's branding and a chat
+    transcript on it, is a worse experience and a worse demo.
+
+    Polled while the agent works, so "still writing" is a normal answer rather
+    than an error.
+    """
+    actor = actor_from(x_ce_actor)
+    if actor.role not in ("manager", "ld_admin"):
+        raise HTTPException(403, {"type": "role-required", "title": "Manager only",
+                                  "detail": "Only a manager or L&D can read this."})
+    try:
+        return manus_brief(task_id)
+    except ProviderError as exc:
+        raise HTTPException(503, {"type": "manus-unavailable",
+                                  "title": "Could not fetch the brief",
+                                  "detail": str(exc)[:200]}) from None
 
 
 # ---------------------------------------------------------------- glass box

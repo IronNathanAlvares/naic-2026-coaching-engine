@@ -15,6 +15,7 @@ import type {
   TransferGap,
   VerifyInput,
   VerifyResponse,
+  WeeklyBrief,
   WeeklyBriefResponse,
 } from "@/lib/types";
 
@@ -183,6 +184,13 @@ export const managerApi = {
           status: "nothing_to_report",
           detail: "Mock mode does not commission real briefs.",
         }),
+
+  /** What Manus wrote, so the manager never leaves the console to read a
+   * document the console commissioned. Returns "running" until it is done. */
+  getWeeklyBrief: (taskId: string): Promise<WeeklyBrief> =>
+    isRealApi()
+      ? http.get(`/reports/weekly/${taskId}`)
+      : Promise.resolve({ status: "empty" as const }),
 
   getTeamInsights: (): Promise<TeamInsights> =>
     isRealApi()

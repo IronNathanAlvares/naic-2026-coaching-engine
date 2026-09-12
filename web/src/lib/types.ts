@@ -198,6 +198,20 @@ export interface ObservationDraftResponse {
  * rather than in our database. The UI has to be honest about that instead of
  * pretending to have a result.
  */
+/** The brief itself, polled while Manus writes it.
+ *
+ * "running" is a normal answer, not an error: the agent takes minutes and the
+ * console asks repeatedly until there is a document.
+ */
+export interface WeeklyBrief {
+  status: "running" | "ready" | "empty";
+  /** The agent's closing note. Present before the document sometimes is. */
+  summary?: string;
+  /** The brief, as markdown. Only on "ready". */
+  markdown?: string;
+  filename?: string;
+}
+
 export interface WeeklyBriefResponse {
   status: "submitted" | "nothing_to_report";
   patterns_included?: number;

@@ -271,6 +271,30 @@ _TRANSPORT_RETRIES = 1
 _RETRY_BACKOFF_S = 0.6
 
 
+# Briefs, keyed by task id. A finished document never changes, and the page
+# polls every few seconds while a manager watches it.
+_BRIEF_CACHE: dict[str, dict] = {}
+
+
+def _get(url: str, headers: dict, timeout: int = 60) -> dict:
+    req = urllib.request.Request(url, headers={"User-Agent": UA, **headers})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return json.loads(r.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        body = e.read()[:400].decode("utf-8", "replace")
+        raise ProviderError(f"HTTP {e.code} from {url.split('/')[2]}: {body}") from None
+
+
+def _get_text(url: str, timeout: int = 60) -> str:
+    """Download an attachment. The signed CDN URL carries its own auth, so the
+    API key must NOT be attached: sending it to a third party CDN would leak
+    the credential for no benefit."""
+    req = urllib.request.Request(url, headers={"User-Agent": UA})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read().decode("utf-8", "replace")
+
+
 def _post(url: str, payload: dict, headers: dict, timeout: int = 90) -> dict:
     req = urllib.request.Request(
         url, data=json.dumps(payload).encode("utf-8"),
@@ -805,6 +829,63 @@ def manus_task(prompt: str, *, mode: str = "fast",
     return {"task_id": data.get("task_id") or data.get("id"),
             "task_url": data.get("task_url") or data.get("url"),
             "status": data.get("status", "submitted")}
+
+
+def manus_brief(task_id: str) -> dict:
+    """Fetch what Manus actually wrote, so the manager never leaves our page.
+
+    manus_task() only hands back a handle. The work itself lands as an
+    assistant message with a markdown file attached, and it is reachable on the
+    v2 API, which is the reason this reaches for v2 while task creation still
+    posts to v1:
+
+        GET /v2/task.listMessages?task_id=...     header x-manus-api-key
+
+    v1's GET returns the prompt echoed back and nothing else, which is why the
+    first version of this feature could only offer a link out to manus.im.
+
+    The attachment URL is signed and time limited, and Manus deletes session
+    files after a couple of days. That is survivable because listing the
+    messages again mints a fresh URL, so the brief is re-fetchable for as long
+    as the task exists and nothing has to be stored on our side. The markdown
+    itself is cached in process, because a manager watching this page polls it
+    every few seconds and the document does not change once written.
+
+    Returns status "running" while Manus is still working, "ready" with the
+    markdown when it is done, and "empty" if it finished without attaching
+    anything.
+    """
+    if not MANUS_KEY:
+        raise ProviderError("MANUS_API_KEY is not set")
+
+    cached = _BRIEF_CACHE.get(task_id)
+    if cached is not None:
+        return cached
+
+    data = _get(f"https://api.manus.ai/v2/task.listMessages?task_id={task_id}"
+                f"&order=asc&limit=100", {"x-manus-api-key": MANUS_KEY})
+
+    summary, attachment = "", None
+    for message in data.get("messages", []):
+        assistant = message.get("assistant_message") or {}
+        if assistant.get("content"):
+            summary = assistant["content"]          # last one wins: the closing note
+        for item in assistant.get("attachments") or []:
+            if (item.get("content_type") or "").startswith("text/"):
+                attachment = item
+
+    if attachment is None:
+        # Either still writing, or it answered without producing a document.
+        running = any((m.get("status_update") or {}).get("agent_status") == "running"
+                      for m in data.get("messages", []))
+        return {"status": "running" if running or not summary else "empty",
+                "summary": summary}
+
+    markdown = _get_text(attachment["url"])
+    result = {"status": "ready", "summary": summary, "markdown": markdown,
+              "filename": attachment.get("filename", "operations-brief.md")}
+    _BRIEF_CACHE[task_id] = result
+    return result
 
 
 def available() -> dict[str, bool]:
