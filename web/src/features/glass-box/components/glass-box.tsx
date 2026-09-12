@@ -1,28 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Play, ShieldCheck, X } from "lucide-react";
+import { Check, Loader2, Lock, Play, ShieldCheck, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { http } from "@/lib/api/client";
-import type { GateReport, RlsReport, StepActor, TraceRun } from "../types";
-
-/* Who made each decision. The colour is the argument: if the timeline is
- * mostly one colour, the panel makes the case on its own. */
-const ACTOR_STYLE: Record<StepActor, { label: string; className: string }> = {
-  code: {
-    label: "code",
-    className: "bg-emerald-500/12 text-emerald-700 dark:text-emerald-300",
-  },
-  model: {
-    label: "model",
-    className: "bg-violet-500/12 text-violet-700 dark:text-violet-300",
-  },
-  database: {
-    label: "database",
-    className: "bg-sky-500/12 text-sky-700 dark:text-sky-300",
-  },
-};
+import type { GateReport, RlsReport, TraceRun } from "../types";
+import { TraceTimeline, Verdict } from "./trace-timeline";
 
 const STAFF = [
   { id: "staff-001", name: "Diego", hint: "blocked, knows it, cannot do it" },
@@ -31,53 +15,39 @@ const STAFF = [
   { id: "staff-008", name: "Priya", hint: "usually abstains" },
 ];
 
-function Pill({ actor }: { actor: StepActor }) {
-  const s = ACTOR_STYLE[actor];
+/** A row count, where nought is the interesting answer.
+ *
+ * A plain 0 in a table reads as an empty cell or a bug. It is neither: it is
+ * the database refusing, which is the entire claim this panel makes, so it is
+ * drawn as a refusal rather than as a small number. */
+function RowCount({ label, rows }: { label: string; rows: number }) {
+  const denied = rows === 0;
   return (
     <span
-      className={`inline-flex w-[4.5rem] shrink-0 justify-center rounded-full px-2 py-0.5 text-[11px] font-medium ${s.className}`}
+      className={`flex min-w-[4.75rem] flex-col items-center rounded-lg px-2.5 py-1.5 ring-1 ${
+        denied
+          ? "bg-destructive/8 text-destructive ring-destructive/20"
+          : "bg-emerald-500/10 text-emerald-700 ring-emerald-500/20 dark:text-emerald-300"
+      }`}
     >
-      {s.label}
+      <span className="inline-flex items-center gap-1 text-base font-semibold leading-none tabular-nums">
+        {denied && <Lock className="size-3" aria-hidden />}
+        {denied ? "none" : rows}
+      </span>
+      <span className="mt-0.5 text-[10px] uppercase tracking-wide opacity-80">
+        {label}
+      </span>
     </span>
   );
 }
 
-/** Renders the interesting fields of a step without dumping raw JSON at
- * someone standing three metres from a screen. */
-function StepDetail({ detail }: { detail: Record<string, unknown> }) {
-  const note = typeof detail.note === "string" ? detail.note : null;
-  const rows: Array<[string, string]> = [];
-
-  for (const [key, value] of Object.entries(detail)) {
-    if (key === "note" || key === "decisive" || value == null) continue;
-    if (Array.isArray(value)) {
-      if (value.length === 0) continue;
-      rows.push([
-        key.replace(/_/g, " "),
-        value
-          .map((v) =>
-            typeof v === "object" && v !== null
-              ? Object.values(v as Record<string, unknown>).join(" · ")
-              : String(v)
-          )
-          .join(", "),
-      ]);
-    } else if (typeof value !== "object") {
-      rows.push([key.replace(/_/g, " "), String(value)]);
-    }
-  }
-
-  if (!note && rows.length === 0) return null;
+/** One fact, boxed. Used for the outcome row, where four short facts read
+ * better as separate objects than as a sentence joined by middots. */
+function Tag({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mt-1.5 space-y-1">
-      {rows.map(([k, v]) => (
-        <p key={k} className="text-xs text-muted-foreground">
-          <span className="font-medium text-foreground/70">{k}:</span>{" "}
-          <span className="break-words">{v}</span>
-        </p>
-      ))}
-      {note ? <p className="text-xs italic text-muted-foreground">{note}</p> : null}
-    </div>
+    <span className="rounded-md bg-background px-2 py-0.5 font-mono text-[11px] text-muted-foreground ring-1 ring-border">
+      {children}
+    </span>
   );
 }
 
@@ -99,17 +69,6 @@ export function GlassBox() {
       setBusy(null);
     }
   }
-
-  const codeShare = run
-    ? Math.round(
-        (run.trace.decisions_by_code /
-          Math.max(
-            1,
-            run.trace.decisions_by_code + run.trace.decisions_by_model
-          )) *
-          100
-      )
-    : 0;
 
   return (
     <div className="space-y-6">
@@ -137,7 +96,6 @@ export function GlassBox() {
               <Button
                 key={s.id}
                 variant="outline"
-                size="sm"
                 disabled={busy !== null}
                 onClick={() =>
                   go(
@@ -147,7 +105,11 @@ export function GlassBox() {
                   )
                 }
               >
-                <Play className="size-3.5" />
+                {busy === s.id ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Play className="size-3.5" />
+                )}
                 {busy === s.id ? "Running…" : s.name}
                 <span className="hidden text-xs text-muted-foreground sm:inline">
                   {s.hint}
@@ -157,63 +119,47 @@ export function GlassBox() {
           </div>
 
           {run ? (
-            <div className="space-y-4">
-              <div className="rounded-lg border bg-muted/30 p-3">
-                <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1 text-sm">
-                  <span>
-                    <strong className="tabular-nums">
-                      {run.trace.decisions_by_code}
-                    </strong>{" "}
-                    decisions by code
-                  </span>
-                  <span>
-                    <strong className="tabular-nums">
-                      {run.trace.decisions_by_model}
-                    </strong>{" "}
-                    by the model
-                  </span>
-                  <span className="text-muted-foreground">
-                    {run.trace.total_ms}ms · {run.trace.total_tokens} tokens ·{" "}
-                    {run.trace.calls.length} model calls
-                  </span>
-                </div>
-                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-violet-500/25">
-                  <div
-                    className="h-full rounded-full bg-emerald-500/70"
-                    style={{ width: `${codeShare}%` }}
-                  />
-                </div>
-              </div>
+            <div key={run.staff.id} className="space-y-4">
+              <Verdict
+                byCode={run.trace.decisions_by_code}
+                byModel={run.trace.decisions_by_model}
+                ms={run.trace.total_ms}
+                tokens={run.trace.total_tokens}
+                calls={run.trace.calls.length}
+              />
 
-              <ol className="space-y-2">
-                {run.trace.steps.map((step) => (
-                  <li key={step.seq} className="flex gap-3">
-                    <Pill actor={step.actor} />
-                    <div className="min-w-0 flex-1 border-l pl-3 pb-1">
-                      <p className="text-sm font-medium">{step.label}</p>
-                      <StepDetail detail={step.detail} />
-                    </div>
-                  </li>
-                ))}
-              </ol>
+              <TraceTimeline steps={run.trace.steps} />
 
-              <div className="rounded-lg border p-3">
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Outcome
+              {/* The end of the chain, set apart so it reads as the result of
+                  the steps above rather than one more step. */}
+              <div
+                style={{
+                  animationDelay: `${run.trace.steps.length * 90 + 120}ms`,
+                }}
+                className="step-in rounded-xl border bg-muted/30 p-3.5"
+              >
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  What shipped
                 </p>
-                <p className="mt-1 text-sm">
+                <p className="mt-1.5 text-sm leading-relaxed">
                   {run.outcome.headline ?? run.outcome.abstain_reason}
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {run.outcome.status}
-                  {run.outcome.classification
-                    ? ` · ${run.outcome.classification}`
-                    : ""}
-                  {run.outcome.escalation
-                    ? ` · ${run.outcome.escalation.rule_id} → ${run.outcome.escalation.route}`
-                    : ""}
-                  {` · ${run.outcome.citations} citations`}
-                </p>
+                <div className="mt-2.5 flex flex-wrap gap-1.5">
+                  <Tag>{run.outcome.status}</Tag>
+                  {run.outcome.classification && (
+                    <Tag>{run.outcome.classification}</Tag>
+                  )}
+                  {run.outcome.escalation && (
+                    <Tag>
+                      {run.outcome.escalation.rule_id} →{" "}
+                      {run.outcome.escalation.route}
+                    </Tag>
+                  )}
+                  <Tag>
+                    {run.outcome.citations}{" "}
+                    {run.outcome.citations === 1 ? "citation" : "citations"}
+                  </Tag>
+                </div>
               </div>
             </div>
           ) : null}
@@ -236,44 +182,89 @@ export function GlassBox() {
         <CardContent className="space-y-3">
           <Button
             variant="outline"
-            size="sm"
             disabled={busy !== null}
             onClick={() =>
               go("gate", () => http.get<GateReport>("/demo/gate"), setGate)
             }
           >
-            <ShieldCheck className="size-3.5" />
+            {busy === "gate" ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <ShieldCheck className="size-3.5" />
+            )}
             {busy === "gate" ? "Running…" : "Try to get a lie past it"}
           </Button>
 
           {gate ? (
             <div className="space-y-2">
-              {gate.probes.map((p) => (
+              {/* The score first. Five cards of similar height make a reader
+                  work out the result; one line states it. */}
+              <div className="fade-up flex flex-wrap items-center gap-x-5 gap-y-1 rounded-xl border bg-muted/30 px-3.5 py-2.5">
+                <span className="text-sm">
+                  <strong className="tabular-nums text-destructive">
+                    {gate.probes.filter((p) => !p.passed).length}
+                  </strong>{" "}
+                  <span className="text-muted-foreground">
+                    fabrications rejected
+                  </span>
+                </span>
+                <span className="text-sm">
+                  <strong className="tabular-nums text-emerald-700 dark:text-emerald-300">
+                    {gate.probes.filter((p) => p.passed).length}
+                  </strong>{" "}
+                  <span className="text-muted-foreground">honest claim let through</span>
+                </span>
+                <span className="ml-auto text-xs text-muted-foreground">
+                  {gate.probes.every((p) => p.as_expected)
+                    ? "every claim went the way the gate says it should"
+                    : "a claim did not behave as expected"}
+                </span>
+              </div>
+
+              {gate.probes.map((p, i) => (
                 <div
                   key={p.id}
-                  className="rounded-lg border p-3 text-sm"
+                  style={{ animationDelay: `${i * 80}ms` }}
+                  className={`step-in overflow-hidden rounded-xl border-l-[3px] bg-card text-sm shadow-sm ${
+                    p.passed
+                      ? "border-l-emerald-500 ring-1 ring-emerald-500/15"
+                      : "border-l-destructive ring-1 ring-destructive/15"
+                  }`}
                 >
-                  <div className="flex items-start gap-2">
-                    {p.passed ? (
-                      <Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />
-                    ) : (
-                      <X className="mt-0.5 size-4 shrink-0 text-destructive" />
-                    )}
+                  <div className="flex items-start gap-2.5 p-3">
+                    <span
+                      aria-hidden
+                      className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full ${
+                        p.passed
+                          ? "bg-emerald-500/15 text-emerald-600"
+                          : "bg-destructive/15 text-destructive"
+                      }`}
+                    >
+                      {p.passed ? (
+                        <Check className="size-3.5" />
+                      ) : (
+                        <X className="size-3.5" />
+                      )}
+                    </span>
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium">{p.title}</p>
-                      <p className="mt-1 text-xs italic text-muted-foreground">
-                        &ldquo;{p.claim}&rdquo;, cites {p.cited.join(", ")}
+                      <p className="font-semibold leading-snug">{p.title}</p>
+                      <p className="mt-1.5 border-l-2 border-muted-foreground/20 pl-2.5 text-xs italic leading-relaxed text-muted-foreground">
+                        &ldquo;{p.claim}&rdquo;
+                        <span className="not-italic"> cites {p.cited.join(", ")}</span>
                       </p>
                       {p.failures.map((f) => (
-                        <p key={f} className="mt-1 text-xs text-destructive">
-                          rejected: {f}
+                        <p
+                          key={f}
+                          className="mt-2 inline-flex rounded-md bg-destructive/10 px-2 py-1 text-xs font-medium text-destructive"
+                        >
+                          {f}
                         </p>
                       ))}
                     </div>
                   </div>
                 </div>
               ))}
-              <p className="text-xs text-muted-foreground">{gate.note} Source:{" "}
+              <p className="pt-1 text-xs text-muted-foreground">{gate.note} Source:{" "}
                 <code className="text-[11px]">{gate.source}</code>.
               </p>
             </div>
@@ -296,57 +287,61 @@ export function GlassBox() {
         <CardContent className="space-y-3">
           <Button
             variant="outline"
-            size="sm"
             disabled={busy !== null}
             onClick={() =>
               go("rls", () => http.get<RlsReport>("/demo/rls"), setRls)
             }
           >
-            <ShieldCheck className="size-3.5" />
+            {busy === "rls" ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <ShieldCheck className="size-3.5" />
+            )}
             {busy === "rls" ? "Running…" : "Ask as three different people"}
           </Button>
 
           {rls ? (
             <div className="space-y-3">
-              <pre className="overflow-x-auto rounded-md bg-muted/50 p-3 text-[11px]">
-                {rls.query}
-              </pre>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-xs text-muted-foreground">
-                      <th className="py-1.5 pr-3 font-medium">Asked by</th>
-                      <th className="py-1.5 pr-3 text-right font-medium">
-                        Practice
-                      </th>
-                      <th className="py-1.5 pr-3 text-right font-medium">
-                        Floor
-                      </th>
-                      <th className="py-1.5 font-medium">Why</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rls.viewers.map((v) => (
-                      <tr key={v.viewer} className="border-b last:border-0">
-                        <td className="py-2 pr-3">
-                          <span className="font-medium">{v.viewer}</span>
-                          <span className="block text-xs text-muted-foreground">
-                            {v.who}
-                          </span>
-                        </td>
-                        <td className="py-2 pr-3 text-right tabular-nums">
-                          {v.practice_rows}
-                        </td>
-                        <td className="py-2 pr-3 text-right tabular-nums">
-                          {v.floor_rows}
-                        </td>
-                        <td className="py-2 text-xs text-muted-foreground">
-                          {v.expected}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              {/* Labelled, because the whole argument rests on this being the
+                  SAME query every time. Unlabelled it reads as decoration. */}
+              <div className="fade-up overflow-hidden rounded-xl border">
+                <p className="border-b bg-muted/50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  One query, sent unchanged by all three
+                </p>
+                <pre className="overflow-x-auto p-3 text-[11px] leading-relaxed">
+                  {rls.query}
+                </pre>
+              </div>
+
+              <div className="space-y-2">
+                {rls.viewers.map((v, i) => (
+                  <div
+                    key={v.viewer}
+                    style={{ animationDelay: `${i * 90}ms` }}
+                    className="step-in flex flex-wrap items-center gap-x-4 gap-y-3 rounded-xl border bg-card p-3"
+                  >
+                    {/* A floor width, because flex-1 alone let this column
+                        collapse to one word per line once the counts and the
+                        explanation were both on the row. */}
+                    <div className="w-full sm:w-auto sm:min-w-[9.5rem] sm:flex-1">
+                      <p className="text-sm font-semibold leading-tight">
+                        {v.viewer}
+                      </p>
+                      <p className="text-xs leading-snug text-muted-foreground">
+                        {v.who}
+                      </p>
+                    </div>
+
+                    <div className="flex shrink-0 gap-2">
+                      <RowCount label="practice" rows={v.practice_rows} />
+                      <RowCount label="floor" rows={v.floor_rows} />
+                    </div>
+
+                    <p className="w-full text-xs leading-snug text-muted-foreground sm:w-[16rem] sm:shrink-0">
+                      {v.expected}
+                    </p>
+                  </div>
+                ))}
               </div>
               <p className="text-xs text-muted-foreground">{rls.note}</p>
             </div>

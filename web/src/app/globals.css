@@ -185,6 +185,46 @@
   transform-origin: center;
 }
 
+/* The glass box timeline.
+ *
+ * Steps arrive one after another rather than all at once, because the claim
+ * the page is answering is "this is canned". Watching the chain assemble, with
+ * each step sliding in from the spine it hangs off, is a more convincing
+ * answer than a sentence saying it is live. The delay is applied per step by
+ * the component, so the order is the order the agent actually ran in.
+ */
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@utility step-in {
+  animation: step-in 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* The dot on the spine lands after its row, so the eye follows the row in and
+ * then sees the marker snap into place. */
+@keyframes dot-in {
+  from {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@utility dot-in {
+  animation: dot-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
 @keyframes radar-draw {
   from {
     stroke-dashoffset: 100;
@@ -246,6 +286,8 @@
   .hero-enter,
   .fade-up,
   .pop-in,
+  .step-in,
+  .dot-in,
   .radar-draw,
   .gradient-x,
   .marquee,
