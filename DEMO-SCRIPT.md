@@ -101,8 +101,8 @@ Spanish, into the phone or laptop mic:**
 **[0:22] The answer appears. Three cards stack down the page, in this order,
 checked against the live site:**
 
-1. *"Your hotel's own standard, straight after your shift"* — the English
-2. *"You said it in your own words"* — his Spanish and the words looked up
+1. *"Your hotel's own standard, straight after your shift"*, the English
+2. *"You said it in your own words"*, his Spanish and the words looked up
 3. The clause itself, *Escalation and Logging · Escalation > Rule 1*
 
 **Point at the second card.**

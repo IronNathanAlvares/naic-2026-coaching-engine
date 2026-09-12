@@ -159,10 +159,10 @@ This is the answer to "what if the model ignores your prompt".
 
 `services/agent/coaching_engine/cite_gate.py`.
 
-1. **Source exists** — the cited id is in the evidence bundle
-2. **Span is genuine** — the quoted text really appears in that chunk
-3. **Both streams** — at least one practice citation AND one floor citation
-4. **No cross-staff evidence** — nothing about a different person
+1. **Source exists**, the cited id is in the evidence bundle
+2. **Span is genuine**, the quoted text really appears in that chunk
+3. **Both streams**, at least one practice citation AND one floor citation
+4. **No cross-staff evidence**, nothing about a different person
 
 Any failure and the whole recommendation **abstains**. It does not degrade, it
 does not ship a weaker version. Abstention is a first class outcome and appears
@@ -239,18 +239,18 @@ transcripts.
 
 22 tables. The ones carrying the idea:
 
-- **`score`** — every measurement, `source` is `practice` or `floor`. The two
+- **`score`**, every measurement, `source` is `practice` or `floor`. The two
   streams are the same table with a discriminator, so the gap is one query.
-- **`observation`** + **`observation_rating`** — a manager's floor capture.
+- **`observation`** + **`observation_rating`**, a manager's floor capture.
   A dimension they did not witness stays **null** and produces no score row.
   Writing a midpoint would quietly compress the gap.
-- **`recommendation`** + **`recommendation_citation`** — the draft and its
+- **`recommendation`** + **`recommendation_citation`**, the draft and its
   evidence. Citations are rows, not prose, so the gate can check them.
-- **`verification`** — who confirmed what, and when.
-- **`audit_event`** — append-only. INSERT allowed, UPDATE and DELETE denied by
+- **`verification`**, who confirmed what, and when.
+- **`audit_event`**, append-only. INSERT allowed, UPDATE and DELETE denied by
   policy. Article 12 of the EU AI Act wants to know what was recommended, on
   whom, and who decided.
-- **`sop_chunk`** — the hotel's own manuals, `vector(768)` plus a generated
+- **`sop_chunk`**, the hotel's own manuals, `vector(768)` plus a generated
   `tsvector`, so one table serves both halves of hybrid search.
 
 ---
