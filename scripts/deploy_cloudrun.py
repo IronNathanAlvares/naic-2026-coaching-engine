@@ -98,8 +98,16 @@ def env_pairs() -> list[dict]:
         "CE_MAX_PRACTICE_TURNS", "CE_DEFAULT_ACTOR", "CE_ENV",
     ]
     found: dict[str, str] = {}
-    path = os.path.join(ROOT, ".env")
-    if os.path.isfile(path):
+    # .env is this laptop's environment and its DATABASE_URL is the Docker
+    # Postgres on localhost:5433. Shipping that to Cloud Run produces a service
+    # that starts, answers /health, and reports the database as unreachable
+    # after a thirty second timeout, because it is dialling a machine that is
+    # not there. .env.neon holds the hosted database and is read second so it
+    # wins, which is the same precedence scripts/serve.py --neon uses.
+    for name in (".env", ".env.neon"):
+        path = os.path.join(ROOT, name)
+        if not os.path.isfile(path):
+            continue
         for line in open(path, encoding="utf-8"):
             line = line.strip()
             if not line or line.startswith("#") or "=" not in line:
@@ -120,6 +128,13 @@ def env_pairs() -> list[dict]:
         if source:
             with open(source, encoding="utf-8") as fh:
                 found["GOOGLE_CREDENTIALS_JSON"] = fh.read()
+
+    # Refuse rather than deploy something that cannot possibly work.
+    dsn = found.get("DATABASE_URL", "")
+    if "localhost" in dsn or "127.0.0.1" in dsn:
+        sys.exit(f"{RED}DATABASE_URL points at localhost.{RESET} Cloud Run "
+                 f"cannot reach this machine. Put the hosted database in "
+                 f".env.neon (scripts/deploy_db.py writes it).")
 
     return [{"name": k, "value": v} for k, v in found.items()]
 
@@ -235,10 +250,23 @@ def main() -> int:
     # a reason other than "it exists" now stops here and says which reason.
     repo_url = (f"https://artifactregistry.googleapis.com/v1/projects/{project}"
                 f"/locations/{REGION}/repositories")
-    code, body = api(creds, f"{repo_url}?repositoryId={REPO}", "POST",
-                     {"format": "DOCKER", "description": "The Coaching Engine API"})
+
+    # Look before creating. An account with Writer but not Administrator gets
+    # 403 from the create call whether or not the repository exists, because
+    # the permission check runs before the existence check. Creating blindly
+    # and reading 403 as "missing" therefore refuses to deploy into a
+    # repository that is sitting right there, which is exactly what happened
+    # the first time somebody made one by hand.
+    code, body = api(creds, f"{repo_url}/{REPO}")
+    if code == 200:
+        print(f"  {GREEN}repository{RESET} already there")
+        code = 200
+    else:
+        code, body = api(creds, f"{repo_url}?repositoryId={REPO}", "POST",
+                         {"format": "DOCKER",
+                          "description": "The Coaching Engine API"})
     if code < 400:
-        print(f"  {GREEN}repository{RESET} created")
+        print(f"  {GREEN}repository{RESET} ready")
     elif code == 409:
         print(f"  {GREEN}repository{RESET} already there")
     elif code == 403:
