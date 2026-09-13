@@ -11,8 +11,15 @@ import { Logo } from "@/components/logo";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BarChart3, ClipboardCheck, Eye, ListChecks, Sparkles, Users,
+import {
+  BarChart3,
+  ClipboardCheck,
+  Eye,
+  ListChecks,
+  PenLine,
   ScanSearch,
+  Sparkles,
+  Users,
 } from "lucide-react";
 import { ScreenNav } from "@/components/screen-nav";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +35,9 @@ const nav = [
   // Before anybody is coached at all: what the property has actually
   // written down, and what it has not.
   { href: "/manager/standards", label: "Standards audit", icon: ScanSearch },
+  // The other end of the same loop: the gap says what is wrong, this
+  // writes the practice that answers it.
+  { href: "/manager/scenarios", label: "Next scenario", icon: PenLine },
   // Outside /manager on purpose: it is not part of a manager's job, it is
   // for the person who wants to check our claims rather than believe them.
   { href: "/glassbox", label: "Glass box", icon: Eye },

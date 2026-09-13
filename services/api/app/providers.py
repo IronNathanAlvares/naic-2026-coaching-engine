@@ -168,6 +168,11 @@ ROUTES: dict[str, tuple[str, str]] = {
     # hardest reasoning task in the product, and it runs once per property at
     # onboarding rather than once per shift, so it gets the better model.
     "audit_standards":         ("openai", "gpt-4o"),
+    # Writing a scene is the only genuinely creative task in the product,
+    # and the only one that runs warm. gpt-4o rather than mini: a weak
+    # scenario is not obviously weak until somebody has practised against
+    # it and learned nothing.
+    "write_scenario":          ("openai", "gpt-4o"),
     "embed":                   ("openai", "text-embedding-3-small"),
     "transcribe":              ("groq",   "whisper-large-v3-turbo"),
 }
@@ -192,6 +197,7 @@ FALLBACKS: dict[str, tuple[str, str]] = {
     # words back with no English beside them, so this one needs a second path.
     "translate":  ("openai", "gpt-4o-mini"),
     "audit_standards": ("vertex", "gemini-2.5-flash-lite"),
+    "write_scenario": ("openai", "gpt-4o-mini"),
 }
 
 # Matches the vector(768) column in db/schema.sql. OpenAI supports shortening

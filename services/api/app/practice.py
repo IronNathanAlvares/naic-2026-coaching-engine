@@ -76,7 +76,9 @@ def list_scenarios(cur, staff_id: str) -> list[dict]:
         FROM scenario sc
         JOIN staff_member sm ON sm.id = %s
         WHERE sc.property_id = sm.property_id
-        ORDER BY (sc.origin = 'debrief_derived') DESC, sc.title
+        ORDER BY (sc.origin = 'debrief_derived') DESC,
+                 (sc.origin = 'manager_assigned') DESC,
+                 sc.created_at DESC, sc.title
         LIMIT 8
     """, (staff_id,))
     return [{
@@ -85,7 +87,9 @@ def list_scenarios(cur, staff_id: str) -> list[dict]:
         "description": r["situation"],
         # A scenario built from this person's own shift is the point of the
         # product, so it is labelled differently and sorted first.
-        "kind": "personal" if r["origin"] == "debrief_derived" else "starter",
+        "kind": ("personal" if r["origin"] == "debrief_derived"
+                 else "assigned" if r["origin"] == "manager_assigned"
+                 else "starter"),
         "source_debrief_id": None,
         "dimensions": r["target_dimensions"],
         "duration_minutes": 3,

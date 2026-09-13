@@ -37,6 +37,7 @@ from . import spend as spend_mod
 from . import tracing
 from . import practice
 from . import recommendations as recs
+from . import scenario_writer
 from . import standards_audit
 from . import voice_observation as voice_obs
 from .agent import run_coaching
@@ -665,6 +666,83 @@ def demo_rls(staff_id: str = "Aoife",
 
 
 # ---------------------------------------------------------------- practice
+
+# ------------------------------------------------------- generated scenarios
+
+def _manager_only(actor):
+    if actor.role not in ("manager", "ld_admin"):
+        raise HTTPException(403, {"type": "role-required",
+                                  "title": "Manager only",
+                                  "detail": "Only a manager or L&D can work "
+                                            "with proposed scenarios."})
+
+
+@app.post("/api/v1/scenarios/propose")
+def propose_scenario(payload: dict,
+                     x_ce_actor: str | None = Header(default=None),
+                     idempotency_key: str | None = Header(default=None)):
+    """Write the next scenario for one person, from their measured gap.
+
+    Proposes only. Nothing reaches the person's practice list until a manager
+    publishes it, which is a different endpoint and a different decision.
+    """
+    actor = actor_from(x_ce_actor)
+    _manager_only(actor)
+    staff_ref = (payload or {}).get("staff_id")
+    if not staff_ref:
+        raise HTTPException(422, {"type": "missing-field", "title": "No staff",
+                                  "detail": "staff_id is required."})
+    with session(actor) as cur:
+        staff_id = q.resolve_staff_ref(cur, staff_ref) or staff_ref
+        out = scenario_writer.propose(cur, actor, staff_id, trace=Trace())
+    if out.get("error") == "not_found":
+        raise HTTPException(404, {"type": "not-found", "title": "No such staff",
+                                  "detail": "No staff member with that id."})
+    if out.get("error") == "insufficient_evidence":
+        raise HTTPException(409, {"type": "insufficient-evidence",
+                                  "title": "Not enough evidence",
+                                  "detail": out.get("detail", "")})
+    if out.get("error"):
+        raise HTTPException(502, {"type": "writer-failed",
+                                  "title": "Could not write a scenario",
+                                  "detail": str(out.get("detail"))[:300]})
+    return out
+
+
+@app.get("/api/v1/scenarios/proposals")
+def list_scenario_proposals(x_ce_actor: str | None = Header(default=None)):
+    actor = actor_from(x_ce_actor)
+    _manager_only(actor)
+    with session(actor) as cur:
+        return scenario_writer.list_proposals(cur)
+
+
+@app.post("/api/v1/scenarios/proposals/{proposal_id}/publish")
+def publish_scenario_proposal(proposal_id: str,
+                              x_ce_actor: str | None = Header(default=None)):
+    actor = actor_from(x_ce_actor)
+    _manager_only(actor)
+    with session(actor) as cur:
+        out = scenario_writer.publish(cur, actor, proposal_id)
+    if out.get("error") == "not_found":
+        raise HTTPException(404, {"type": "not-found", "title": "Not found",
+                                  "detail": "No such proposal."})
+    return out
+
+
+@app.post("/api/v1/scenarios/proposals/{proposal_id}/discard")
+def discard_scenario_proposal(proposal_id: str, payload: dict | None = None,
+                              x_ce_actor: str | None = Header(default=None)):
+    actor = actor_from(x_ce_actor)
+    _manager_only(actor)
+    with session(actor) as cur:
+        out = scenario_writer.discard(cur, actor, proposal_id,
+                                      (payload or {}).get("reason"))
+    if out.get("error") == "not_found":
+        raise HTTPException(404, {"type": "not-found", "title": "Not found",
+                                  "detail": "No such proposal."})
+    return out
+
 
 # ---------------------------------------------------------------- standards
 

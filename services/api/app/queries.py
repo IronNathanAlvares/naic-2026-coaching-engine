@@ -311,8 +311,14 @@ def audit(cur, actor, event_type: str, subject_ref: str | None = None,
     cur.execute("""
         INSERT INTO audit_event (property_id, actor, event_type, subject_ref, payload)
         VALUES (%s,%s,%s,%s,%s)
+        RETURNING id
     """, (actor.property_id, f"{actor.role}:{actor.staff_id}", event_type,
           subject_ref, json.dumps(payload or {})))
+    # Returned so a caller can address this event later; every existing caller
+    # ignores it. A scenario proposal lives in this table until a manager
+    # decides on it, and needs an id to be decided on.
+    row = cur.fetchone()
+    return row["id"] if row else None
 
 
 def latest_weekly_report(cur):
