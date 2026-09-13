@@ -3,7 +3,7 @@
 import { Logo } from "@/components/logo";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { History, Home, MessageCircle } from "lucide-react";
+import { History, Home, MessageCircle, ShieldQuestion } from "lucide-react";
 import {
   completedAttempt,
   currentManager,
@@ -17,6 +17,9 @@ import { ScreenNav } from "@/components/screen-nav";
 const tabs = [
   { href: "/staff", label: "Home", icon: Home },
   { href: "/staff/practice", label: "Practice", icon: MessageCircle },
+  // The only tab somebody opens DURING a shift, with a guest in front of
+  // them. The other three are all after the fact.
+  { href: "/staff/ask", label: "Can I?", icon: ShieldQuestion },
   { href: "/staff/history", label: "My practice", icon: History },
 ];
 

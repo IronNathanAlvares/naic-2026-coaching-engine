@@ -37,6 +37,7 @@ from . import spend as spend_mod
 from . import tracing
 from . import practice
 from . import recommendations as recs
+from . import permissions
 from . import scenario_writer
 from . import standards_audit
 from . import voice_observation as voice_obs
@@ -666,6 +667,70 @@ def demo_rls(staff_id: str = "Aoife",
 
 
 # ---------------------------------------------------------------- practice
+
+# ---------------------------------------------------------------- permissions
+
+@app.post("/api/v1/permissions/ask")
+def ask_permission(payload: dict,
+                   x_ce_actor: str | None = Header(default=None),
+                   idempotency_key: str | None = Header(default=None)):
+    """Can I do this? Answered from the asker's own department's standards."""
+    actor = actor_from(x_ce_actor)
+    out = None
+    with session(actor) as cur:
+        out = permissions.ask(cur, actor, (payload or {}).get("question", ""),
+                              trace=Trace())
+    if out.get("error") == "empty":
+        raise HTTPException(422, {"type": "empty-question",
+                                  "title": "No question",
+                                  "detail": "Ask something."})
+    return out
+
+
+@app.post("/api/v1/permissions/requests")
+def create_permission_request(payload: dict,
+                              x_ce_actor: str | None = Header(default=None)):
+    """Send it to a manager. Anyone may ask; only a manager may answer."""
+    actor = actor_from(x_ce_actor)
+    with session(actor) as cur:
+        return permissions.request(cur, actor,
+                                   (payload or {}).get("question", ""),
+                                   (payload or {}).get("answer"))
+
+
+@app.get("/api/v1/permissions/requests")
+def list_permission_requests(x_ce_actor: str | None = Header(default=None)):
+    """A manager sees the floor's questions. Everyone else sees only their own.
+
+    The scoping is by role rather than by a parameter, so there is no id a
+    client could send to read somebody else's questions.
+    """
+    actor = actor_from(x_ce_actor)
+    with session(actor) as cur:
+        if actor.role in ("manager", "ld_admin"):
+            return permissions.list_requests(cur)
+        return permissions.list_requests(cur, staff_id=actor.staff_id)
+
+
+@app.post("/api/v1/permissions/requests/{request_id}/answer")
+def answer_permission_request(request_id: str, payload: dict,
+                              x_ce_actor: str | None = Header(default=None)):
+    actor = actor_from(x_ce_actor)
+    if actor.role not in ("manager", "ld_admin"):
+        raise HTTPException(403, {"type": "role-required",
+                                  "title": "Manager only",
+                                  "detail": "Only a manager can settle what "
+                                            "somebody is allowed to do."})
+    with session(actor) as cur:
+        out = permissions.answer(cur, actor, request_id,
+                                 (payload or {}).get("verdict", ""),
+                                 (payload or {}).get("note"))
+    if out.get("error") == "bad_verdict":
+        raise HTTPException(422, {"type": "bad-verdict", "title": "Bad verdict",
+                                  "detail": "verdict must be yes, "
+                                            "yes_with_approval or no."})
+    return out
+
 
 # ------------------------------------------------------- generated scenarios
 

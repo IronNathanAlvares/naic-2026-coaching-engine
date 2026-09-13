@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { http } from "@/lib/api/client";
+import { FloorQuestions } from "@/features/manager-console/components/floor-questions";
 
 /** One clause, as the audit resolved it back to the corpus. */
 interface Citation {
@@ -315,6 +316,10 @@ export function StandardsAudit() {
           </Button>
         </div>
       </div>
+
+      {/* Above the findings: a question is a finding with a name and a
+          timestamp on it, and it can be settled in one line. */}
+      <FloorQuestions />
 
       {error && (
         <p className="rounded-xl border border-[oklch(0.66_0.09_30)]/40 bg-[oklch(0.66_0.09_30)]/10 p-3 text-sm text-[oklch(0.45_0.08_30)]">

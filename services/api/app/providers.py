@@ -173,6 +173,11 @@ ROUTES: dict[str, tuple[str, str]] = {
     # scenario is not obviously weak until somebody has practised against
     # it and learned nothing.
     "write_scenario":          ("openai", "gpt-4o"),
+    # A staff member is holding a phone with a guest in front of them, so
+    # this is the second task in the product where latency is felt by a
+    # human in real time. Small model, strict enum, and the gate behind it
+    # is code either way.
+    "permission_check":        ("openai", "gpt-4o-mini"),
     "embed":                   ("openai", "text-embedding-3-small"),
     "transcribe":              ("groq",   "whisper-large-v3-turbo"),
 }
@@ -198,6 +203,7 @@ FALLBACKS: dict[str, tuple[str, str]] = {
     "translate":  ("openai", "gpt-4o-mini"),
     "audit_standards": ("vertex", "gemini-2.5-flash-lite"),
     "write_scenario": ("openai", "gpt-4o-mini"),
+    "permission_check": ("vertex", "gemini-2.5-flash-lite"),
 }
 
 # Matches the vector(768) column in db/schema.sql. OpenAI supports shortening
