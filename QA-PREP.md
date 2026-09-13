@@ -15,6 +15,9 @@ the judges are technical.
    could happen in this room.
 4. **The glass box is your weapon.** Any challenge of the form "how do I know
    that is true" has a live answer on one page, in fifteen seconds.
+5. **You showed a recording, so expect to be asked to prove it.** The answer is
+   never to argue. It is to open the laptop. The site is live, it is the same
+   build they just watched, and the first person to suggest that is you.
 
 ---
 
@@ -146,6 +149,89 @@ live, right now, on your own phone.
 
 ---
 
+# PART ONE AND A HALF: QUESTIONS THE DEMO ITSELF CREATES
+
+These come straight off screens the judges have just watched. Do not answer
+them from memory when you can point instead.
+
+### "Hold on. You showed us a video. How do I know any of that was real?"
+
+**This is the most likely hard question and the answer is an action, not a
+sentence.** Open the laptop.
+
+> "Fair. It is a recording because conference wifi is not something I am
+> willing to bet the pitch on. But it is a recording of the live site, and the
+> live site is right here. Tell me what you want me to do and I will do it in
+> front of you."
+
+Then go to the glass box and let them press the buttons. The page asks a
+colleague, a manager and the staff member the same database question and gets
+three different answers, live.
+
+If they want something faster: `naic-2026-coaching-engine.vercel.app`, on their
+own phone, while you keep talking.
+
+### "You showed his practice notes twice. What was the point of that?"
+
+**This is the question you want.** It is the whole thesis and they have just
+walked into it.
+
+> "The first screen is from two weeks ago and the system's note says he stops
+> short of an offer. He never offered the guest anything."
+>
+> "The second is from today. Same exercise. He offers the bags, a coffee, a
+> time he will come back with, and he scores leading on all three dimensions.
+> He learned it. Training worked."
+>
+> "And on the floor, that same week, his manager writes: he never actually
+> offered her anything to fix it."
+>
+> "So the training was not the problem and more training is not the fix. The
+> thing he learned is the exact thing he still cannot do when it is real,
+> because nobody has told him what he is allowed to give away."
+
+### "Does it ever recommend training, or does it always say don't?"
+
+Do not answer from memory. It is on the transfer gap screen, one row under
+Recovery: *Communication, 2.4 versus 1.0, Needs practice. Weak in both.
+Targeted practice is the right answer.*
+
+> "Weak in practice and weak on the floor means he has not learned it yet, and
+> that is exactly what a course is for. Four quadrants. One says train, one says
+> do not train, one says the measurement is wrong, one says he is fine. Only one
+> of the four sells you training, which is unusual for a company selling
+> training."
+
+### "It threw a rating away. Doesn't that mean it got it wrong?"
+
+> "It means it caught itself. Every score has to quote the manager's own words,
+> and that one quoted something she never said, so the gate discarded it before
+> she ever saw it. You are not watching a model that does not make mistakes. You
+> are watching one that is not allowed to ship them."
+
+If pushed on how: four checks. The source exists, the quoted span is really in
+it, there is at least one practice citation and one floor citation, and no
+evidence from another staff member. Fail any one and the claim is dropped; drop
+enough and the whole recommendation abstains.
+
+### "The manager added the score herself. So what did your AI actually do?"
+
+> "It read twenty seconds of dictated speech, scored the dimension it could
+> evidence, refused the one it could not, and then recorded that the human
+> supplied the missing judgement. That is not the AI failing to do its job. That
+> is the division of labour we are selling."
+
+### "Why is the video silent?"
+
+> "Because I would rather talk to you than play you a voiceover."
+
+### "Why not just demo it live?"
+
+> "I will, in about ten seconds, if you want. The recording is so that the two
+> minutes I have are spent on the argument rather than on a loading spinner."
+
+---
+
 # PART TWO: TECHNICAL
 
 ### "Is this just a wrapper around GPT?"
@@ -267,6 +353,21 @@ it."
 Then open the glass box. A judge who hears "we won't make up a number" and is
 then shown live verification usually trusts you more, not less.
 
+**If they point at the 100% on the verify card,** they have found the one number
+on screen and you must get to it before they finish the sentence. It reads
+*"Agrees with your managers 100% of the time on service recovery, over 5
+checks."*
+
+> "Five checks. That is not a result, it is five checks, and we are not going to
+> dress it up as one. What matters is that the instrument is there and running:
+> every verdict a manager gives is scored against what the model said, per
+> dimension. The product hedges that number on its own face when the sample is
+> small, and routes to a human first when agreement is low. We would rather show
+> you a number that is not ready than not measure it at all."
+
+That answer is worth more than a good accuracy figure would be, because it is
+the answer of a team that knows what its own evidence is worth.
+
 ### "What if a provider goes down mid pitch?"
 
 Every task has a fallback provider, recorded in the trace so the glass box
@@ -304,6 +405,11 @@ Measured, three consecutive calls to the same endpoint: Cloud Run 0.40s, 0.44s,
 waking from sleep, and it is what you would have watched.
 
 ### "How does the Spanish thing work?"
+
+*(It is deliberately not in the two minute demo any more: most shifts are in
+English, and the English path returns one card instead of three. It is live, and
+this is the answer when somebody asks how the product handles staff whose first
+language is not English.)*
 
 Regional terms present in the utterance are retrieved from a curated lexicon,
 116 entries across 21 countries, and their glosses go into the translation
@@ -477,8 +583,27 @@ the language detector returns "spanish" and we tested for "es". And we had an
 API that reported healthy while its database was unreachable, because we shipped
 a developer's local connection string to production.
 
-All three were found by running the thing rather than reasoning about it, which
-is the actual lesson.
+Two more from the last day of the build, both in the same place and both worth
+telling because they are the most honest thing in this document.
+
+The manager's verdict button did not work against live data at all. The request
+used a relative URL, so it reached our own mock route instead of the API, and
+the mock looked recommendations up in a list baked in at build time. Every card
+the real agent produced came back "not found". It had never worked; it only
+looked like it did, because the seeded data the mock knew about was the data we
+kept testing with.
+
+Then, with that fixed, submitting a verdict recorded the verdict correctly and
+crashed the page, because the API returned one shape and the frontend contract
+promised another, and the missing field was dereferenced during render. The
+screen whose entire argument is "a human decides" broke at the exact moment the
+human decided.
+
+All five were found by running the thing rather than reasoning about it, which
+is the actual lesson. The second pair also says something about where the risk
+lives in AI products: neither bug was in the model, the prompting, or the
+reasoning. They were in the plumbing between a mock and the real thing, which is
+where they usually are.
 
 ### "What happens when you leave and this becomes unmaintained?"
 
