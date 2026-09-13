@@ -64,97 +64,135 @@ const doc = new Document({
         ),
 
         h("The video"),
+        note("Every line here is short on purpose. The video does not wait for you. If you finish a line early, STOP: the silence is correct and the next screen is already coming."),
 
-        screenBar("Landing page", "0:00"),
+        screenBar("Landing page", "0:00 to 0:06"),
         beat(
-          [{ label: "ON SCREEN", text: "Training shows completion. This shows what changed on the floor." }].concat([{ label: "YOU", text: "Stand BESIDE the screen, not in front. Do not look at it. You know what it says; they do not know you yet." }]),
-          ["Last Tuesday, a guest shouted at Diego on a Dublin front desk. His manager saw the whole thing. You are about to get both of their versions, and they do not match."]
+          [{ label: "ON SCREEN", text: "Training shows completion. This shows what changed on the floor." },
+           { label: "YOU", text: "Beside the screen. Do not look at it." }],
+          ["A guest shouted at Diego on a Dublin front desk last Tuesday."]
         ),
 
-        screenBar("Diego's debrief, already answered", "0:08"),
+        screenBar("His debrief, answered", "0:06 to 0:10"),
         beat(
-          [{ label: "ON SCREEN", text: "His own words, the hotel's Escalation Rule 1 quoted, and \\"Why you're seeing this\\"." }].concat([{ label: "YOU", text: "On the words their manual, tap the screen once at the quote. One tap, then hand down." }]),
-          ["Ninety seconds after the shift, he says what happened. Back comes his own hotel's escalation rule, quoted, with the rule number on it.",
-           { text: "Not advice from the internet. Their manual.", bold: true }]
+          [{ label: "ON SCREEN", text: "His words, then the hotel's own Escalation Rule 1, quoted." },
+           { label: "YOU", text: "One tap at the quote. Four seconds only." }],
+          ["His own words. His hotel's own rule, quoted back."]
         ),
 
-        screenBar("The practice conversation", "0:18"),
+        screenBar("The practice conversation", "0:10 to 0:25"),
         beat(
-          [{ label: "ON SCREEN", text: "The guest, Diego's reply, then \\"the guest seems satisfied\\"." }].concat([{ label: "YOU", text: "Count the three offers on your fingers as you say them. Bags. Coffee. A time." }]),
-          ["This is him practising the same situation. Watch what he offers her. The bags. A coffee in the lounge. And a time he will come back with."]
+          [{ label: "ON SCREEN", text: "The guest, then Diego's reply, then the guest calming." },
+           { label: "YOU", text: "Three fingers on bags, coffee, a time. Fifteen seconds, so you can breathe here." }],
+          ["Same situation, in practice.",
+           { text: "Watch what he offers her. The bags. A coffee. And a time he will come back with.", bold: true }]
         ),
 
-        screenBar("His practice notes, today", "0:30"),
+        screenBar("His notes, today", "0:25 to 0:31"),
         beat(
-          [{ label: "ON SCREEN", text: "Leading here on Composure, Empathy and Service Recovery." },
-           { label: "THEN", text: "STOP TALKING for two seconds." }].concat([{ label: "YOU", text: "Say it flat, almost bored. You are setting a trap and you do not want them to see it yet." }]),
+          [{ label: "ON SCREEN", text: "Leading here, on all three." },
+           { label: "YOU", text: "Flat, almost bored. Then STOP." }],
           ["Leading on all three. That is today."]
         ),
-        note("The next screen is the whole pitch. Give it a clear run at them."),
 
-        screenBar("His practice notes, two weeks ago", "0:36    THE MOMENT"),
+        screenBar("His notes, two weeks ago", "0:31 to 0:39    THE MOMENT"),
         beat(
-          [{ label: "ON SCREEN", text: "The Aug 30 run. \\"Stops short of an offer, which is the 5.\\"" },
-           { label: "DO", text: "Slow right down." }].concat([{ label: "YOU", text: "TURN AWAY from the screen and take one step toward them. Say training worked to their faces, not to the projector. It is the only line in the demo you deliver to the room." }]),
-          ["And this is the same exercise, two weeks ago. Stops short of an offer. Back then he never offered her anything.",
+          [{ label: "ON SCREEN", text: "The Aug 30 run. Stops short of an offer, which is the 5." },
+           { label: "YOU", text: "Turn away from the screen. One step toward them. Eight seconds, use all of it." }],
+          ["Same exercise, two weeks ago. Stops short of an offer.",
            { text: "So he learned it. Training worked.", bold: true }],
           { shade: "F7F9F9" }
         ),
-        note("Do not draw the conclusion yet. The thing he learned in practice is the exact thing he still does not do on the floor, and you are going to let his manager say that for you. Holding it here is what makes the ending land."),
 
-        screenBar("Marta's console", "0:48"),
+        screenBar("Switch to Marta", "0:39 to 0:44"),
         beat(
-          [{ label: "ON SCREEN", text: "Radar, verify queue, team patterns." }].concat([{ label: "YOU", text: "Back to neutral. Brisk. This is connective tissue, not a beat." }]),
-          ["Now his manager. Eleven recommendations waiting on her read, and nothing routes anywhere until she verifies it."]
+          [{ label: "YOU", text: "Three words. Then let the console load in silence." }],
+          ["Now his manager."]
         ),
 
-        screenBar("The observation", "1:00"),
+        screenBar("Her console", "0:44 to 0:50"),
         beat(
-          [{ label: "ON SCREEN", text: "\\"He never actually offered her anything to fix it.\\" Composure 4. And: one rating was thrown away for quoting words you did not say." }].concat([{ label: "YOU", text: "On the words and there, stop walking. Flat palm at the screen, hold two seconds, drop it. Let them find the line themselves." }]),
-          ["Twenty seconds of what she saw. It scores composure four and underlines the words that earned it.",
-           { text: "And there. It threw a rating away, because it had quoted something she never said.", bold: true }]
+          [{ label: "ON SCREEN", text: "Radar, verify queue 11, team patterns 7." }],
+          ["Eleven waiting on her read. Nothing routes until she verifies it."]
         ),
 
-        screenBar("She adds it back herself", "1:06"),
+        screenBar("The queue, scrolling", "0:50 to 0:56"),
         beat(
-          [{ label: "ON SCREEN", text: "Recovery 1. \\"Did they fix the problem for the guest? You added this one.\\"" }].concat([{ label: "YOU", text: "Warmer here. This is the human winning, and it should sound like you like her." }]),
-          ["So she adds that one by hand. Recovery, one. And it records that the judgement was hers, not ours."]
+          [{ label: "ON SCREEN", text: "Adaeze, Diego, Tomas, Zofia, Chloe, Sean, Kwame, Niamh." },
+           { label: "YOU", text: "Four words. Let them read the names." }],
+          [{ text: "Different people. Same sentence.", bold: true }]
         ),
 
-        screenBar("The queue", "1:12"),
+        screenBar("The observation", "0:56 to 1:03"),
         beat(
-          [{ label: "ON SCREEN", text: "7 of these 11 say the same thing. 5 people, the same missing authority." }].concat([{ label: "YOU", text: "Hold up ONE finger on the words one policy, and keep it up through not five conversations. Cheapest gesture in the pitch and the one they remember." }]),
-          ["Seven of these eleven say the same thing. Five people, the same missing authority.",
-           { text: "That is one policy to write, not five conversations to have.", bold: true }]
+          [{ label: "ON SCREEN", text: "Composure 4, underlined. And: one rating was thrown away for quoting words you did not say." },
+           { label: "YOU", text: "Flat palm at the screen on the second line." }],
+          ["Twenty seconds of what she saw.",
+           { text: "And it threw a rating away. She never said those words.", bold: true }]
         ),
 
-        screenBar("The verify card", "1:18"),
+        screenBar("She adds it back", "1:03 to 1:08"),
         beat(
-          [{ label: "ON SCREEN", text: "Confirm / Correct / Reject, with the glass box open underneath." }].concat([{ label: "YOU", text: "Flat palm out, like stopping traffic, on the words and stopped. Then hands down and still." }]),
-          ["And it still has not done anything. It drafted, it cited, and it stopped."]
+          [{ label: "ON SCREEN", text: "Recovery 1. You added this one." },
+           { label: "YOU", text: "Warmer. Five seconds." }],
+          ["So she adds that one herself."]
         ),
 
-        screenBar("The transfer gap", "1:30"),
+        screenBar("The banner", "1:08 to 1:14"),
         beat(
-          [{ label: "ON SCREEN", text: "Recovery 4.8 vs 1.4, Blocked." }].concat([{ label: "YOU", text: "Two hands apart to show the gap, wide on four point eight and low on one point four. Do not bring them together again afterwards." }]),
-          ["Two streams, one reading. In practice, four point eight. On the floor, one point four.",
-           { text: "Every learning platform in the world looks at that and books him a course. This one says do not. He has already proved he knows how.", bold: true }]
-        ),
-        note("One joke, only if the room is warm, delivered flat and then move on: \\"We built an AI whose best answer is quite often, do not buy the thing we are selling. Our investors love that about us.\\""),
-
-        screenBar("The brief for the GM", "1:42"),
-        beat(
-          [{ label: "ON SCREEN", text: "A written brief with Download, Copy, Print or PDF." }].concat([{ label: "YOU", text: "Pace picks up slightly. This is the part a GM is buying, so sound like you have sold it before." }]),
-          ["And it does not stop at Diego. The same finding across five people becomes one brief for the general manager. Give the front desk clear authority on what they may offer. Written, sourced, ready to send."]
+          [{ label: "ON SCREEN", text: "7 of these 11 say the same thing. 5 people, the same missing authority." },
+           { label: "YOU", text: "One finger up, and keep it up." }],
+          ["Seven of eleven, the same thing.",
+           { text: "One policy to write, not five conversations.", bold: true }]
         ),
 
-        screenBar("The close, over the glass box", "1:52"),
+        screenBar("The verify card", "1:14 to 1:26"),
         beat(
-          [{ label: "DO", text: "Hands still. Let the last frame sit after you finish." }].concat([{ label: "YOU", text: "Hands at your sides. Nothing in them. Do not step, do not nod, do not fill the silence. Count three before you move." }]),
-          [{ text: "Training would have cost that hotel money to teach Diego something he had already learned. The fix was one sentence about what he is allowed to offer.", bold: true },
-           { text: "That is not a skill gap. It is an authority gap, and it was never Diego's to fix.", bold: true }],
+          [{ label: "ON SCREEN", text: "Confirm / Correct / Reject, and the glass box open underneath." },
+           { label: "YOU", text: "Flat palm on stopped. Twelve seconds, the longest hold in the video." }],
+          ["And it still has not done anything.",
+           { text: "It drafted, it cited, and it stopped.", bold: true },
+           "Nothing reaches Diego until she decides."]
+        ),
+
+        screenBar("The transfer gap", "1:26 to 1:35"),
+        beat(
+          [{ label: "ON SCREEN", text: "Recovery 4.8 vs 1.4, Blocked." },
+           { label: "YOU", text: "Two hands apart, wide then low." }],
+          ["Practice, four point eight. Floor, one point four.",
+           { text: "Every platform books him a course. This one says do not.", bold: true }]
+        ),
+
+        screenBar("The brief for the GM", "1:35 to 1:45"),
+        beat(
+          [{ label: "ON SCREEN", text: "Commission the brief, then the written brief with Download." }],
+          ["And it writes the week up for the general manager.",
+           { text: "One action. Give the front desk clear authority on what they may offer.", bold: true }]
+        ),
+
+        screenBar("The patterns", "1:45 to 1:55"),
+        beat(
+          [{ label: "ON SCREEN", text: "9 staff, room not ready. Hidden until at least 5 share a pattern." },
+           { label: "YOU", text: "Ten seconds. Two short lines and a gap between them." }],
+          ["Nine people, the same blocker.",
+           "And nothing shows until five share it, so no one person can be singled out."]
+        ),
+
+        screenBar("Glass box, last frame", "1:55 to 1:58"),
+        beat(
+          [{ label: "YOU", text: "Say nothing. Let it end." }],
+          [{ text: "[ silence ]", italics: true, color: VIOLET, size: 22 }]
+        ),
+
+        screenBar("THE CLOSE", "after the video, to the room"),
+        beat(
+          [{ label: "YOU", text: "Video has stopped. Turn to them. Hands at your sides. This is not narration any more." },
+           { label: "THEN", text: "Hand to Thapelo." }],
+          [{ text: "That is not a skill gap. It is an authority gap. And it was never Diego's to fix.", bold: true },
+           { text: "Thapelo will show you what is underneath it.", bold: true }],
           { shade: "F7F9F9" }
         ),
+        note("About ten seconds. The close is deliberately OUT of the video: there is no room for it inside 1:58, and it lands better said to their faces with a still frame behind you than talked over a moving screen."),
 
         h("Getting out"),
         screenBar("Back to slide 5, Under the Hood", "1:58"),

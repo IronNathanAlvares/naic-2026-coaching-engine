@@ -69,298 +69,88 @@ between separate instances makes judges suspect the parts are not one product.
 
 # NARRATING THE VIDEO
 
+`demo-video/Demo_Video_Coaching_Engine.mp4` — 1:58, silent, 1918x910.
 
-## 0:00 — The landing page
+**About 200 words across the whole thing.** Every line is short because the
+video does not wait for you. The timings below were measured by differencing
+the frames second by second, not estimated: the practice conversation starts at
+**0:10**, not 0:18, and the transfer gap is gone by 1:35.
 
-**On screen:** *Training shows completion. This shows what changed on the floor.*
+**If you finish a line early, stop.** The silence is correct. The next screen is
+already on its way.
 
-**You:** beside the screen, never in front. Do not look at it. You know what it
-says; they do not know you yet.
-
-> "Last Tuesday, a guest shouted at Diego on a Dublin front desk. His manager
-> saw the whole thing. You are about to get both of their versions, and they do
-> not match."
-
----
-
-## 0:08 — Diego's debrief, already answered
-
-**On screen:** his own words, then *Escalation and Logging · Escalation > Rule 1*,
-then *Why you're seeing this: you described a room not ready.*
-
-**You:** on "their manual", tap the screen once at the quote. One tap, then hand
-down.
-
-> "Ninety seconds after the shift, he says what happened. Back comes his own
-> hotel's escalation rule, quoted, with the rule number on it. Not advice from
-> the internet. Their manual."
-
----
-
-## 0:18 — The practice conversation
-
-**On screen:** the guest, then Diego's reply, then *the guest seems satisfied*.
-
-**You:** count the three offers on your fingers as you say them. Bags. Coffee.
-A time.
-
-> "This is him practising the same situation. Watch what he offers her. The
-> bags. A coffee in the lounge. And a time he will come back with."
+| time | screen | you say |
+|---|---|---|
+| 0:00 | landing | "A guest shouted at Diego on a Dublin front desk last Tuesday." |
+| 0:06 | his debrief, answered | "His own words. His hotel's own rule, quoted back." |
+| 0:10 | the practice conversation | "Same situation, in practice. **Watch what he offers her. The bags. A coffee. And a time he'll come back with.**" |
+| 0:25 | his notes, today | "Leading on all three. That is today." |
+| 0:31 | **his notes, two weeks ago** | "Same exercise, two weeks ago. Stops short of an offer. **So he learned it. Training worked.**" |
+| 0:39 | switch to Marta | "Now his manager." |
+| 0:44 | her console | "Eleven waiting on her read. Nothing routes until she verifies it." |
+| 0:50 | the queue, scrolling | "**Different people. Same sentence.**" |
+| 0:56 | the observation | "Twenty seconds of what she saw. **And it threw a rating away. She never said those words.**" |
+| 1:03 | she adds it back | "So she adds that one herself." |
+| 1:08 | the banner | "Seven of eleven, the same thing. **One policy to write, not five conversations.**" |
+| 1:14 | the verify card | "And it still hasn't done anything. **It drafted, it cited, and it stopped.** Nothing reaches Diego until she decides." |
+| 1:26 | the transfer gap | "Practice, four point eight. Floor, one point four. **Every platform books him a course. This one says don't.**" |
+| 1:35 | the brief for the GM | "And it writes the week up for the general manager. **One action. Give the front desk clear authority on what they may offer.**" |
+| 1:45 | the patterns | "Nine people, the same blocker. And nothing shows until five share it, so no one person can be singled out." |
+| 1:55 | glass box, last frame | *say nothing* |
 
 ---
 
-## 0:30 — His practice notes, today
+## The close, after the video
 
-**On screen:** *Leading here* on Composure, Empathy and Service Recovery.
+**The video has stopped.** Turn away from it, hands at your sides, and let the
+last frame sit for two seconds. This is not narration any more.
 
-**You:** flat, almost bored. You are setting a trap and you do not want them to
-see it yet.
-
-> "Leading on all three. That is today."
-
-**Then stop talking for two seconds.** The next screen is the whole pitch and it
-needs a clear run at them.
-
----
-
-## 0:36 — His practice notes, two weeks ago  ← THE MOMENT
-
-**On screen:** the Aug 30 run. *"Stops short of an offer, which is the 5."*
-
-**You:** turn away from the screen and take one step toward them. Say "training
-worked" to their faces, not to the projector. It is the only line in the whole
-demo you deliver to the room.
-
-> "And this is the same exercise, two weeks ago. Stops short of an offer. Back
-> then he never offered her anything."
->
-> "So he learned it. Training worked."
-
-**Land that, then let the video move.** Everything after this is the
-consequence of those two screens sitting next to each other: the thing he
-learned in practice is the exact thing he still does not do on the floor. You
-are not going to say that yet. You are going to let his manager say it for you.
-
----
-
-## 0:48 — Marta's console
-
-> "Now his manager. Eleven recommendations waiting on her read, and nothing
-> routes anywhere until she verifies it."
-
----
-
-## 1:00 — The observation
-
-**On screen:** *he never actually offered her anything to fix it*, composure 4,
-and the line *one rating was thrown away for quoting words you did not say*.
-
-**You:** on "and there", stop moving. Flat palm at the screen, hold two seconds,
-drop it. Let them find the line themselves.
-
-> "Twenty seconds of what she saw. It scores composure four and underlines the
-> words that earned it."
->
-> "And there. It threw a rating away, because it had quoted something she never
-> said."
-
----
-
-## 1:06 — She adds it back herself
-
-**On screen:** Recovery 1, *"Did they fix the problem for the guest? You added
-this one."*
-
-**You:** warmer here. This is the human winning, and it should sound like you
-like her.
-
-> "So she adds that one by hand. Recovery, one. And it records that the judgement
-> was hers, not ours."
-
----
-
-## 1:12 — The queue
-
-**On screen:** *7 of these 11 say the same thing. 5 people, the same missing
-authority.*
-
-**You:** one finger up on "one policy", and keep it up through "not five
-conversations".
-
-> "Seven of these eleven say the same thing. Five people, the same missing
-> authority. That is one policy to write, not five conversations to have."
-
----
-
-## 1:18 — The verify card
-
-**On screen:** Confirm / Correct / Reject, and the glass box open underneath.
-
-**You:** flat palm out, like stopping traffic, on "and stopped". Then hands down
-and still.
-
-> "And it still has not done anything. It drafted, it cited, and it stopped."
-
----
-
-## 1:30 — The transfer gap
-
-**On screen:** Recovery **4.8 vs 1.4, Blocked**.
-
-**You:** two hands apart to show the gap, wide on "four point eight", low on
-"one point four". Do not bring them back together afterwards.
-
-> "Two streams, one reading. In practice, four point eight. On the floor, one
-> point four."
->
-> "Every learning platform in the world looks at that and books him a course.
-> This one says do not. He has already proved he knows how."
-
-**Optional, if the room is warm. One joke only, delivered flat:**
-
-> "We built an AI whose best answer is quite often 'do not buy the thing we are
-> selling'. Our investors love that about us."
-
----
-
-## 1:42 — The brief for the GM
-
-**On screen:** the written brief, with Download, Copy, Print or PDF.
-
-**You:** pace picks up slightly. This is the part a GM is buying, so sound like
-somebody who has sold it before.
-
-> "And it does not stop at Diego. The same finding across five people becomes one
-> brief for the general manager. Give the front desk clear authority on what they
-> may offer. Written, sourced, ready to send."
-
----
-
-## 1:52 — Close, over the glass box
-
-> "Training would have cost that hotel money to teach Diego something he had
-> already learned. The fix was one sentence about what he is allowed to offer."
->
-> "That is not a skill gap. It is an authority gap, and it was never Diego's to
+> "That is not a skill gap. It is an authority gap. And it was never Diego's to
 > fix."
+>
+> "Thapelo will show you what is underneath it."
 
-**You:** hands at your sides, nothing in them. Do not step, do not nod, do not
-fill the silence.
-
-**[1:58] Stop. Count three before you move.**
-
----
-
-## How to perform it
-
-The video runs itself, so the only thing in that room they are actually
-watching is you. Three gestures, two gears, three silences. That is the entire
-performance, and it is deliberately small: a pitch with choreography in it
-looks rehearsed, and rehearsed looks like somebody hiding something.
-
-### Three gestures, and only these three
-
-**The gap.** Two hands apart, one high and one low, on *four point eight* and
-*one point four*. Use it once. It is the shape of the whole product.
-
-**The stop.** Flat palm out, like stopping traffic, when the system stops and
-waits for a human. Twice at most: on *and stopped*, and again if a judge asks
-about the gate.
-
-**The one.** A single finger on *one policy*, held up through the rest of the
-sentence. It is the cheapest gesture in the pitch and the one they remember.
-
-Everything else: hands at your sides, or one hand loosely at waist height. If
-you catch yourself gesturing on ordinary words, drop your hands and carry on.
-
-### Two gears
-
-**Gear one**, flat and unhurried, for everything up to 0:36. You are laying out
-facts and you are faintly bored by how obvious they are.
-
-**Gear two**, warmer and slower, from the Aug 30 screen to the end. Not louder.
-Slower. The only place to speed up is the GM brief at 1:42, and then drop back
-down for the close.
-
-### Three silences, and they are the hard part
-
-1. **Two seconds before the Aug 30 screen.** You have just said "leading on all
-   three", flat. Let it sit.
-2. **Two seconds after "training worked".** Do not explain it. The next screen
-   explains it.
-3. **Three seconds after the last word**, before you touch anything.
-
-Silence feels about three times longer on stage than it does in the room. It
-will feel like you have lost your place. You have not.
-
-### Where to stand
-
-Beside the screen, never in front of it, angled so you can see their faces
-without turning your back. Move **once**, on the Aug 30 line, one step toward
-them. A presenter who moves once is emphatic; a presenter who paces is nervous.
-
-And do not read the screen aloud. They can read. Your job is to say the thing
-that is **not** on the screen.
-
-### The joke
-
-One, at 1:30, and only if the room has already warmed. Deliver it completely
-flat, do not smile at your own line, and move straight on without waiting for
-the laugh. If it lands you own the room. If it does not, nobody noticed you
-told a joke.
-
-### If your hands shake or your mouth dries
-
-Both are normal and neither is visible from four metres. Put the laptop between
-you and them so your hands have somewhere to be. Take the breath before "Last
-Tuesday", not during it. And remember what you are standing next to: the video
-cannot fail. Whatever happens to you, the product on screen keeps working.
+The close is deliberately **outside** the 1:58. There is no room for it inside
+the video, and it lands better said to their faces over a still frame than
+talked over a moving screen. Budget ten seconds; the pitch run sheet accounts
+for it.
 
 ---
 
-## If you are running short
+## Delivery, beat by beat
 
-Cut in this order. Each one is a whole paragraph, so you lose time without
-losing a thread:
+**0:00** — Beside the screen, never in front. Do not look at it.
 
-1. 0:48, Marta's console. The queue count is not load bearing.
-2. 1:18, the verify card. Painful, but the gate is stated again in questions.
-3. 1:42, the GM brief. Only if you must: it is the scale argument.
+**0:06** — One tap at the quote. Four seconds only; this is the shortest hold in
+the video.
 
-Never cut 0:36 or the close. Those two are the pitch.
+**0:10** — Fifteen seconds, the longest easy stretch. Count the three offers on
+your fingers: bags, coffee, a time.
 
----
+**0:25** — Flat, almost bored. Then stop. You are setting a trap.
 
-## What to say if they ask
+**0:31** — **Turn away from the screen and take one step toward them.** Say
+"training worked" to their faces. Eight seconds, and you should use all of it.
+This is the only line in the demo delivered to the room.
 
-**"Does it ever recommend training?"**
-Do not answer from memory. It is on the transfer gap screen, one row below
-Recovery: *Communication, 2.4 versus 1.0, Needs practice. Weak in both.
-Targeted practice is the right answer.*
+**0:39** — Three words, then let the console load in silence.
 
-> "Weak in practice and weak on the floor means he has not learned it yet, and
-> that is what a course is for. Four quadrants. Only one of them is 'book
-> training', and only one of them is 'do not'."
+**0:50** — Four words. Let them read the names.
 
-**"How do you know the AI is right?"**
+**0:56** — Flat palm at the screen on the second line, hold, drop it.
 
-> "We do not assume it. Every verdict a manager gives is scored against what the
-> model said, per dimension. You can see the agreement rate on the card. It reads
-> one hundred percent on service recovery, over five checks, and five checks is
-> not a result, it is five checks. We would rather show you a number that is not
-> ready than not measure it."
+**1:03** — Warmer. This is the human winning.
 
-**"What stops this becoming staff surveillance?"**
-It is written on the team insights screen: *5 patterns hidden, group smaller
-than 5 staff, so they can't be shown without identifying someone.*
+**1:08** — One finger up on "one policy", keep it up.
 
-> "Patterns only appear once at least five people share them. Below that the
-> system refuses to show you anything, because at four people you are not looking
-> at a pattern, you are looking at a person."
+**1:14** — Flat palm on "stopped". Twelve seconds, the longest hold in the
+video, so do not rush it.
 
-**"Why is there no sound?"**
+**1:26** — Two hands apart, wide on "four point eight", low on "one point four".
 
-> "Because I would rather talk to you than play you a voiceover."
+**1:45** — Two short lines with a gap between them.
+
+**1:55** — Nothing.
 
 ---
 

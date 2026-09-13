@@ -128,17 +128,22 @@ const doc = new Document({
           [{ label: "ON SCREEN", text: "Demo_Video_Coaching_Engine.mp4, 1:58, silent." },
            { label: "YOU", text: "Separate sheet. Demo-Run-Sheet.docx has the beat by beat narration and the stage directions." }],
           [act("the whole narration is on the other sheet, do not try to hold both"),
-           say("Ends on: training would have cost that hotel money to teach Diego something he had already learned. The fix was one sentence about what he is allowed to offer. That is not a skill gap. It is an authority gap, and it was never Diego's to fix.")]
+           say("Sixteen short lines, about two hundred words across the whole video. It moves faster than you think: the practice conversation starts at ten seconds, not eighteen.")]
         ),
+        screenBar("The close, to the room", "4:03 to 4:13"),
         beat(
-          [{ label: "HANDOVER", text: "to Thapelo, as you switch back to the deck." }],
-          [say("You just watched software tell a hotel not to spend money, and then refuse to send that anywhere until a human agreed with it. Thapelo will show you what is underneath it.", true)],
+          [{ label: "YOU", text: "Video has stopped on the glass box. Turn away from it. Hands at your sides. This is not narration any more." },
+           { label: "HANDOVER", text: "to Thapelo on his name." }],
+          [act("let the last frame sit for two seconds before you speak"),
+           say("That is not a skill gap. It is an authority gap. And it was never Diego's to fix.", true),
+           say("Thapelo will show you what is underneath it.", true)],
           { shade: "F7F9F9" }
         ),
+        note("The close is deliberately outside the video. There is no room for it inside 1:58, and it lands better said to their faces over a still frame than talked over a moving screen."),
 
         // ------------------------------------------------------------ 5
         h("Thapelo"),
-        screenBar("Slide 5  ·  Under the Hood", "4:03 to 4:45"),
+        screenBar("Slide 5  ·  Under the Hood", "4:13 to 4:55"),
         beat(
           [{ label: "ON SCREEN", text: "AI organises the signal, on the left. People control the decision, on the right. Then the red line at the bottom." },
            { label: "YOU", text: "Work left to right across the slide with your hand. The shape of the slide IS the argument." }],
@@ -159,7 +164,7 @@ const doc = new Document({
 
         // ------------------------------------------------------------ 6
         h("Eugenia"),
-        screenBar("Slide 6  ·  Scale", "4:45 to 5:23"),
+        screenBar("Slide 6  ·  Scale", "4:55 to 5:33"),
         beat(
           [{ label: "ON SCREEN", text: "828 Irish hotels. 416 four and five star. 14,800 EU hotels with 100+ rooms. 1 flagship, 2 proof, 3 group." },
            { label: "YOU", text: "Trace the one, two, three with your finger as you say them. It is a path, so draw it." }],
@@ -173,7 +178,7 @@ const doc = new Document({
         ),
 
         // ------------------------------------------------------------ 7
-        screenBar("Slide 7  ·  Commercial Path", "5:23 to 6:10"),
+        screenBar("Slide 7  ·  Commercial Path", "5:33 to 6:20"),
         beat(
           [{ label: "ON SCREEN", text: "Four week pilot. Prove outcomes. Group licence. 12 euro per active user per month, about 9,792 per property per year." },
            { label: "YOU", text: "The last line is the one that wins trust. Say it looking straight at them, and do not soften it." }],
@@ -191,7 +196,7 @@ const doc = new Document({
 
         // ------------------------------------------------------------ 8
         h("Mary-Susan"),
-        screenBar("Slide 8  ·  The Ask", "6:10 to 6:47"),
+        screenBar("Slide 8  ·  The Ask", "6:20 to 6:57"),
         beat(
           [{ label: "ON SCREEN", text: "Back us to turn a live system into a measured hotel pilot. Completion is not behaviour. We measure what happens next." },
            { label: "YOU", text: "Hands still. The last line is eight words. Do not add a ninth." }],
@@ -219,18 +224,19 @@ const doc = new Document({
             ["Slide 2, the problem  ·  Mary-Susan", "0:50"],
             ["Slide 3, the solution  ·  Nathan", "0:50"],
             ["Slide 4, THE DEMO  ·  Nathan", "1:58"],
+            ["The close, to the room  ·  Nathan", "0:10"],
             ["Slide 5, under the hood  ·  Thapelo", "0:42"],
             ["Slide 6, scale  ·  Eugenia", "0:40"],
             ["Slide 7, commercial path  ·  Eugenia", "0:47"],
             ["Slide 8, the ask  ·  Mary-Susan", "0:37"],
-            ["Total", "6:47"],
+            ["Total", "6:57"],
           ].map(([a, b], i) => new TableRow({
             children: [a, b].map((t, j) => new TableCell({
               width: { size: j === 0 ? 6200 : CONTENT - 6200, type: WidthType.DXA },
               margins: { top: 100, bottom: 100, left: 140, right: 140 },
               children: [new Paragraph({
                 alignment: j === 1 ? AlignmentType.RIGHT : AlignmentType.LEFT,
-                children: [new TextRun({ text: t, size: 20, color: INK, font: "Calibri", bold: i === 8 })],
+                children: [new TextRun({ text: t, size: 20, color: INK, font: "Calibri", bold: i === 9 })],
               })],
             })),
           })),
@@ -238,7 +244,7 @@ const doc = new Document({
         new Paragraph({
           spacing: { before: 240, after: 240 },
           children: [new TextRun({
-            text: "About 730 spoken words, which is six minutes forty seven at a steady pitch pace, inside a seven minute cap. That is thirteen seconds of slack and no more. Time it out loud twice, as a group, standing up: reading it silently will tell you it fits when it does not.",
+            text: "About 730 words of slides plus a 1:58 video and a ten second close: six fifty seven inside a seven minute cap. That is three seconds of slack, so the cut list below is not optional if anyone runs over. Time it out loud twice, as a group, standing up: reading it silently will tell you it fits when it does not.",
             size: 20, color: INK, italics: true, font: "Calibri" })],
         }),
 
