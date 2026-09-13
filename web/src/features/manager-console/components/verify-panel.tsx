@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { http, ContractError } from "@/lib/api/client";
 import { BarsLevelPicker } from "@/features/manager-console/components/bars-level-picker";
 import { dimensionShort, primaryCalibration } from "@/lib/format";
 import type {
@@ -122,26 +123,27 @@ export function VerifyPanel({
     }
     setSubmitting(true);
     try {
-      const res = await fetch(
-        `/api/v1/recommendations/${recommendation.id}/verify`,
+      // Through the API client, not a bare fetch. A relative fetch always
+      // lands on this app's own /api/v1 mock routes, whatever
+      // NEXT_PUBLIC_API_BASE_URL says, and the mock looks recommendations up
+      // in a build-time array — so any card the live agent created is "not
+      // found" and the manager sees "Could not record your verdict". The
+      // client also sends X-CE-Actor, which the real endpoint needs to know
+      // who is deciding and to apply row level security.
+      const data = await http.post<VerifyResponse>(
+        `/recommendations/${recommendation.id}/verify`,
         {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            verdict,
-            dimension_verdicts: [
-              {
-                dimension: calibrationDimension,
-                manager_level: managerLevel ?? 2,
-              },
-            ],
-            reason,
-            seconds_to_decide: seconds,
-          }),
+          verdict,
+          dimension_verdicts: [
+            {
+              dimension: calibrationDimension,
+              manager_level: managerLevel ?? 2,
+            },
+          ],
+          reason,
+          seconds_to_decide: seconds,
         }
       );
-      if (!res.ok) throw new Error("Verify failed");
-      const data = (await res.json()) as VerifyResponse;
       setResponse(data);
       onSettled?.();
       toast.success(
@@ -149,8 +151,17 @@ export function VerifyPanel({
           ? `Confirmed, routed to ${routeLabel[data.escalation.route].toLowerCase()}`
           : `Marked ${verdict}. Calibration updated.`
       );
-    } catch {
-      toast.error("Could not record your verdict. Please retry.");
+    } catch (err) {
+      // Say which failure it was. "Already decided" is not a retry, and
+      // telling a manager to retry something that cannot be retried is worse
+      // than saying nothing.
+      if (err instanceof ContractError && err.problem.status === 409) {
+        toast.error("Someone already decided this one.");
+      } else if (err instanceof ContractError) {
+        toast.error(err.problem.detail || "Could not record your verdict. Please retry.");
+      } else {
+        toast.error("Could not record your verdict. Please retry.");
+      }
     } finally {
       setSubmitting(false);
     }
