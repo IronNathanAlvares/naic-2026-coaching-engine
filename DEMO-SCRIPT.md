@@ -370,12 +370,19 @@ authority to.
 
 ## [2:25] Five people, one policy
 
-**Scroll back to the top of the verify queue, to the banner.**
+**Scroll back to the top of the verify queue, to the banner. Read it off the
+screen.**
 
 > "And this is where it stops being about Diego. Eight of these twelve say the
 > same thing. Five different people, the same missing authority."
 >
 > "That is one policy to write, not five conversations to have."
+
+**Both counts move.** Act two writes a new recommendation every time it runs, so
+the queue grows with each rehearsal and the banner recalculates. Read the two
+numbers, do not recite them. The figure the line actually rests on is **five
+people**, and that one holds: extra cards land on staff who are already in the
+cluster.
 
 ---
 

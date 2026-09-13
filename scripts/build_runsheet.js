@@ -319,11 +319,12 @@ const doc = new Document({
 
         screenBar("Verify queue, the banner at the top", "2:25 to 2:32"),
         beat(
-          [{ label: "DO", text: "Scroll back up to the green banner." },
-           { label: "ON SCREEN", text: "8 of these 12 say the same thing. 5 people, the same missing authority." }],
+          [{ label: "DO", text: "Scroll back up to the green banner. READ IT OFF THE SCREEN." },
+           { label: "ON SCREEN", text: "N of these M say the same thing. 5 people, the same missing authority." }],
           ["And this is where it stops being about Diego. Eight of these twelve say the same thing. Five different people, the same missing authority.",
            { text: "That is one policy to write, not five conversations to have.", bold: true }]
         ),
+        note("The two counts move every time you rehearse, because act two writes a new recommendation on every run. Read them, do not recite them. The number that holds is five people, and that is the one the line rests on."),
 
         screenBar("The close", "2:32 to 2:40"),
         beat(
