@@ -254,7 +254,7 @@ const doc = new Document({
            act("stop at the dark card 03, tap it once"),
            say("And the third one is the only card that matters. What to actually do about it."),
            act("now turn your back on the slide and walk toward them"),
-           say("Because on their own, the first two are worthless. Your learning system tells you he finished the course. It will even tell you he finished it in four minutes."),
+           say("Because on their own, the first two are worthless. Your LMS tells you he finished the course. It will even tell you he finished it in four minutes."),
            act("deadpan, do not smile, keep walking"),
            say("A role-play tells you he can do it in a quiet room with nobody watching."),
            act("small shrug"),
