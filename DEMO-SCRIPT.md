@@ -74,6 +74,9 @@ between separate instances makes judges suspect the parts are not one product.
 
 **On screen:** *Training shows completion. This shows what changed on the floor.*
 
+**You:** beside the screen, never in front. Do not look at it. You know what it
+says; they do not know you yet.
+
 > "Last Tuesday, a guest shouted at Diego on a Dublin front desk. His manager
 > saw the whole thing. You are about to get both of their versions, and they do
 > not match."
@@ -85,6 +88,9 @@ between separate instances makes judges suspect the parts are not one product.
 **On screen:** his own words, then *Escalation and Logging · Escalation > Rule 1*,
 then *Why you're seeing this: you described a room not ready.*
 
+**You:** on "their manual", tap the screen once at the quote. One tap, then hand
+down.
+
 > "Ninety seconds after the shift, he says what happened. Back comes his own
 > hotel's escalation rule, quoted, with the rule number on it. Not advice from
 > the internet. Their manual."
@@ -95,6 +101,9 @@ then *Why you're seeing this: you described a room not ready.*
 
 **On screen:** the guest, then Diego's reply, then *the guest seems satisfied*.
 
+**You:** count the three offers on your fingers as you say them. Bags. Coffee.
+A time.
+
 > "This is him practising the same situation. Watch what he offers her. The
 > bags. A coffee in the lounge. And a time he will come back with."
 
@@ -103,6 +112,9 @@ then *Why you're seeing this: you described a room not ready.*
 ## 0:30 — His practice notes, today
 
 **On screen:** *Leading here* on Composure, Empathy and Service Recovery.
+
+**You:** flat, almost bored. You are setting a trap and you do not want them to
+see it yet.
 
 > "Leading on all three. That is today."
 
@@ -114,6 +126,10 @@ needs a clear run at them.
 ## 0:36 — His practice notes, two weeks ago  ← THE MOMENT
 
 **On screen:** the Aug 30 run. *"Stops short of an offer, which is the 5."*
+
+**You:** turn away from the screen and take one step toward them. Say "training
+worked" to their faces, not to the projector. It is the only line in the whole
+demo you deliver to the room.
 
 > "And this is the same exercise, two weeks ago. Stops short of an offer. Back
 > then he never offered her anything."
@@ -139,6 +155,9 @@ are not going to say that yet. You are going to let his manager say it for you.
 **On screen:** *he never actually offered her anything to fix it*, composure 4,
 and the line *one rating was thrown away for quoting words you did not say*.
 
+**You:** on "and there", stop moving. Flat palm at the screen, hold two seconds,
+drop it. Let them find the line themselves.
+
 > "Twenty seconds of what she saw. It scores composure four and underlines the
 > words that earned it."
 >
@@ -152,6 +171,9 @@ and the line *one rating was thrown away for quoting words you did not say*.
 **On screen:** Recovery 1, *"Did they fix the problem for the guest? You added
 this one."*
 
+**You:** warmer here. This is the human winning, and it should sound like you
+like her.
+
 > "So she adds that one by hand. Recovery, one. And it records that the judgement
 > was hers, not ours."
 
@@ -162,6 +184,9 @@ this one."*
 **On screen:** *7 of these 11 say the same thing. 5 people, the same missing
 authority.*
 
+**You:** one finger up on "one policy", and keep it up through "not five
+conversations".
+
 > "Seven of these eleven say the same thing. Five people, the same missing
 > authority. That is one policy to write, not five conversations to have."
 
@@ -171,6 +196,9 @@ authority.*
 
 **On screen:** Confirm / Correct / Reject, and the glass box open underneath.
 
+**You:** flat palm out, like stopping traffic, on "and stopped". Then hands down
+and still.
+
 > "And it still has not done anything. It drafted, it cited, and it stopped."
 
 ---
@@ -178,6 +206,9 @@ authority.*
 ## 1:30 — The transfer gap
 
 **On screen:** Recovery **4.8 vs 1.4, Blocked**.
+
+**You:** two hands apart to show the gap, wide on "four point eight", low on
+"one point four". Do not bring them back together afterwards.
 
 > "Two streams, one reading. In practice, four point eight. On the floor, one
 > point four."
@@ -196,6 +227,9 @@ authority.*
 
 **On screen:** the written brief, with Download, Copy, Print or PDF.
 
+**You:** pace picks up slightly. This is the part a GM is buying, so sound like
+somebody who has sold it before.
+
 > "And it does not stop at Diego. The same finding across five people becomes one
 > brief for the general manager. Give the front desk clear authority on what they
 > may offer. Written, sourced, ready to send."
@@ -210,7 +244,77 @@ authority.*
 > "That is not a skill gap. It is an authority gap, and it was never Diego's to
 > fix."
 
-**[1:58] Stop. Let the last frame sit.**
+**You:** hands at your sides, nothing in them. Do not step, do not nod, do not
+fill the silence.
+
+**[1:58] Stop. Count three before you move.**
+
+---
+
+## How to perform it
+
+The video runs itself, so the only thing in that room they are actually
+watching is you. Three gestures, two gears, three silences. That is the entire
+performance, and it is deliberately small: a pitch with choreography in it
+looks rehearsed, and rehearsed looks like somebody hiding something.
+
+### Three gestures, and only these three
+
+**The gap.** Two hands apart, one high and one low, on *four point eight* and
+*one point four*. Use it once. It is the shape of the whole product.
+
+**The stop.** Flat palm out, like stopping traffic, when the system stops and
+waits for a human. Twice at most: on *and stopped*, and again if a judge asks
+about the gate.
+
+**The one.** A single finger on *one policy*, held up through the rest of the
+sentence. It is the cheapest gesture in the pitch and the one they remember.
+
+Everything else: hands at your sides, or one hand loosely at waist height. If
+you catch yourself gesturing on ordinary words, drop your hands and carry on.
+
+### Two gears
+
+**Gear one**, flat and unhurried, for everything up to 0:36. You are laying out
+facts and you are faintly bored by how obvious they are.
+
+**Gear two**, warmer and slower, from the Aug 30 screen to the end. Not louder.
+Slower. The only place to speed up is the GM brief at 1:42, and then drop back
+down for the close.
+
+### Three silences, and they are the hard part
+
+1. **Two seconds before the Aug 30 screen.** You have just said "leading on all
+   three", flat. Let it sit.
+2. **Two seconds after "training worked".** Do not explain it. The next screen
+   explains it.
+3. **Three seconds after the last word**, before you touch anything.
+
+Silence feels about three times longer on stage than it does in the room. It
+will feel like you have lost your place. You have not.
+
+### Where to stand
+
+Beside the screen, never in front of it, angled so you can see their faces
+without turning your back. Move **once**, on the Aug 30 line, one step toward
+them. A presenter who moves once is emphatic; a presenter who paces is nervous.
+
+And do not read the screen aloud. They can read. Your job is to say the thing
+that is **not** on the screen.
+
+### The joke
+
+One, at 1:30, and only if the room has already warmed. Deliver it completely
+flat, do not smile at your own line, and move straight on without waiting for
+the laugh. If it lands you own the room. If it does not, nobody noticed you
+told a joke.
+
+### If your hands shake or your mouth dries
+
+Both are normal and neither is visible from four metres. Put the laptop between
+you and them so your hands have somewhere to be. Take the breath before "Last
+Tuesday", not during it. And remember what you are standing next to: the video
+cannot fail. Whatever happens to you, the product on screen keeps working.
 
 ---
 

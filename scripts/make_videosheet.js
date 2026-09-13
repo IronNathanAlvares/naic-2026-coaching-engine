@@ -1,157 +1,16 @@
+// Builds the run sheet for narrating Demo_Video_Coaching_Engine.mp4.
+// Reuses the helpers from build_runsheet.js by reading its head and appending
+// a new body, so the two sheets cannot drift apart visually.
 const fs = require("fs");
-const {
-  Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
-  WidthType, AlignmentType, HeadingLevel, BorderStyle, ShadingType,
-  PageOrientation,
-} = require("docx");
 
-// A4 content width: 11906 - (2 * 1134) ~= 9638 DXA.
-const CONTENT = 9638;
-const COL_LEFT = 3300;
-const COL_RIGHT = CONTENT - COL_LEFT;
+const head = fs.readFileSync("build_runsheet.js", "utf8");
+let helpers = head.slice(0, head.indexOf("const doc = new Document("));
+helpers = helpers.replace(
+  'color: l.label === "GO TO" ? TEAL : SLATE,',
+  'color: l.label === "GO TO" ? TEAL : (l.label === "YOU" ? VIOLET : SLATE),');
+if (!helpers.includes('l.label === "YOU"')) throw new Error("label colour patch missed");
 
-const INK = "1A2233";
-const TEAL = "0E7C86";
-const VIOLET = "5B4B8A";
-const SLATE = "5A6472";
-const RULE = "D7DBE2";
-
-const NONE = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
-const noBorders = { top: NONE, bottom: NONE, left: NONE, right: NONE };
-
-function spacer(after = 120) {
-  return new Paragraph({ spacing: { after }, children: [] });
-}
-
-/** A full width bar that introduces a screen. */
-function screenBar(label, time) {
-  return new Table({
-    columnWidths: [CONTENT],
-    width: { size: CONTENT, type: WidthType.DXA },
-    borders: noBorders,
-    rows: [
-      new TableRow({
-        children: [
-          new TableCell({
-            width: { size: CONTENT, type: WidthType.DXA },
-            shading: { type: ShadingType.CLEAR, fill: "EEF2F1" },
-            margins: { top: 90, bottom: 90, left: 140, right: 140 },
-            borders: noBorders,
-            children: [
-              new Paragraph({
-                keepNext: true,
-                children: [
-                  new TextRun({ text: label, bold: true, size: 22, color: INK,
-                               font: "Calibri", allCaps: true }),
-                  new TextRun({ text: time ? "        " + time : "", size: 20,
-                               color: SLATE, font: "Calibri" }),
-                ],
-              }),
-            ],
-          }),
-        ],
-      }),
-    ],
-  });
-}
-
-/** One beat: the left column tells you where to be, the right what to say. */
-function beat(doLines, sayLines, opts = {}) {
-  const left = doLines.map((l, i) =>
-    new Paragraph({
-      spacing: { after: i === doLines.length - 1 ? 0 : 80 },
-      children: [
-        l.label
-          ? new TextRun({ text: l.label + "  ", bold: true, size: 18,
-                          color: l.label === "GO TO" ? TEAL : (l.label === "YOU" ? VIOLET : SLATE),
-                          font: "Calibri", allCaps: true })
-          : new TextRun({ text: "" }),
-        new TextRun({ text: l.text, size: 19, color: INK, font: "Calibri" }),
-      ],
-    }));
-
-  const right = sayLines.map((s, i) =>
-    new Paragraph({
-      spacing: { after: i === sayLines.length - 1 ? 0 : 140 },
-      children: [
-        new TextRun({
-          text: typeof s === "string" ? s : s.text,
-          size: typeof s === "string" ? 24 : (s.size || 24),
-          color: typeof s === "string" ? INK : (s.color || INK),
-          italics: typeof s === "string" ? false : !!s.italics,
-          bold: typeof s === "string" ? false : !!s.bold,
-          font: "Calibri",
-        }),
-      ],
-    }));
-
-  return new Table({
-    columnWidths: [COL_LEFT, COL_RIGHT],
-    width: { size: CONTENT, type: WidthType.DXA },
-    borders: {
-      top: NONE, left: NONE, right: NONE,
-      bottom: { style: BorderStyle.SINGLE, size: 4, color: RULE },
-      insideHorizontal: NONE, insideVertical: NONE,
-    },
-    rows: [
-      new TableRow({
-        cantSplit: true,
-        children: [
-          new TableCell({
-            width: { size: COL_LEFT, type: WidthType.DXA },
-            margins: { top: 160, bottom: 160, left: 140, right: 200 },
-            shading: opts.shade
-              ? { type: ShadingType.CLEAR, fill: opts.shade }
-              : undefined,
-            children: left,
-          }),
-          new TableCell({
-            width: { size: COL_RIGHT, type: WidthType.DXA },
-            margins: { top: 160, bottom: 160, left: 140, right: 140 },
-            children: right,
-          }),
-        ],
-      }),
-    ],
-  });
-}
-
-function note(text) {
-  return new Paragraph({
-    spacing: { before: 100, after: 200 },
-    indent: { left: COL_LEFT + 140 },
-    children: [new TextRun({ text, size: 18, color: SLATE, italics: true,
-                             font: "Calibri" })],
-  });
-}
-
-function h(text, opts = {}) {
-  return new Paragraph({
-    keepNext: true,
-    pageBreakBefore: !!opts.pageBreak,
-    spacing: { before: opts.before ?? 360, after: opts.after ?? 160 },
-    children: [new TextRun({ text, bold: true, size: opts.size || 28,
-                             color: opts.color || INK, font: "Calibri" })],
-  });
-}
-
-function body(text, opts = {}) {
-  return new Paragraph({
-    spacing: { after: opts.after ?? 120 },
-    children: [new TextRun({ text, size: opts.size || 20,
-                             color: opts.color || INK, font: "Calibri" })],
-  });
-}
-
-function bullet(text) {
-  return new Paragraph({
-    bullet: { level: 0 },
-    spacing: { after: 80 },
-    children: [new TextRun({ text, size: 20, color: INK, font: "Calibri" })],
-  });
-}
-
-
+const body = `
 const doc = new Document({
   creator: "The Coaching Engine",
   title: "Demo run sheet",
@@ -214,14 +73,14 @@ const doc = new Document({
 
         screenBar("Diego's debrief, already answered", "0:08"),
         beat(
-          [{ label: "ON SCREEN", text: "His own words, the hotel's Escalation Rule 1 quoted, and \"Why you're seeing this\"." }].concat([{ label: "YOU", text: "On the words their manual, tap the screen once at the quote. One tap, then hand down." }]),
+          [{ label: "ON SCREEN", text: "His own words, the hotel's Escalation Rule 1 quoted, and \\"Why you're seeing this\\"." }].concat([{ label: "YOU", text: "On the words their manual, tap the screen once at the quote. One tap, then hand down." }]),
           ["Ninety seconds after the shift, he says what happened. Back comes his own hotel's escalation rule, quoted, with the rule number on it.",
            { text: "Not advice from the internet. Their manual.", bold: true }]
         ),
 
         screenBar("The practice conversation", "0:18"),
         beat(
-          [{ label: "ON SCREEN", text: "The guest, Diego's reply, then \"the guest seems satisfied\"." }].concat([{ label: "YOU", text: "Count the three offers on your fingers as you say them. Bags. Coffee. A time." }]),
+          [{ label: "ON SCREEN", text: "The guest, Diego's reply, then \\"the guest seems satisfied\\"." }].concat([{ label: "YOU", text: "Count the three offers on your fingers as you say them. Bags. Coffee. A time." }]),
           ["This is him practising the same situation. Watch what he offers her. The bags. A coffee in the lounge. And a time he will come back with."]
         ),
 
@@ -235,7 +94,7 @@ const doc = new Document({
 
         screenBar("His practice notes, two weeks ago", "0:36    THE MOMENT"),
         beat(
-          [{ label: "ON SCREEN", text: "The Aug 30 run. \"Stops short of an offer, which is the 5.\"" },
+          [{ label: "ON SCREEN", text: "The Aug 30 run. \\"Stops short of an offer, which is the 5.\\"" },
            { label: "DO", text: "Slow right down." }].concat([{ label: "YOU", text: "TURN AWAY from the screen and take one step toward them. Say training worked to their faces, not to the projector. It is the only line in the demo you deliver to the room." }]),
           ["And this is the same exercise, two weeks ago. Stops short of an offer. Back then he never offered her anything.",
            { text: "So he learned it. Training worked.", bold: true }],
@@ -251,14 +110,14 @@ const doc = new Document({
 
         screenBar("The observation", "1:00"),
         beat(
-          [{ label: "ON SCREEN", text: "\"He never actually offered her anything to fix it.\" Composure 4. And: one rating was thrown away for quoting words you did not say." }].concat([{ label: "YOU", text: "On the words and there, stop walking. Flat palm at the screen, hold two seconds, drop it. Let them find the line themselves." }]),
+          [{ label: "ON SCREEN", text: "\\"He never actually offered her anything to fix it.\\" Composure 4. And: one rating was thrown away for quoting words you did not say." }].concat([{ label: "YOU", text: "On the words and there, stop walking. Flat palm at the screen, hold two seconds, drop it. Let them find the line themselves." }]),
           ["Twenty seconds of what she saw. It scores composure four and underlines the words that earned it.",
            { text: "And there. It threw a rating away, because it had quoted something she never said.", bold: true }]
         ),
 
         screenBar("She adds it back herself", "1:06"),
         beat(
-          [{ label: "ON SCREEN", text: "Recovery 1. \"Did they fix the problem for the guest? You added this one.\"" }].concat([{ label: "YOU", text: "Warmer here. This is the human winning, and it should sound like you like her." }]),
+          [{ label: "ON SCREEN", text: "Recovery 1. \\"Did they fix the problem for the guest? You added this one.\\"" }].concat([{ label: "YOU", text: "Warmer here. This is the human winning, and it should sound like you like her." }]),
           ["So she adds that one by hand. Recovery, one. And it records that the judgement was hers, not ours."]
         ),
 
@@ -281,7 +140,7 @@ const doc = new Document({
           ["Two streams, one reading. In practice, four point eight. On the floor, one point four.",
            { text: "Every learning platform in the world looks at that and books him a course. This one says do not. He has already proved he knows how.", bold: true }]
         ),
-        note("One joke, only if the room is warm, delivered flat and then move on: \"We built an AI whose best answer is quite often, do not buy the thing we are selling. Our investors love that about us.\""),
+        note("One joke, only if the room is warm, delivered flat and then move on: \\"We built an AI whose best answer is quite often, do not buy the thing we are selling. Our investors love that about us.\\""),
 
         screenBar("The brief for the GM", "1:42"),
         beat(
@@ -379,3 +238,7 @@ Packer.toBuffer(doc).then((buf) => {
   fs.writeFileSync(out, buf);
   console.log("written:", out, buf.length, "bytes");
 });
+`;
+
+fs.writeFileSync("build_videosheet.js", helpers + body, "utf8");
+console.log("generated build_videosheet.js");
