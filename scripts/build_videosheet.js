@@ -199,10 +199,12 @@ const doc = new Document({
         h("Getting in", { before: 100 }),
         screenBar("Slide 3, The Solution", "before you press play"),
         beat(
-          [{ label: "DO", text: "Finish the slide. Then start the video as you say the last word." }],
-          ["That is the idea. Here it is on a real shift, from two people who do not agree about what happened."],
+          [{ label: "DO", text: "Your last line on slide 3 is the handover. Start the video as you say it, not after." },
+           { label: "YOU", text: "One step back toward the laptop, eyes still on the room." }],
+          [{ text: "Let me show you, on a real shift.", bold: true }],
           { shade: "F7F9F9" }
         ),
+        note("Same words as the pitch run sheet, so the two sheets cannot drift. Slide 3 ends on the line about that distance almost never meaning another course, and this is the sentence straight after it."),
 
         h("The video"),
         note("Every line here is short on purpose. The video does not wait for you. If you finish a line early, STOP: the silence is correct and the next screen is already coming."),
