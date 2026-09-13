@@ -108,3 +108,24 @@ render-env.txt
 # sheet full of credentials, whatever comes after it.
 render-env*
 *credentials*.txt
+
+# ---------------------------------------------------------------- pitch material
+# Kept on disk, deliberately out of the repo. This is a public repository and
+# the scripts, the Q&A prep, the mentor notes and the recording are the team's
+# own preparation, not part of the product. Code and data live here; how we
+# talk about them does not.
+DEMO-SCRIPT.md
+QA-PREP.md
+CHANGES-AFTER-MENTOR-REVIEW.md
+Pitch-Run-Sheet.docx
+Demo-Run-Sheet.docx
+*Pitch script.docx
+demo-video/*.mp4
+demo-video/*.webm
+# The run sheet generators, which embed every spoken line of the pitch.
+scripts/make_pitchsheet.js
+scripts/build_pitchsheet.js
+scripts/make_videosheet.js
+scripts/build_videosheet.js
+scripts/build_runsheet.js
+demo-video/

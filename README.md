@@ -355,14 +355,13 @@ shared drive, not here: see [CONTRIBUTING.md](CONTRIBUTING.md) for why.
 
 ---
 
-## For the pitch
+## Reading further
 
 | Document | What it is |
 |---|---|
-| [DEMO-SCRIPT.md](DEMO-SCRIPT.md) | the two minute demo, word for word, timed against the live site |
 | [TECHNICAL-REFERENCE.md](TECHNICAL-REFERENCE.md) | the whole system in one place |
-| [QA-PREP.md](QA-PREP.md) | about a hundred questions, technical, commercial and hostile |
-| [demo-video/](demo-video/) | 74 second silent backup recording, narrate over it |
+| [API-INTEGRATION.md](API-INTEGRATION.md) | how the web app talks to the API |
+| [db/README.md](db/README.md) | the schema, and why the permission model lives in it |
 
 ---
 

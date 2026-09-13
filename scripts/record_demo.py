@@ -7,7 +7,7 @@ WHY THIS EXISTS
 
 If the venue wifi dies on Monday, the demo dies with it. This is the insurance:
 a silent screen capture of the actual product doing the actual thing, which
-Nathan narrates over live using DEMO-SCRIPT.md. Silent is deliberate, not a
+somebody narrates over live from the run sheet. Silent is deliberate, not a
 limitation to apologise for. The words should be his, said in the room, at the
 pace the room is going; a video with a recorded voiceover is harder to talk
 over and sounds like an advert.
@@ -60,7 +60,7 @@ OBSERVATION = ("Diego handled that checkout dispute at the front desk. He stayed
 
 def beat(page, seconds: float, note: str = "") -> None:
     """Hold the frame. The holds are what make it narratable: each one is a
-    place DEMO-SCRIPT.md expects somebody to still be talking."""
+    place the narration expects somebody to still be talking."""
     if note:
         print(f"    {note}")
     page.wait_for_timeout(int(seconds * 1000))
@@ -220,7 +220,7 @@ def main() -> int:
             print(f"  cleanup failed, remove it by hand: {exc}")
 
     print(f"\nDone in {time.time() - started:.0f}s. "
-          f"Narrate over it with DEMO-SCRIPT.md.")
+          f"Narrate over it from the run sheet.")
     return 0
 
 

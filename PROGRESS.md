@@ -28,16 +28,12 @@ What is left is a rehearsal and a backup video.
 
 Worth reading if you looked at the site earlier and something annoyed you.
 
-**There is a pitch pack now.** Four things, all in the repo:
+**There is a pitch pack now**, kept outside this repository: the scripts,
+the question prep and the backup recording are the team's own preparation
+rather than part of the product, and this repository is public.
 
-- `DEMO-SCRIPT.md`, the two minute demo word for word, timed against the live
-  site rather than guessed. Diego first, then Marta.
-- `TECHNICAL-REFERENCE.md`, the whole system in one place: what was built, why,
-  and where it lives.
-- `QA-PREP.md`, about a hundred questions with answers, including the hostile
-  ones, and a list of the things we cannot answer with the words to use instead.
-- `demo-video/coaching-engine-demo.mp4`, a 74 second silent recording of the
-  real site, for if the wifi dies. You narrate over it.
+`TECHNICAL-REFERENCE.md` is the one that stayed, because it documents the
+system rather than how we talk about it.
 
 **The demo needs no ElevenLabs credits.** We have about four words of voice
 budget left, and the practice guest's opening line is generated fresh every

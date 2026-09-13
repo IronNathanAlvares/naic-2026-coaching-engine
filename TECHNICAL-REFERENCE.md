@@ -431,5 +431,4 @@ scripts/deploy_cloudrun.py
 ```
 
 Docs: `README.md` (the tour), `PROGRESS.md` (plain language, for the team),
-`CHANGES-AFTER-MENTOR-REVIEW.md` (what the meetings asked for),
-`DEMO-SCRIPT.md`, `QA-PREP.md`.
+The pitch material lives outside this repository.
