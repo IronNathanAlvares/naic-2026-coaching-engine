@@ -179,6 +179,17 @@ def verify(cur, actor, rec_id: str, verdict: str,
     cur.execute("SELECT id, code FROM bars_dimension")
     dims = {r["code"]: r["id"] for r in cur.fetchall()}
 
+    # The console animates manager agreement from where it was to where this
+    # verdict moves it, so the "before" reading has to be taken before the
+    # labels land. Taking it afterwards reads the same number twice and the
+    # bar sits still, which is a quiet way of saying nothing happened.
+    target_dim = next((dv.get("dimension") for dv in (dimension_verdicts or [])
+                       if dv.get("dimension") in dims), None)
+    before = None
+    if target_dim:
+        before = next((c for c in q.calibration(cur)
+                       if c["dimension"] == target_dim), None)
+
     for dv in dimension_verdicts or []:
         dim = dv.get("dimension")
         if dim not in dims:
@@ -196,7 +207,39 @@ def verify(cur, actor, rec_id: str, verdict: str,
                 (verdict, rec_id))
     q.audit(cur, actor, "recommendation.verified", rec_id,
             {"verdict": verdict, "seconds": seconds})
+
+    readings = q.calibration(cur)
+    after = (next((c for c in readings if c["dimension"] == target_dim), None)
+             if target_dim else None)
+
+    # calibration_updated is what the frozen contract promises and what the
+    # result panel reads. Returning only the full array left it undefined and
+    # took the whole page down with it after a verdict had already been
+    # written, so the manager saw an error for something that had worked.
+    calibration_updated = None
+    if after:
+        calibration_updated = {
+            "dimension": target_dim,
+            "agreement_rate_before": (before or {}).get("agreement_rate") or 0.0,
+            "agreement_rate_after": after["agreement_rate"] or 0.0,
+            "sample_size": after["sample_size"],
+            "lower": after["lower"],
+            "upper": after["upper"],
+            "state": after["state"],
+            "advice": after["advice"],
+        }
+
+    # Escalations are written when the agent runs, not when a verdict lands,
+    # so this reports the one already attached rather than creating any.
+    cur.execute("""
+        SELECT route, severity, rule_id, summary
+        FROM escalation WHERE recommendation_id = %s LIMIT 1
+    """, (rec_id,))
+    escalation = cur.fetchone()
+
     cur.connection.commit()
 
     return {"status": verdict, "verification_id": ver_id,
-            "calibration": q.calibration(cur)}
+            "calibration": readings,
+            "calibration_updated": calibration_updated,
+            "escalation": escalation}

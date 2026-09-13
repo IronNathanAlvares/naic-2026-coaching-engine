@@ -168,7 +168,14 @@ export function VerifyPanel({
   };
 
   if (response) {
-    return <VerifyResultPanel verdict={response.status} data={response} seconds={seconds} />;
+    return (
+      <VerifyResultPanel
+        verdict={response.status}
+        data={response}
+        seconds={seconds}
+        dimension={calibrationDimension}
+      />
+    );
   }
 
   return (
@@ -269,10 +276,12 @@ function VerifyResultPanel({
   verdict,
   data,
   seconds,
+  dimension,
 }: {
   verdict: Verdict;
   data: VerifyResponse;
   seconds: number;
+  dimension: BarsDimension;
 }) {
   return (
     <div className="space-y-4" aria-live="polite">
@@ -307,7 +316,7 @@ function VerifyResultPanel({
         </div>
       </div>
 
-      <CalibrationShift data={data} />
+      <CalibrationShift data={data} dimension={dimension} />
 
       {data.escalation && (
         <div className="rounded-xl border border-[oklch(0.66_0.09_30)]/30 bg-[oklch(0.66_0.09_30)]/10 p-4">
@@ -338,10 +347,55 @@ function VerifyResultPanel({
   );
 }
 
-function CalibrationShift({ data }: { data: VerifyResponse }) {
-  const shift: CalibrationShiftData = data.calibration_updated;
-  const fromPct = shift.agreement_rate_before * 100;
-  const toPct = shift.agreement_rate_after * 100;
+/**
+ * Find the before/after reading, whatever shape the response arrived in.
+ *
+ * The contract promises `calibration_updated`. A response without it used to
+ * reach `shift.agreement_rate_before` on undefined, which throws during
+ * render, unmounts the tree and hands the manager Next's "This page couldn't
+ * load" — for a verdict that had already been written successfully. A missing
+ * animation is worth nothing; a blank page in front of a judge costs
+ * everything. So this degrades instead of throwing: use the promised field,
+ * else rebuild it from the calibration array, else render no panel at all.
+ */
+function resolveShift(
+  data: VerifyResponse,
+  dimension: BarsDimension
+): CalibrationShiftData | null {
+  if (data.calibration_updated?.dimension) return data.calibration_updated;
+
+  const readings = (data as { calibration?: unknown }).calibration;
+  if (Array.isArray(readings)) {
+    const row = readings.find(
+      (r: { dimension?: string }) => r?.dimension === dimension
+    );
+    if (row) {
+      const rate = typeof row.agreement_rate === "number" ? row.agreement_rate : 0;
+      return {
+        dimension,
+        agreement_rate_before: rate,
+        agreement_rate_after: rate,
+        sample_size: row.sample_size ?? 0,
+        lower: row.lower ?? null,
+        upper: row.upper ?? null,
+        state: row.state,
+        advice: row.advice,
+      };
+    }
+  }
+  return null;
+}
+
+function CalibrationShift({
+  data,
+  dimension,
+}: {
+  data: VerifyResponse;
+  dimension: BarsDimension;
+}) {
+  const shift = resolveShift(data, dimension);
+  const fromPct = (shift?.agreement_rate_before ?? 0) * 100;
+  const toPct = (shift?.agreement_rate_after ?? 0) * 100;
   const [displayPct, setDisplayPct] = useState(fromPct);
   const started = useRef(false);
 
@@ -369,6 +423,10 @@ function CalibrationShift({ data }: { data: VerifyResponse }) {
           Math.max(((displayPct - fromPct) / (toPct - fromPct)) * 100, 0),
           100
         );
+
+  // After the hooks, never before: bailing earlier would change the hook
+  // order between renders.
+  if (!shift) return null;
 
   const hasInterval =
     typeof shift.lower === "number" && typeof shift.upper === "number";

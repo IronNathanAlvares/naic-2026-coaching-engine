@@ -372,12 +372,26 @@ export interface Escalation {
 
 export interface VerifyResponse {
   status: "confirmed" | "corrected" | "rejected";
-  calibration_updated: {
+  /**
+   * Optional on purpose. The contract promises it and the API now sends it,
+   * but an API build that predates that returns only `calibration`, and a
+   * required field here made the result panel read `.agreement_rate_before`
+   * on undefined and take the page down after a verdict had already been
+   * recorded. Declared optional so the compiler forces that case to be
+   * handled rather than hidden.
+   */
+  calibration_updated?: {
     dimension: BarsDimension;
     agreement_rate_before: number;
     agreement_rate_after: number;
     sample_size: number;
-  };
+    lower?: number | null;
+    upper?: number | null;
+    state?: CalibrationState;
+    advice?: string;
+  } | null;
+  /** Every dimension, after this verdict. The fallback the panel rebuilds from. */
+  calibration?: CalibrationReading[];
   escalation: Escalation | null;
 }
 
