@@ -222,12 +222,23 @@ do not give the answer away here.*
 
 ## [0:08] His practice, and the one thing he never does
 
-**Go to "My practice" in the bottom bar, then "Details" on the Aug 30 run,
-"Room not ready at check-in".** Direct link, if you would rather not navigate:
-`/staff/results/8a4e-diego`.
+**Go to "My practice" in the bottom bar.** It now lists the real runs from the
+database rather than three seeded rows, so the two to open are **Jul 20** and
+**Aug 31**, both "Room not ready at check-in":
 
-Use **that** run, not one you record on the day. It is stable, it loads with no
-model call, and it contains the best sentence in the product.
+| run | Recovery |
+|---|---|
+| Jul 20, Room not ready at check-in | **Confident here** |
+| Aug 31, Room not ready at check-in | **Leading here** |
+
+Same scenario, six weeks apart, and the label moves. That is the recorded
+video's argument told from live data, and it is better than the video's version
+because a judge can watch you navigate to it.
+
+The video itself uses the seeded Aug 30 run and its "stops short of an offer"
+note, which still resolves at `/staff/results/8a4e-diego`. Do not go looking for
+that one in the list any more: the list is real now, and its Aug 30 entry is a
+noise complaint.
 
 > "Before we get to the shift, here is Diego practising the same situation. A
 > guest checking in, room not ready, and she has been waiting an hour."
