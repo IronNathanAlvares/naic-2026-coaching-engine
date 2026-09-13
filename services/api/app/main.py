@@ -37,6 +37,7 @@ from . import spend as spend_mod
 from . import tracing
 from . import practice
 from . import recommendations as recs
+from . import standards_audit
 from . import voice_observation as voice_obs
 from .agent import run_coaching
 import psycopg
@@ -664,6 +665,44 @@ def demo_rls(staff_id: str = "Aoife",
 
 
 # ---------------------------------------------------------------- practice
+
+# ---------------------------------------------------------------- standards
+
+@app.get("/api/v1/standards/audit")
+def get_standards_audit(x_ce_actor: str | None = Header(default=None)):
+    """The last audit, or null if nobody has run one.
+
+    Separate from the POST so a page load never spends money. Running the audit
+    is a deliberate act by a named person, not a side effect of opening a tab.
+    """
+    actor = actor_from(x_ce_actor)
+    if actor.role not in ("manager", "ld_admin"):
+        raise HTTPException(403, {"type": "role-required", "title": "Manager only",
+                                  "detail": "Only a manager or L&D can read the "
+                                            "standards audit."})
+    with session(actor) as cur:
+        return standards_audit.latest_audit(cur) or {"findings": [],
+                                                     "clauses": 0,
+                                                     "documents": 0}
+
+
+@app.post("/api/v1/standards/audit")
+def run_standards_audit(x_ce_actor: str | None = Header(default=None),
+                        idempotency_key: str | None = Header(default=None)):
+    """Audit the property's own standards. Six checks, one repair, then stop.
+
+    Slow on purpose: five model calls over the whole corpus. It runs at
+    onboarding and when a hotel revises a document, not on a schedule, so
+    latency here costs nobody a shift.
+    """
+    actor = actor_from(x_ce_actor)
+    if actor.role not in ("manager", "ld_admin"):
+        raise HTTPException(403, {"type": "role-required", "title": "Manager only",
+                                  "detail": "Only a manager or L&D can run the "
+                                            "standards audit."})
+    with session(actor) as cur:
+        return standards_audit.run_audit(cur, actor, trace=Trace())
+
 
 @app.get("/api/v1/scenarios")
 def get_scenarios(x_ce_actor: str | None = Header(default=None)):

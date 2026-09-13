@@ -11,7 +11,9 @@ import { Logo } from "@/components/logo";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BarChart3, ClipboardCheck, Eye, ListChecks, Sparkles, Users } from "lucide-react";
+import { BarChart3, ClipboardCheck, Eye, ListChecks, Sparkles, Users,
+  ScanSearch,
+} from "lucide-react";
 import { ScreenNav } from "@/components/screen-nav";
 import { Badge } from "@/components/ui/badge";
 import { currentManager } from "@/lib/mock/seed";
@@ -23,6 +25,9 @@ const nav = [
   { href: "/manager/verify", label: "Verify queue", icon: ListChecks, badge: true },
   { href: "/manager/gap", label: "Transfer gap", icon: BarChart3 },
   { href: "/manager/insights", label: "Team insights", icon: Users },
+  // Before anybody is coached at all: what the property has actually
+  // written down, and what it has not.
+  { href: "/manager/standards", label: "Standards audit", icon: ScanSearch },
   // Outside /manager on purpose: it is not part of a manager's job, it is
   // for the person who wants to check our claims rather than believe them.
   { href: "/glassbox", label: "Glass box", icon: Eye },
