@@ -148,7 +148,7 @@ def ask(cur, actor, question: str, trace: Trace | None = None) -> dict:
             if proposed in VERDICTS and proposed != "silent" and ref in by_ref:
                 verdict = proposed
                 cited = by_ref[ref]
-                plain = (out.get("plain_answer") or "").strip()
+                plain = providers.plain((out.get("plain_answer") or "").strip())
             else:
                 trace.step("code", "Verdict downgraded to silent",
                            proposed=proposed, cited_ref=ref or "(none)",

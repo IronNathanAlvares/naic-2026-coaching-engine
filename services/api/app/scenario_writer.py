@@ -245,12 +245,17 @@ def _tidy(draft: dict) -> dict:
     helpfully added a pair produces “"I can't relax in my room"”. Cosmetic,
     and cosmetic things are what make generated content look generated.
     """
-    for field in ("title", "opening_line", "situation"):
-        value = (draft.get(field) or "").strip()
+    for field in ("title", "opening_line", "situation", "rationale"):
+        value = providers.plain((draft.get(field) or "").strip())
         for pair in (('"', '"'), ("“", "”"), ("'", "'")):
             if len(value) > 1 and value.startswith(pair[0]) and value.endswith(pair[1]):
                 value = value[1:-1].strip()
         draft[field] = value
+
+    persona = draft.get("guest_persona") or {}
+    for field in ("wants", "concedes_when"):
+        if persona.get(field):
+            persona[field] = providers.plain(persona[field])
     return draft
 
 

@@ -257,7 +257,7 @@ export function CanI() {
                 {departmentLabel[answer.department] ?? answer.department}{" "}
                 standards covers this.{" "}
                 <span className="font-medium">That&apos;s not your fault</span>
-                {" — "}
+                {", and "}
                 it&apos;s worth someone knowing.
               </p>
             )}
@@ -338,7 +338,7 @@ export function CanI() {
                         : r.answer.verdict === "yes_with_approval"
                           ? "Yes, with approval"
                           : "No"}
-                      {r.answer.answered_by ? ` — ${r.answer.answered_by}` : ""}
+                      {r.answer.answered_by ? ` · ${r.answer.answered_by}` : ""}
                     </p>
                     {r.answer.note && (
                       <p className="mt-1 text-sm">{r.answer.note}</p>

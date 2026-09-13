@@ -297,6 +297,13 @@ def verify(findings: list[dict], corpus: list[dict],
                              "reasons": problems})
             continue
 
+        # Written by a model, read by a general manager, so it goes through the
+        # same punctuation the rest of the site uses. Quotes are exempt: a
+        # quoted clause has to stay character-for-character what the document
+        # says, which is the whole point of the gate above.
+        for field in ("title", "explanation", "missing_sentence"):
+            finding[field] = providers.plain(finding.get(field, ""))
+
         finding["citations"] = resolved
         finding["kind"] = kind
         kept.append(finding)

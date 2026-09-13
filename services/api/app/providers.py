@@ -346,6 +346,24 @@ def _post(url: str, payload: dict, headers: dict, timeout: int = 90) -> dict:
 # Chat / structured output
 # --------------------------------------------------------------------------
 
+def plain(text: str) -> str:
+    """Strip em dashes out of anything a model wrote.
+
+    Every other string on the site is written by us and has none. Generated
+    prose is the one place they reappear, and one em dash in a suggested clause
+    is enough to make a page that is otherwise in the product's own voice read
+    as machine output. Replaced with the punctuation a person would have used:
+    a comma mid-sentence, nothing at all where it was doing a comma's job
+    already.
+    """
+    if not text:
+        return text
+    return (text.replace(" — ", ", ")
+                .replace("— ", ", ")
+                .replace(" —", ", ")
+                .replace("—", ", "))
+
+
 def complete(task: str, system: str, user: str, *, schema: dict | None = None,
              temperature: float = 0.0, trace: Trace | None = None,
              max_tokens: int = 1500) -> Any:

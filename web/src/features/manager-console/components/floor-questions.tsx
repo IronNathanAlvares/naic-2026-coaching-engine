@@ -112,7 +112,7 @@ export function FloorQuestions() {
                     {verdicts.find((v) => v.key === q.answer?.verdict)?.label ??
                       q.answer.verdict}
                   </span>
-                  {q.answer.note ? ` — ${q.answer.note}` : ""}
+                  {q.answer.note ? `. ${q.answer.note}` : ""}
                   <span className="text-muted-foreground">
                     {q.answer.answered_by ? ` · ${q.answer.answered_by}` : ""}
                   </span>
