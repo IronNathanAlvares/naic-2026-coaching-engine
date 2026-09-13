@@ -284,6 +284,59 @@ def _feedback(scored: list[dict]) -> str:
             f"{worst['dimension'].replace('_', ' ')}.")
 
 
+def list_attempts(cur, staff_id: str, limit: int = 20) -> list[dict]:
+    """Somebody's finished practice runs, newest first.
+
+    This existed in the database the whole time and nothing read it back. The
+    staff app's My practice screen rendered three hardcoded seed rows, so a
+    person could finish a scenario, watch their notes appear, go to My
+    practice, and not find it. The run was saved; the page just was not asking.
+
+    Only 'scored' rows: an abandoned attempt is not a practice someone did, and
+    listing half-finished sessions would make the screen a list of things you
+    gave up on.
+    """
+    cur.execute("""
+        SELECT sa.id::text        AS id,
+               sa.scenario_id::text AS scenario_id,
+               sc.title           AS title,
+               sa.completed_at
+        FROM scenario_attempt sa
+        JOIN scenario sc ON sc.id = sa.scenario_id
+        WHERE sa.staff_id = %s AND sa.status = 'scored'
+        ORDER BY sa.completed_at DESC NULLS LAST
+        LIMIT %s
+    """, (staff_id, limit))
+    attempts = cur.fetchall()
+    if not attempts:
+        return []
+
+    # One query for every score rather than one per attempt: this screen is the
+    # first thing a staff member opens and it should not cost twenty round
+    # trips to draw a list.
+    cur.execute("""
+        SELECT s.attempt_id::text AS attempt_id,
+               bd.code            AS dimension,
+               s.level
+        FROM score s
+        JOIN bars_dimension bd ON bd.id = s.dimension_id
+        WHERE s.attempt_id = ANY(%s::uuid[])
+    """, ([a["id"] for a in attempts],))
+    by_attempt: dict[str, list[dict]] = {}
+    for r in cur.fetchall():
+        by_attempt.setdefault(r["attempt_id"], []).append(
+            {"dimension": r["dimension"], "level": r["level"]})
+
+    return [{
+        "id": a["id"],
+        "scenario_id": a["scenario_id"],
+        "title": a["title"],
+        "completed_at": (a["completed_at"].isoformat()
+                         if a["completed_at"] else ""),
+        "scores": by_attempt.get(a["id"], []),
+    } for a in attempts]
+
+
 def get_attempt(cur, attempt_id: str) -> dict | None:
     cur.execute("""
         SELECT sa.id::text, sa.scenario_id::text, sa.status, sa.completed_at

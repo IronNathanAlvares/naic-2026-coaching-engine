@@ -370,6 +370,15 @@ export interface Escalation {
   summary: string;
 }
 
+/** One finished practice run, as My practice lists it. */
+export interface PracticeRun {
+  id: string;
+  scenario_id: string;
+  title: string;
+  completed_at: string;
+  scores: { dimension: BarsDimension; level: number | null }[];
+}
+
 export interface VerifyResponse {
   status: "confirmed" | "corrected" | "rejected";
   /**

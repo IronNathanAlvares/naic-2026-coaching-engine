@@ -1,6 +1,10 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Eye, Lock } from "lucide-react";
 import { LevelWord } from "@/features/staff-pwa/components/level-word";
+import { staffApi } from "@/features/staff-pwa/api/staffApi";
 import {
   completedAttempt,
   diegoObservation,
@@ -9,16 +13,7 @@ import {
   scenarios,
 } from "@/lib/mock/seed";
 import { dimensionShort } from "@/lib/format";
-
-
-/** Rendered per request, never prerendered.
- *
- * Without this Next may statically render at build time and the page freezes
- * with whatever the database held during deployment. Everything here is live
- * operational data, and a manager acting on a stale queue is worse than a
- * manager waiting a moment for a fresh one.
- */
-export const dynamic = "force-dynamic";
+import type { BarsDimension } from "@/lib/types";
 
 const MONTH_SHORT = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -33,12 +28,22 @@ function dayLabel(isoDate: string): string {
     : `${MONTH_SHORT[date.getUTCMonth()]} ${date.getUTCDate()}`;
 }
 
+interface Row {
+  id: string;
+  title: string;
+  dateLabel: string;
+  completedAt: string;
+  scores: { dimension: BarsDimension; level: number | null }[];
+}
+
 const scenarioTitles = new Map(scenarios.map((s) => [s.id, s.title]));
 
-// Rows are the seed's completed practice runs (the actor's real attempts),
-// newest first. Title and date come from each attempt's scenario + result —
-// no invented titles, dates or scores on this page.
-const history = [
+/** The seeded runs, used only when the API has nothing to show.
+ *
+ * These carry readable ids the database has never held. They exist so the
+ * screen is not empty on a fresh environment, and so the links the app itself
+ * renders still resolve — the results page falls back to the same seed. */
+const seededRows: Row[] = [
   completedAttempt,
   historyAug29Attempt,
   historyAug26Attempt,
@@ -46,24 +51,56 @@ const history = [
   .flatMap((attempt) => {
     const result = attempt.result;
     if (!result) return [];
-    return [
-      {
-        id: attempt.id,
-        title: scenarioTitles.get(result.scenario_id) ?? "Practice run",
-        dateLabel: dayLabel(result.completed_at),
-        completedAt: result.completed_at,
-        scores: result.scores.filter((s) => s.level !== null),
-      },
-    ];
+    return [{
+      id: attempt.id,
+      title: scenarioTitles.get(result.scenario_id) ?? "Practice run",
+      dateLabel: dayLabel(result.completed_at),
+      completedAt: result.completed_at,
+      scores: result.scores.filter((s) => s.level !== null),
+    }];
   })
   .sort((a, b) => b.completedAt.localeCompare(a.completedAt));
 
-// The mock sequencing gate: a manager observation unlocks the actor's
-// practice history. Diego's obs-001 exists, so every run below is compared
-// against the floor stream.
+// The sequencing gate: a manager observation is what turns practice into a
+// coaching insight. Diego's exists, so the runs below are compared against the
+// floor stream.
 const managerObserved = diegoObservation.staff_id === "9f2c-diego";
 
 export default function HistoryPage() {
+  // Starts with the seeded rows so the screen is never blank while the request
+  // is in flight, then replaces them with whatever the person actually did.
+  const [rows, setRows] = useState<Row[]>(seededRows);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let live = true;
+    staffApi
+      .listMyAttempts()
+      .then((runs) => {
+        if (!live || !runs.length) return;
+        setRows(
+          runs.map((run) => ({
+            id: run.id,
+            title: run.title || "Practice run",
+            dateLabel: run.completed_at ? dayLabel(run.completed_at) : "",
+            completedAt: run.completed_at,
+            scores: run.scores.filter((s) => s.level !== null),
+          }))
+        );
+      })
+      .catch(() => {
+        // Keep the seeded rows rather than showing an error. This screen is
+        // somebody's own record of their work; an empty state here reads as
+        // "none of that counted".
+      })
+      .finally(() => {
+        if (live) setLoading(false);
+      });
+    return () => {
+      live = false;
+    };
+  }, []);
+
   return (
     <div className="space-y-5">
       <div>
@@ -75,8 +112,12 @@ export default function HistoryPage() {
         </p>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border bg-card">
-        {history.map((entry, index) => (
+      <div
+        className={`overflow-hidden rounded-2xl border bg-card transition-opacity ${
+          loading ? "opacity-60" : "opacity-100"
+        }`}
+      >
+        {rows.map((entry, index) => (
           <div key={entry.id} className={`p-4 ${index > 0 ? "border-t" : ""}`}>
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold">{entry.title}</p>

@@ -713,6 +713,24 @@ def finish_attempt(attempt_id: str, x_ce_actor: str | None = Header(default=None
     return out
 
 
+@app.get("/api/v1/attempts")
+def list_my_attempts(x_ce_actor: str | None = Header(default=None),
+                     limit: int = 20):
+    """The caller's own finished practice runs.
+
+    Deliberately no staff_id in the path. Practice scores are the one thing in
+    this product a staff member is promised stays theirs, so the only person
+    who can list them is the person who did them, and the identity comes from
+    the actor rather than from whatever id the browser felt like sending.
+
+    Declared before /attempts/{attempt_id} so the bare path is not captured as
+    an attempt id.
+    """
+    actor = actor_from(x_ce_actor)
+    with session(actor) as cur:
+        return practice.list_attempts(cur, actor.staff_id, min(limit, 50))
+
+
 @app.get("/api/v1/attempts/{attempt_id}")
 def read_attempt(attempt_id: str, x_ce_actor: str | None = Header(default=None)):
     actor = actor_from(x_ce_actor)

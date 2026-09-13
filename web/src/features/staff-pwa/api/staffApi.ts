@@ -1,6 +1,7 @@
 import { http, isRealApi } from "@/lib/api/client";
 import { mockDb } from "@/lib/mock/db";
 import type {
+  PracticeRun,
   TurnResponse,
   Debrief,
   DebriefRegistration,
@@ -58,6 +59,15 @@ export const staffApi = {
     isRealApi()
       ? http.get(`/attempts/${attemptId}`)
       : mockDb.getAttempt(attemptId),
+
+  /** The signed-in person's own finished runs, newest first.
+   *
+   * No id argument on purpose: the API reads the actor and will only ever
+   * return that person's practice, which is the promise the staff app makes on
+   * every screen. The mock has no equivalent, so it answers empty and the
+   * caller falls back to its seeded rows. */
+  listMyAttempts: (): Promise<PracticeRun[]> =>
+    isRealApi() ? http.get("/attempts") : Promise.resolve([]),
 
   getDebrief: (id: string): Promise<Debrief | undefined> =>
     isRealApi() ? http.get(`/debriefs/${id}`) : mockDb.getDebrief(id),

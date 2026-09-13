@@ -9,10 +9,11 @@
 
 import { Fragment, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Mic, Send, Square, Volume2 } from "lucide-react";
+import { Mic, Send, Square, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { staffApi } from "@/features/staff-pwa/api/staffApi";
 import { useVoiceInput } from "@/features/staff-pwa/lib/use-voice-input";
+import { speak, stopSpeaking, speechSupport } from "@/features/staff-pwa/lib/speech";
 import { API_BASE_URL } from "@/lib/api/client";
 import type { PracticeAttempt } from "@/lib/types";
 
@@ -28,16 +29,73 @@ interface Message {
  *
  * Tone is most of what makes service recovery hard, and a transcript hides
  * exactly the thing being trained: you cannot practise staying calm with
- * someone who is only annoyed in writing. Autoplay is deliberately not used —
- * a staff member may be on a shift floor, or on a bus — so the line is offered
- * and never forced. When the backend could not synthesise, audioId is absent
- * and nothing renders at all. */
-function GuestAudio({ audioId }: { audioId?: string }) {
+ * someone who is only annoyed in writing.
+ *
+ * Two sources, in order. An ElevenLabs clip if the backend synthesised one,
+ * because it is the better voice. Otherwise the browser's own speech, which
+ * costs nothing. That fallback is the normal case, not the exception: the
+ * voice budget keeps a reserve and stops synthesising long before the account
+ * is empty, so audio_id is usually null and this button used to render
+ * nothing at all. A feature that disappears when the free tier runs low is a
+ * feature nobody has.
+ *
+ * Still no autoplay by default. A staff member may be on a shift floor or on
+ * a bus, and browsers block it before a gesture anyway. The per-message button
+ * is the gesture; the "read aloud" toggle above the thread is what turns on
+ * automatic playback for the rest of the conversation. */
+function GuestAudio({
+  audioId,
+  content,
+  autoSpeak,
+}: {
+  audioId?: string;
+  content: string;
+  autoSpeak?: boolean;
+}) {
   const ref = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
   const [broken, setBroken] = useState(false);
+  const spokenRef = useRef(false);
 
-  if (!audioId || broken) return null;
+  const canSynthesise = speechSupport() === "ready";
+  const usesBrowserVoice = !audioId || broken;
+
+  // Speak a newly arrived guest line once, and only when the listener has
+  // already asked for that by turning the toggle on.
+  useEffect(() => {
+    if (!autoSpeak || !usesBrowserVoice || !canSynthesise) return;
+    if (spokenRef.current) return;
+    spokenRef.current = true;
+    speak(content, {
+      onStart: () => setPlaying(true),
+      onEnd: () => setPlaying(false),
+    });
+  }, [autoSpeak, usesBrowserVoice, canSynthesise, content]);
+
+  if (usesBrowserVoice) {
+    if (!canSynthesise) return null;
+    return (
+      <button
+        type="button"
+        aria-label={playing ? "Stop the guest" : "Hear the guest"}
+        onClick={() => {
+          if (playing) {
+            stopSpeaking();
+            setPlaying(false);
+            return;
+          }
+          speak(content, {
+            onStart: () => setPlaying(true),
+            onEnd: () => setPlaying(false),
+          });
+        }}
+        className="mt-1.5 inline-flex items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+      >
+        {playing ? <Square className="size-3" /> : <Volume2 className="size-3" />}
+        {playing ? "stop" : "hear it"}
+      </button>
+    );
+  }
 
   return (
     <>
@@ -238,6 +296,43 @@ export function PracticeChat({
     prevGuestMood = mood;
   });
 
+  // Off by default and remembered per person once they turn it on. Sound
+  // that starts without being asked for is a hazard on a shift floor, and
+  // browsers block it before a gesture anyway; the toggle IS the gesture, so
+  // from then on each new guest line can speak itself.
+  const [readAloud, setReadAloud] = useState(false);
+  const canSpeak = speechSupport() === "ready";
+
+  useEffect(() => {
+    try {
+      setReadAloud(window.localStorage.getItem("ce_read_aloud") === "1");
+    } catch {
+      // Private windows and blocked site data both throw here. Silence is a
+      // fine default for a convenience.
+    }
+  }, []);
+
+  useEffect(() => {
+    // Never leave a voice running when the screen goes away mid-sentence.
+    return () => stopSpeaking();
+  }, []);
+
+  const toggleReadAloud = () => {
+    const next = !readAloud;
+    setReadAloud(next);
+    if (!next) stopSpeaking();
+    try {
+      window.localStorage.setItem("ce_read_aloud", next ? "1" : "0");
+    } catch {
+      // Not worth telling anyone about.
+    }
+  };
+
+  const lastGuestIndex = messages.reduce(
+    (found, m, i) => (m.role === "guest" ? i : found),
+    -1
+  );
+
   const usedTurns = TOTAL_TURNS - remaining;
   const canFinish =
     canComplete || messages.some((m) => m.role === "staff");
@@ -261,6 +356,25 @@ export function PracticeChat({
             </span>
           </div>
         </div>
+        {canSpeak && (
+          <button
+            type="button"
+            onClick={toggleReadAloud}
+            aria-pressed={readAloud}
+            className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+              readAloud
+                ? "border-primary/40 bg-primary/10 text-primary"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {readAloud ? (
+              <Volume2 className="size-3.5" />
+            ) : (
+              <VolumeX className="size-3.5" />
+            )}
+            {readAloud ? "Reading aloud" : "Read aloud"}
+          </button>
+        )}
       </div>
 
       <div
@@ -283,6 +397,7 @@ export function PracticeChat({
                 content={message.content}
                 mood={message.mood ?? "neutral"}
                 audioId={message.audioId}
+                autoSpeak={readAloud && i === lastGuestIndex}
               />
             ) : (
               <StaffRow content={message.content} />
@@ -383,10 +498,12 @@ function GuestRow({
   content,
   mood,
   audioId,
+  autoSpeak,
 }: {
   content: string;
   mood: string;
   audioId?: string;
+  autoSpeak?: boolean;
 }) {
   return (
     <div className="flex msg-in items-end gap-2">
@@ -403,7 +520,7 @@ function GuestRow({
           >
             guest · {moodLabel[mood] ?? "neutral"}
           </p>
-          <GuestAudio audioId={audioId} />
+          <GuestAudio audioId={audioId} content={content} autoSpeak={autoSpeak} />
         </div>
       </div>
     </div>
