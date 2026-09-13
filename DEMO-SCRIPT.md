@@ -6,8 +6,12 @@ Written 13 Sept against the deployed site, with every timing measured.
 **Live site:** https://naic-2026-coaching-engine.vercel.app
 **API:** Cloud Run, europe-west1, warm. First call 0.4s, no cold start.
 
-This is the reference version. The one to hold in your hand on the day is
-**Demo-Run-Sheet.docx**, which is the same script laid out screen by screen.
+**The demo is the video.** `demo-video/Demo_Video_Coaching_Engine.mp4`, 1:58,
+silent, narrated live by you. Run sheet: **Demo-Run-Sheet.docx**.
+
+The narration is the next section. Everything after it is the live walkthrough,
+kept because the words are the same and because you need it if a judge asks to
+drive the product in questions.
 
 ---
 
@@ -60,6 +64,207 @@ it.
 
 Use the role switch, never two windows. The mentor note was explicit: switching
 between separate instances makes judges suspect the parts are not one product.
+
+---
+
+# NARRATING THE VIDEO
+
+
+## 0:00 — The landing page
+
+**On screen:** *Training shows completion. This shows what changed on the floor.*
+
+> "Last Tuesday, a guest shouted at Diego on a Dublin front desk. His manager
+> saw the whole thing. You are about to get both of their versions, and they do
+> not match."
+
+---
+
+## 0:08 — Diego's debrief, already answered
+
+**On screen:** his own words, then *Escalation and Logging · Escalation > Rule 1*,
+then *Why you're seeing this: you described a room not ready.*
+
+> "Ninety seconds after the shift, he says what happened. Back comes his own
+> hotel's escalation rule, quoted, with the rule number on it. Not advice from
+> the internet. Their manual."
+
+---
+
+## 0:18 — The practice conversation
+
+**On screen:** the guest, then Diego's reply, then *the guest seems satisfied*.
+
+> "This is him practising the same situation. Watch what he offers her. The
+> bags. A coffee in the lounge. And a time he will come back with."
+
+---
+
+## 0:30 — His practice notes, today
+
+**On screen:** *Leading here* on Composure, Empathy and Service Recovery.
+
+> "Leading on all three. That is today."
+
+**Then stop talking for two seconds.** The next screen is the whole pitch and it
+needs a clear run at them.
+
+---
+
+## 0:36 — His practice notes, two weeks ago  ← THE MOMENT
+
+**On screen:** the Aug 30 run. *"Stops short of an offer, which is the 5."*
+
+> "And this is the same exercise, two weeks ago. Stops short of an offer. Back
+> then he never offered her anything."
+>
+> "So he learned it. Training worked."
+
+**Land that, then let the video move.** Everything after this is the
+consequence of those two screens sitting next to each other: the thing he
+learned in practice is the exact thing he still does not do on the floor. You
+are not going to say that yet. You are going to let his manager say it for you.
+
+---
+
+## 0:48 — Marta's console
+
+> "Now his manager. Eleven recommendations waiting on her read, and nothing
+> routes anywhere until she verifies it."
+
+---
+
+## 1:00 — The observation
+
+**On screen:** *he never actually offered her anything to fix it*, composure 4,
+and the line *one rating was thrown away for quoting words you did not say*.
+
+> "Twenty seconds of what she saw. It scores composure four and underlines the
+> words that earned it."
+>
+> "And there. It threw a rating away, because it had quoted something she never
+> said."
+
+---
+
+## 1:06 — She adds it back herself
+
+**On screen:** Recovery 1, *"Did they fix the problem for the guest? You added
+this one."*
+
+> "So she adds that one by hand. Recovery, one. And it records that the judgement
+> was hers, not ours."
+
+---
+
+## 1:12 — The queue
+
+**On screen:** *7 of these 11 say the same thing. 5 people, the same missing
+authority.*
+
+> "Seven of these eleven say the same thing. Five people, the same missing
+> authority. That is one policy to write, not five conversations to have."
+
+---
+
+## 1:18 — The verify card
+
+**On screen:** Confirm / Correct / Reject, and the glass box open underneath.
+
+> "And it still has not done anything. It drafted, it cited, and it stopped."
+
+---
+
+## 1:30 — The transfer gap
+
+**On screen:** Recovery **4.8 vs 1.4, Blocked**.
+
+> "Two streams, one reading. In practice, four point eight. On the floor, one
+> point four."
+>
+> "Every learning platform in the world looks at that and books him a course.
+> This one says do not. He has already proved he knows how."
+
+**Optional, if the room is warm. One joke only, delivered flat:**
+
+> "We built an AI whose best answer is quite often 'do not buy the thing we are
+> selling'. Our investors love that about us."
+
+---
+
+## 1:42 — The brief for the GM
+
+**On screen:** the written brief, with Download, Copy, Print or PDF.
+
+> "And it does not stop at Diego. The same finding across five people becomes one
+> brief for the general manager. Give the front desk clear authority on what they
+> may offer. Written, sourced, ready to send."
+
+---
+
+## 1:52 — Close, over the glass box
+
+> "Training would have cost that hotel money to teach Diego something he had
+> already learned. The fix was one sentence about what he is allowed to offer."
+>
+> "That is not a skill gap. It is an authority gap, and it was never Diego's to
+> fix."
+
+**[1:58] Stop. Let the last frame sit.**
+
+---
+
+## If you are running short
+
+Cut in this order. Each one is a whole paragraph, so you lose time without
+losing a thread:
+
+1. 0:48, Marta's console. The queue count is not load bearing.
+2. 1:18, the verify card. Painful, but the gate is stated again in questions.
+3. 1:42, the GM brief. Only if you must: it is the scale argument.
+
+Never cut 0:36 or the close. Those two are the pitch.
+
+---
+
+## What to say if they ask
+
+**"Does it ever recommend training?"**
+Do not answer from memory. It is on the transfer gap screen, one row below
+Recovery: *Communication, 2.4 versus 1.0, Needs practice. Weak in both.
+Targeted practice is the right answer.*
+
+> "Weak in practice and weak on the floor means he has not learned it yet, and
+> that is what a course is for. Four quadrants. Only one of them is 'book
+> training', and only one of them is 'do not'."
+
+**"How do you know the AI is right?"**
+
+> "We do not assume it. Every verdict a manager gives is scored against what the
+> model said, per dimension. You can see the agreement rate on the card. It reads
+> one hundred percent on service recovery, over five checks, and five checks is
+> not a result, it is five checks. We would rather show you a number that is not
+> ready than not measure it."
+
+**"What stops this becoming staff surveillance?"**
+It is written on the team insights screen: *5 patterns hidden, group smaller
+than 5 staff, so they can't be shown without identifying someone.*
+
+> "Patterns only appear once at least five people share them. Below that the
+> system refuses to show you anything, because at four people you are not looking
+> at a pattern, you are looking at a person."
+
+**"Why is there no sound?"**
+
+> "Because I would rather talk to you than play you a voiceover."
+
+---
+
+# THE LIVE WALKTHROUGH
+
+Everything below drives the product live. Same words, same order, but the
+product has to cooperate. Use it in questions, or if you decide on the day
+that you would rather do it for real.
 
 ---
 
@@ -590,13 +795,20 @@ run. Yours does not have to.
 
 **Turn 1.**
 
-> "I'm really sorry, Mr Smith. An hour in the lobby is far too long and I'd be
-> annoyed too. Let me find out exactly where your room is right now, and while
-> I do, can I take your bags and get you a coffee in the lounge on us? I'll come
-> back to you with a real time, not a guess."
+> "I'm really sorry, Mr Smith. You've been waiting far too long for this and
+> I'd be annoyed too. Let me find out exactly where your room is right now, and
+> while I do, can I take your bags and get you a coffee in the lounge on us?
+> I'll come back to you with a real time, not a guess."
 
 Acknowledge with the specific problem, stay off the defensive, take ownership,
 make a concrete offer, commit to a time. That is every dimension in one breath.
+
+**It used to say "an hour in the lobby", and that is a trap.** The guest's
+opening line is generated fresh every run, so how long she has been waiting
+changes: in the recorded video she says *twenty minutes* and the reply still
+says *an hour*, which is visible in the chat bubbles if anybody reads them.
+"You've been waiting far too long" is true whatever number she gives, and it
+scores the same.
 
 **Turn 2, after she says some version of "make sure it's actually ready".**
 
