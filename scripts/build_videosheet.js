@@ -208,25 +208,27 @@ const doc = new Document({
 
         h("The video"),
         note("Every line here is short on purpose. The video does not wait for you. If you finish a line early, STOP: the silence is correct and the next screen is already coming."),
+        note("Quick is correct here. The failure is not speaking fast, it is carrying on: finish the line, stop, and let the screen work. Dead air over a moving picture reads as confidence; a voice that never stops reads as a tour guide."),
+        note("You are commentating now, not presenting. They are watching the screen, so the only face in the room worth looking at is the one that is not on it: stand still, stay out of the projector beam, and keep your eyes on THEM."),
 
         screenBar("Landing page", "0:00 to 0:06"),
         beat(
           [{ label: "ON SCREEN", text: "Training shows completion. This shows what changed on the floor." },
-           { label: "YOU", text: "Beside the screen. Do not look at it." }],
-          ["A guest shouted at Diego on a Dublin front desk last Tuesday."]
+           { label: "YOU", text: "Beside the screen, out of the projector beam. Do not look at it once. Say this to the room while they read." }],
+          ["Last Tuesday, a guest shouted at Diego across a Dublin front desk."]
         ),
 
         screenBar("His debrief, answered", "0:06 to 0:10"),
         beat(
           [{ label: "ON SCREEN", text: "His words, then the hotel's own Escalation Rule 1, quoted." },
-           { label: "YOU", text: "One tap at the quote. Four seconds only." }],
+           { label: "YOU", text: "One tap at the quote, then hand straight down. Four seconds is the shortest window in the video: say it and stop." }],
           ["His own words. His hotel's own rule, quoted back."]
         ),
 
         screenBar("The practice conversation", "0:10 to 0:25"),
         beat(
           [{ label: "ON SCREEN", text: "The guest, then Diego's reply, then the guest calming." },
-           { label: "YOU", text: "Three fingers on bags, coffee, a time. Fifteen seconds, so you can breathe here." }],
+           { label: "YOU", text: "Count three on your fingers: bags, coffee, a time. Fifteen seconds, the one wide window. Normal pace, then stop." }],
           ["Same situation, in practice.",
            { text: "Watch what he offers her. The bags. A coffee. And a time he will come back with.", bold: true }]
         ),
@@ -234,14 +236,14 @@ const doc = new Document({
         screenBar("His notes, today", "0:25 to 0:31"),
         beat(
           [{ label: "ON SCREEN", text: "Leading here, on all three." },
-           { label: "YOU", text: "Flat, almost bored. Then STOP." }],
+           { label: "YOU", text: "Flat. Almost bored, like it is not the point. Then STOP TALKING and let them look." }],
           ["Leading on all three. That is today."]
         ),
 
         screenBar("His notes, two weeks ago", "0:31 to 0:39    THE MOMENT"),
         beat(
           [{ label: "ON SCREEN", text: "The Aug 30 run. Stops short of an offer, which is the 5." },
-           { label: "YOU", text: "Turn away from the screen. One step toward them. Eight seconds, use all of it." }],
+           { label: "YOU", text: "Turn your back on the screen. One step toward them. Find one person and say it to them. Eight seconds, use every one." }],
           ["Same exercise, two weeks ago. Stops short of an offer.",
            { text: "So he learned it. Training worked.", bold: true }],
           { shade: "F7F9F9" }
@@ -249,7 +251,7 @@ const doc = new Document({
 
         screenBar("Switch to Marta", "0:39 to 0:44"),
         beat(
-          [{ label: "YOU", text: "Three words. Then let the console load in silence." }],
+          [{ label: "YOU", text: "Three words, said like a scene change. Then nothing: let the console load in silence." }],
           ["Now his manager."]
         ),
 
@@ -262,14 +264,14 @@ const doc = new Document({
         screenBar("The queue, scrolling", "0:50 to 0:56"),
         beat(
           [{ label: "ON SCREEN", text: "Adaeze, Diego, Tomas, Zofia, Chloe, Sean, Kwame, Niamh." },
-           { label: "YOU", text: "Four words. Let them read the names." }],
+           { label: "YOU", text: "Four words, then stop. They are reading a column of names, and every one is a person this happened to." }],
           [{ text: "Different people. Same sentence.", bold: true }]
         ),
 
         screenBar("The observation", "0:56 to 1:03"),
         beat(
           [{ label: "ON SCREEN", text: "Composure 4, underlined. And: one rating was thrown away for quoting words you did not say." },
-           { label: "YOU", text: "Flat palm at the screen on the second line." }],
+           { label: "YOU", text: "Flat palm at the screen on the second line, hold while they find it, then drop it." }],
           ["Twenty seconds of what she saw.",
            { text: "And it threw a rating away. She never said those words.", bold: true }]
         ),
@@ -277,22 +279,22 @@ const doc = new Document({
         screenBar("She adds it back", "1:03 to 1:08"),
         beat(
           [{ label: "ON SCREEN", text: "Recovery 1. You added this one." },
-           { label: "YOU", text: "Warmer. Five seconds." }],
+           { label: "YOU", text: "Warmer, and slightly pleased. This is the human winning and it should sound like you are on her side." }],
           ["So she adds that one herself."]
         ),
 
         screenBar("The banner", "1:08 to 1:14"),
         beat(
           [{ label: "ON SCREEN", text: "7 of these 11 say the same thing. 5 people, the same missing authority." },
-           { label: "YOU", text: "One finger up, and keep it up." }],
-          ["Seven of eleven, the same thing.",
-           { text: "One policy to write, not five conversations.", bold: true }]
+           { label: "YOU", text: "One finger up on the second line and keep it up until the screen changes. This is the number a GM does the arithmetic on." }],
+          ["Seven of eleven, the same thing. Five people.",
+           { text: "That is one policy to write. Not five conversations.", bold: true }]
         ),
 
         screenBar("The verify card", "1:14 to 1:26"),
         beat(
           [{ label: "ON SCREEN", text: "Confirm / Correct / Reject, and the glass box open underneath." },
-           { label: "YOU", text: "Flat palm on stopped. Twelve seconds, the longest hold in the video." }],
+           { label: "YOU", text: "Flat palm out on stopped, like stopping traffic. Twelve seconds, the longest hold in the video, so resist filling it." }],
           ["And it still has not done anything.",
            { text: "It drafted, it cited, and it stopped.", bold: true },
            "Nothing reaches Diego until she decides."]
@@ -301,15 +303,15 @@ const doc = new Document({
         screenBar("The transfer gap", "1:26 to 1:35"),
         beat(
           [{ label: "ON SCREEN", text: "Recovery 4.8 vs 1.4, Blocked." },
-           { label: "YOU", text: "Two hands apart, wide then low." }],
+           { label: "YOU", text: "Two hands apart, one high one low, and LEAVE them apart. Bringing them back together undoes the only gesture that matters." }],
           ["Practice, four point eight. Floor, one point four.",
-           { text: "Every platform books him a course. This one says do not.", bold: true }]
+           { text: "Every other platform books him a course. Ours is the one that says do not.", bold: true }]
         ),
 
         screenBar("The brief for the GM", "1:35 to 1:45"),
         beat(
           [{ label: "ON SCREEN", text: "Commission the brief, then the written brief with Download." }],
-          ["And it writes the week up for the general manager.",
+          ["And it writes the week up for the GM, ready to send.",
            { text: "One action. Give the front desk clear authority on what they may offer.", bold: true }]
         ),
 
@@ -370,7 +372,7 @@ const doc = new Document({
         body("Do not read the screen aloud. They can read. Your job is to say the thing that is NOT on the screen.", { after: 200 }),
 
         h("The joke", { size: 24 }),
-        body("One joke, at 1:30, and only if the room has already warmed. Deliver it completely flat, do not smile at your own line, and move straight on without waiting for the laugh. If it lands you get the room. If it does not, nobody noticed you told a joke.", { after: 200 }),
+        body("No joke in the video any more. Slide 3 has it now and it is the better one, and the windows here are four to fifteen seconds: a laugh that lands after the screen has moved on is worse than no laugh at all. Keep the humour on the deck and keep this fast.", { after: 200 }),
 
         h("If your hands shake or your mouth dries", { size: 24 }),
         body("Both are normal and neither is visible from four metres. Put the laptop between you and them so your hands have somewhere to be. Take the breath before Last Tuesday, not during it. And remember the video cannot fail: whatever happens to you, the product on screen keeps working.", { after: 200 }),
