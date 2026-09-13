@@ -68,7 +68,7 @@ between separate instances makes judges suspect the parts are not one product.
 | | |
 |---|---|
 | Diego, service recovery | practice **4.79**, floor **1.62**, gap **3.17**, BLOCKED (floor drops to about 1.4 once you log in act two, which is correct) |
-| Marta's verify queue | **11** waiting |
+| Marta's verify queue | **10** waiting, 6 of them the policy cluster across 4 people (13 Sept; read it off the screen on the day) |
 | Team patterns | **7**, k-anonymity threshold 5 |
 
 Check these before you walk on. If Diego's numbers have drifted, the story
@@ -373,16 +373,22 @@ authority to.
 **Scroll back to the top of the verify queue, to the banner. Read it off the
 screen.**
 
-> "And this is where it stops being about Diego. Eight of these twelve say the
-> same thing. Five different people, the same missing authority."
+> "And this is where it stops being about Diego. *[read the banner]* Six of
+> these ten say the same thing. Four different people, the same missing
+> authority."
 >
-> "That is one policy to write, not five conversations to have."
+> "That is one policy to write, not four conversations to have."
 
-**Both counts move.** Act two writes a new recommendation every time it runs, so
-the queue grows with each rehearsal and the banner recalculates. Read the two
-numbers, do not recite them. The figure the line actually rests on is **five
-people**, and that one holds: extra cards land on staff who are already in the
-cluster.
+**Every number in that line moves, including the people count.** Act two writes
+a new recommendation on every run, so the queue grows with each rehearsal; and
+deciding a card can take a person out of the cluster altogether, which has
+already happened once. As of the evening of 13 Sept the live queue holds ten
+pending, of which six are the policy cluster, across four people.
+
+So read all three off the screen, and note that the people number is said
+**twice** in that line: once as the count, once as the number of conversations.
+They have to match. If the banner says three people, it is "not three
+conversations to have".
 
 ---
 

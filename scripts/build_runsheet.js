@@ -321,10 +321,11 @@ const doc = new Document({
         beat(
           [{ label: "DO", text: "Scroll back up to the green banner. READ IT OFF THE SCREEN." },
            { label: "ON SCREEN", text: "N of these M say the same thing. 5 people, the same missing authority." }],
-          ["And this is where it stops being about Diego. Eight of these twelve say the same thing. Five different people, the same missing authority.",
-           { text: "That is one policy to write, not five conversations to have.", bold: true }]
+          [{ text: "And this is where it stops being about Diego.", bold: false },
+           { text: "[read the banner]  N of these M say the same thing. P different people, the same missing authority.", italics: true, color: VIOLET, size: 22 },
+           { text: "That is one policy to write, not P conversations to have.", bold: true }]
         ),
-        note("The two counts move every time you rehearse, because act two writes a new recommendation on every run. Read them, do not recite them. The number that holds is five people, and that is the one the line rests on."),
+        note("Every number here moves. Act two writes a new card on each run, and deciding a card can drop a person out of the cluster entirely. As of 13 Sept it reads 6 of 10, 4 people. Read all three off the screen, and say the people number twice: once as the count, once as the conversations."),
 
         screenBar("The close", "2:32 to 2:40"),
         beat(
